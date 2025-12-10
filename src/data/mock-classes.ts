@@ -1,0 +1,1033 @@
+import { Class } from "../types/dnd-types";
+
+export const combinedClasses: Class[] = [
+  // --- OFFICIAL 5E CLASSES (Updated with 2024 data where applicable) ---
+  {
+    id: "barbarian",
+    name: "Barbarian",
+    description:
+      "A fierce warrior of primal rage who can enter a battle frenzy to withstand damage and deal devastating blows.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 12,
+    primaryAbility: ["STR"],
+    savingThrows: ["STR", "CON"],
+    features: [
+      {
+        level: 1,
+        name: "Rage",
+        description: "You can enter a rage as a bonus action, gaining damage resistance and bonus damage.",
+      },
+      {
+        level: 1,
+        name: "Unarmored Defense",
+        description: "While not wearing armor, your AC equals 10 + DEX modifier + CON modifier.",
+      },
+      {
+        level: 1,
+        name: "Weapon Mastery",
+        description: "You can use the mastery properties of weapons you are proficient with.",
+      },
+      {
+        level: 2,
+        name: "Danger Sense",
+        description: "You have advantage on Dexterity saves against effects you can see.",
+      },
+      {
+        level: 3,
+        name: "Primal Path",
+        description: "You choose a path that shapes your rage.",
+      },
+    ],
+    subclasses: ["Berserker", "Wild Heart", "World Tree", "Zealot"],
+  },
+  {
+    id: "bard",
+    name: "Bard",
+    description:
+      "An inspiring magician whose power echoes the music of creation.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["CHA"],
+    savingThrows: ["DEX", "CHA"],
+    spellcaster: "full",
+    spellcastingAbility: "CHA",
+    features: [
+      {
+        level: 1,
+        name: "Bardic Inspiration",
+        description: "You can inspire others through stirring words or music, granting them a bonus die.",
+      },
+      {
+        level: 1,
+        name: "Spellcasting",
+        description: "You can cast bard spells using Charisma as your spellcasting ability.",
+      },
+      {
+        level: 2,
+        name: "Expertise",
+        description: "Choose two skills to double your proficiency bonus for.",
+      },
+      {
+        level: 2,
+        name: "Jack of All Trades",
+        description: "Add half proficiency to checks that don't already include it.",
+      },
+      {
+        level: 3,
+        name: "Bard Subclass",
+        description: "You choose a college that grants you special features.",
+      },
+    ],
+    subclasses: ["Dance", "Glamour", "Lore", "Valor"],
+  },
+  {
+    id: "cleric",
+    name: "Cleric",
+    description:
+      "A priestly champion who wields divine magic in service of a higher power.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["WIS"],
+    savingThrows: ["WIS", "CHA"],
+    spellcaster: "full",
+    spellcastingAbility: "WIS",
+    features: [
+      {
+        level: 1,
+        name: "Spellcasting",
+        description: "You can cast cleric spells using Wisdom as your spellcasting ability.",
+      },
+      {
+        level: 1,
+        name: "Divine Order",
+        description: "Choose between Protector (armor/weapons) or Thaumaturge (extra magic/skills).",
+      },
+      {
+        level: 2,
+        name: "Channel Divinity",
+        description: "You can channel divine energy to fuel magical effects like Turn Undead.",
+      },
+      {
+        level: 3,
+        name: "Cleric Subclass",
+        description: "You choose a divine domain that grants you special powers.",
+      },
+    ],
+    subclasses: ["Life", "Light", "Trickery", "War"],
+  },
+  {
+    id: "druid",
+    name: "Druid",
+    description:
+      "A priest of the Old Faith, wielding the powers of nature and adopting animal forms.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["WIS"],
+    savingThrows: ["INT", "WIS"],
+    spellcaster: "full",
+    spellcastingAbility: "WIS",
+    features: [
+      {
+        level: 1,
+        name: "Druidic",
+        description: "You know Druidic, the secret language of druids.",
+      },
+      {
+        level: 1,
+        name: "Primal Order",
+        description: "Choose between Magician (more magic) or Warden (better armor/weapons).",
+      },
+      {
+        level: 2,
+        name: "Wild Shape",
+        description: "You can magically assume the shape of a beast that you have seen before.",
+      },
+      {
+        level: 3,
+        name: "Druid Subclass",
+        description: "You choose a circle that grants you special features.",
+      },
+    ],
+    subclasses: ["Land", "Moon", "Sea", "Stars"],
+  },
+  {
+    id: "fighter",
+    name: "Fighter",
+    description:
+      "A master of martial combat, skilled with a variety of weapons and armor.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["STR", "DEX"],
+    savingThrows: ["STR", "CON"],
+    features: [
+      {
+        level: 1,
+        name: "Fighting Style",
+        description: "You adopt a particular style of fighting as your specialty.",
+      },
+      {
+        level: 1,
+        name: "Second Wind",
+        description: "You can use a bonus action to regain hit points equal to 1d10 + your fighter level.",
+      },
+      {
+        level: 1,
+        name: "Weapon Mastery",
+        description: "You can use the mastery properties of weapons you are proficient with.",
+      },
+      {
+        level: 2,
+        name: "Action Surge",
+        description: "You can take one additional action on your turn.",
+      },
+      {
+        level: 3,
+        name: "Fighter Subclass",
+        description: "You choose a subclass that represents your martial specialization.",
+      },
+    ],
+    subclasses: ["Champion", "Battle Master", "Eldritch Knight", "Psi Warrior"],
+  },
+  {
+    id: "monk",
+    name: "Monk",
+    description:
+      "A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["DEX", "WIS"],
+    savingThrows: ["STR", "DEX"],
+    features: [
+      {
+        level: 1,
+        name: "Martial Arts",
+        description: "You master combat styles using unarmed strikes and monk weapons, using Dex instead of Str.",
+      },
+      {
+        level: 1,
+        name: "Unarmored Defense",
+        description: "While not wearing armor, your AC equals 10 + DEX modifier + WIS modifier.",
+      },
+      {
+        level: 2,
+        name: "Monk's Focus",
+        description: "You gain Focus Points (formerly Ki) to fuel special abilities like Flurry of Blows.",
+      },
+      {
+        level: 3,
+        name: "Deflect Attacks",
+        description: "You can use your reaction to reduce damage from weapon attacks.",
+      },
+      {
+        level: 3,
+        name: "Monk Subclass",
+        description: "You choose a tradition that grants you special features.",
+      },
+    ],
+    subclasses: ["Warrior of Mercy", "Warrior of Shadow", "Warrior of the Elements", "Warrior of the Open Hand"],
+  },
+  {
+    id: "paladin",
+    name: "Paladin",
+    description:
+      "A holy warrior bound to a sacred oath, wielding both divine magic and martial prowess.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["STR", "CHA"],
+    savingThrows: ["WIS", "CHA"],
+    spellcaster: "half",
+    spellcastingAbility: "CHA",
+    features: [
+      {
+        level: 1,
+        name: "Lay on Hands",
+        description: "You have a pool of healing power that replenishes on long rest.",
+      },
+      {
+        level: 1,
+        name: "Spellcasting",
+        description: "You can cast paladin spells using Charisma as your spellcasting ability.",
+      },
+      {
+        level: 2,
+        name: "Paladin's Smite",
+        description: "You always have Divine Smite prepared and can cast it once without a slot.",
+      },
+      {
+        level: 3,
+        name: "Channel Divinity",
+        description: "You can channel divine energy to fuel magical effects.",
+      },
+      {
+        level: 3,
+        name: "Paladin Subclass",
+        description: "You swear an oath that grants you special features.",
+      },
+    ],
+    subclasses: ["Devotion", "Glory", "Ancients", "Vengeance"],
+  },
+  {
+    id: "ranger",
+    name: "Ranger",
+    description:
+      "A warrior who uses martial prowess and nature magic to combat threats on the edges of civilization.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["DEX", "WIS"],
+    savingThrows: ["STR", "DEX"],
+    spellcaster: "half",
+    spellcastingAbility: "WIS",
+    features: [
+      {
+        level: 1,
+        name: "Favored Enemy",
+        description: "You always have Hunter's Mark prepared and can cast it without a spell slot a number of times.",
+      },
+      {
+        level: 1,
+        name: "Spellcasting",
+        description: "You can cast ranger spells using Wisdom as your spellcasting ability.",
+      },
+      {
+        level: 2,
+        name: "Deft Explorer",
+        description: "You gain Expertise in a skill and learn two languages.",
+      },
+      {
+        level: 3,
+        name: "Ranger Subclass",
+        description: "You choose a subclass that reflects your ranger training.",
+      },
+    ],
+    subclasses: ["Beast Master", "Fey Wanderer", "Gloom Stalker", "Hunter"],
+  },
+  {
+    id: "rogue",
+    name: "Rogue",
+    description:
+      "A scoundrel who uses stealth and trickery to overcome obstacles and enemies.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["DEX"],
+    savingThrows: ["DEX", "INT"],
+    features: [
+      {
+        level: 1,
+        name: "Sneak Attack",
+        description: "Once per turn, you can deal extra damage to one creature you hit if you have advantage or an ally nearby.",
+      },
+      {
+        level: 1,
+        name: "Expertise",
+        description: "Choose two skills to double your proficiency bonus for.",
+      },
+      {
+        level: 2,
+        name: "Cunning Action",
+        description: "You can use a bonus action to Dash, Disengage, or Hide on each turn.",
+      },
+      {
+        level: 3,
+        name: "Rogue Subclass",
+        description: "You choose a subclass that reflects your criminal expertise.",
+      },
+      {
+        level: 5,
+        name: "Cunning Strike",
+        description: "You can trade Sneak Attack damage dice for special effects like tripping or poisoning.",
+      },
+    ],
+    subclasses: ["Arcane Trickster", "Assassin", "Soulknife", "Thief"],
+  },
+  {
+    id: "sorcerer",
+    name: "Sorcerer",
+    description:
+      "A spellcaster who draws on inherent magic from a gift or bloodline.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 6,
+    primaryAbility: ["CHA"],
+    savingThrows: ["CON", "CHA"],
+    spellcaster: "full",
+    spellcastingAbility: "CHA",
+    features: [
+      {
+        level: 1,
+        name: "Innate Sorcery",
+        description: "You can unleash a surge of magic to increase your save DC and gain advantage on spell attacks.",
+      },
+      {
+        level: 1,
+        name: "Spellcasting",
+        description: "You can cast sorcerer spells using Charisma as your spellcasting ability.",
+      },
+      {
+        level: 2,
+        name: "Font of Magic",
+        description: "You can tap into a wellspring of magic within yourself (Sorcery Points).",
+      },
+      {
+        level: 2,
+        name: "Metamagic",
+        description: "You gain the ability to twist your spells to suit your needs.",
+      },
+      {
+        level: 3,
+        name: "Sorcerer Subclass",
+        description: "Choose a sorcerous origin that describes the source of your magic.",
+      },
+    ],
+    subclasses: ["Aberrant Sorcery", "Clockwork Sorcery", "Draconic Sorcery", "Wild Magic Sorcery"],
+  },
+  {
+    id: "warlock",
+    name: "Warlock",
+    description:
+      "A wielder of magic derived from a bargain with an extraplanar entity.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["CHA"],
+    savingThrows: ["WIS", "CHA"],
+    spellcaster: "pact",
+    spellcastingAbility: "CHA",
+    features: [
+      {
+        level: 1,
+        name: "Pact Magic",
+        description: "You can cast warlock spells using Charisma. Your spell slots recharge on a short rest.",
+      },
+      {
+        level: 1,
+        name: "Eldritch Invocations",
+        description: "You gain eldritch invocations, fragments of forbidden knowledge.",
+      },
+      {
+        level: 2,
+        name: "Magical Cunning",
+        description: "You can perform a rite to regain half your expended Pact Magic slots.",
+      },
+      {
+        level: 3,
+        name: "Warlock Subclass",
+        description: "You choose an otherworldly patron that grants you powers.",
+      },
+    ],
+    subclasses: ["Archfey", "Celestial", "Fiend", "Great Old One"],
+  },
+  {
+    id: "wizard",
+    name: "Wizard",
+    description:
+      "A scholarly magic-user capable of manipulating the structures of reality through careful study and arcane formulas.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    hitDie: 6,
+    primaryAbility: ["INT"],
+    savingThrows: ["INT", "WIS"],
+    spellcaster: "full",
+    spellcastingAbility: "INT",
+    features: [
+      {
+        level: 1,
+        name: "Spellcasting",
+        description: "You can cast wizard spells using Intelligence as your spellcasting ability.",
+      },
+      {
+        level: 1,
+        name: "Arcane Recovery",
+        description: "Once per day when you finish a short rest, you can recover some expended spell slots.",
+      },
+      {
+        level: 2,
+        name: "Scholar",
+        description: "You gain Expertise in an academic skill (Arcana, History, Nature, etc).",
+      },
+      {
+        level: 3,
+        name: "Wizard Subclass",
+        description: "You choose a subclass that represents your magical specialty.",
+      },
+      {
+        level: 5,
+        name: "Memorize Spell",
+        description: "You can swap out prepared spells on a short rest.",
+      },
+    ],
+    subclasses: ["Abjurer", "Diviner", "Evoker", "Illusionist"],
+  },
+
+  // --- THIRD PARTY / EXPANSION CLASSES ---
+
+  {
+    id: "artificer",
+    name: "Artificer",
+    description:
+      "Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects.",
+    source: "Eberron: Rising from the Last War",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["INT"],
+    savingThrows: ["CON", "INT"],
+    spellcaster: "half",
+    spellcastingAbility: "INT",
+    features: [
+      {
+        level: 1,
+        name: "Magical Tinkering",
+        description: "You can imbue mundane objects with minor magical properties.",
+      },
+      {
+        level: 1,
+        name: "Spellcasting",
+        description: "You can cast artificer spells using Intelligence as your spellcasting ability.",
+      },
+      {
+        level: 2,
+        name: "Infuse Item",
+        description: "You can imbue mundane items with certain infusions to turn them into magic items.",
+      },
+      {
+        level: 3,
+        name: "Artificer Specialist",
+        description: "You choose a specialist archetype that grants you special features.",
+      },
+    ],
+    subclasses: ["Alchemist", "Armorer", "Artillerist", "Battle Smith"],
+  },
+  {
+    id: "accursed",
+    name: "Accursed",
+    description:
+      "Afflicted with a permanent magic curse, accurseds harness the power of their affliction to their own ends.",
+    source: "The Ultimate Adventurer's Handbook",
+    edition: "5e",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["STR", "DEX", "CHA"],
+    savingThrows: ["WIS", "CHA"],
+    features: [
+      {
+        level: 1,
+        name: "Conquered Curse",
+        description: "You choose the nature of the curse you conquered (e.g., Lycanthropy, Lichdom).",
+      },
+      {
+        level: 1,
+        name: "Jinx",
+        description: "You can bestow minor curses on creatures to hinder their checks or attacks.",
+      },
+      {
+        level: 2,
+        name: "Malediction Metamorphosis",
+        description: "Your curse evolves, granting you new capabilities and mutations.",
+      },
+      {
+        level: 2,
+        name: "Spellcasting",
+        description: "You use your curse's vile magicks to fuel spells.",
+      },
+    ],
+    subclasses: ["Curse of Animation", "Curse of the Armament", "Curse of Lycanthropy", "Curse of the Fiend"],
+  },
+  {
+    id: "alchemist",
+    name: "Alchemist",
+    description:
+      "A master of chemical reactions, creating volatile bombs and potent potions.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 6,
+    primaryAbility: ["INT"],
+    savingThrows: ["DEX", "INT"],
+    features: [
+      {
+        level: 1,
+        name: "Bombs",
+        description: "You can create volatile alchemical bombs to throw at enemies.",
+      },
+      {
+        level: 1,
+        name: "Natural Philosopher",
+        description: "You gain bonuses to identify herbs, potions, and poisons.",
+      },
+      {
+        level: 2,
+        name: "Field of Study",
+        description: "You specialize in a specific application of alchemy.",
+      },
+      {
+        level: 3,
+        name: "Reagent",
+        description: "You have a pool of reagent dice used to brew potions or boost bombs.",
+      },
+    ],
+    subclasses: ["Amorist", "Apothecary", "Dynamo Engineer", "Mad Bomber", "Mutagenist", "Ooze Rancher", "Venomsmith", "Xenoalchemist"],
+  },
+  {
+    id: "beastheart",
+    name: "Beastheart",
+    description:
+      "An adventurer who forms a supernatural bond with a wild creature, fighting in tandem.",
+    source: "MCDM Productions",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["DEX", "WIS"],
+    savingThrows: ["STR", "WIS"],
+    features: [
+      {
+        level: 1,
+        name: "Companion",
+        description: "You gain a wild companion that fights alongside you and grows in power.",
+      },
+      {
+        level: 1,
+        name: "Natural Language",
+        description: "You can communicate with your companion and other beasts.",
+      },
+      {
+        level: 2,
+        name: "Primal Exploits",
+        description: "You channel your companion's ferocity into special combat maneuvers.",
+      },
+      {
+        level: 3,
+        name: "Companion Bond",
+        description: "You choose the specific nature of the bond you share (e.g., Hunter, Infernal).",
+      },
+    ],
+    subclasses: ["Ferocious Bond", "Hunter Bond", "Infernal Bond", "Primordial Bond", "Protector Bond"],
+  },
+  {
+    id: "blood-mage",
+    name: "Blood Mage",
+    description:
+      "A mage who fuels their arcane power with their own life essence and blood.",
+    source: "Haigo Dungeoncrafts",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["CON", "INT"],
+    savingThrows: ["CON", "INT"],
+    spellcaster: "full",
+    spellcastingAbility: "CON",
+    features: [
+      {
+        level: 1,
+        name: "Arcane Blood Mass",
+        description: "You sacrifice HP to create a floating orb of blood that acts as your focus.",
+      },
+      {
+        level: 1,
+        name: "Blood Focus",
+        description: "You choose a specific philosophy of blood magic.",
+      },
+      {
+        level: 2,
+        name: "Blood Analysis",
+        description: "You can analyze blood to learn details about the creature it came from.",
+      },
+    ],
+    subclasses: ["Haemomancer", "Sacrificial Preserver", "Sanguine Supplementer"],
+  },
+  {
+    id: "captain",
+    name: "Captain",
+    description:
+      "A decisive leader and strategist who inspires allies and commands a loyal cohort.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["STR", "CHA"],
+    savingThrows: ["CON", "CHA"],
+    features: [
+      {
+        level: 1,
+        name: "Born Leader",
+        description: "You gain advantage on Persuasion checks to give orders or take charge.",
+      },
+      {
+        level: 1,
+        name: "Fighting Style",
+        description: "You adopt a particular style of fighting.",
+      },
+      {
+        level: 2,
+        name: "Cohort",
+        description: "You gain a loyal lieutenant who fights by your side.",
+      },
+      {
+        level: 3,
+        name: "Banner",
+        description: "You adopt a banner representing your leadership style.",
+      },
+    ],
+    subclasses: ["Dragon Banner", "Eagle Banner", "Lion Banner", "Ram Banner", "Raven Banner", "Turtle Banner"],
+  },
+  {
+    id: "craftsman",
+    name: "Craftsman",
+    description:
+      "A virtuoso artisan who forges masterwork equipment and invents ingenious devices.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["STR", "INT"],
+    savingThrows: ["CON", "INT"],
+    features: [
+      {
+        level: 1,
+        name: "Exotic Proficiencies",
+        description: "You gain proficiency with exotic weapons and armor.",
+      },
+      {
+        level: 1,
+        name: "Active Crafting",
+        description: "You can craft items rapidly during long rests.",
+      },
+      {
+        level: 2,
+        name: "Masterwork",
+        description: "You can create high-quality weapons and armor with special properties.",
+      },
+      {
+        level: 3,
+        name: "Artisans' Guild",
+        description: "You join a guild that defines your crafting specialty.",
+      },
+    ],
+    subclasses: ["Armigers' Guild", "Bladeworkers' Guild", "Calibarons' Guild", "Forgeknights' Guild", "Mechanauts' Guild", "Thunderlords' Guild", "Trappers' Guild"],
+  },
+  {
+    id: "gunslinger",
+    name: "Gunslinger",
+    description:
+      "A bold renegade who relies on black powder, grit, and luck to survive.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["DEX", "CHA"],
+    savingThrows: ["DEX", "CHA"],
+    features: [
+      {
+        level: 1,
+        name: "Quick Draw",
+        description: "You add your proficiency bonus to initiative and interact with firearms faster.",
+      },
+      {
+        level: 2,
+        name: "Risk",
+        description: "You use Risk Dice to perform deeds of daring and precision.",
+      },
+      {
+        level: 3,
+        name: "Gunslinger's Creed",
+        description: "You adopt a creed that guides your gunfighting style.",
+      },
+    ],
+    subclasses: ["Gun Tank", "Gun-Ko Master", "High Roller", "Musketeer", "Pistolero", "Sharpshooter", "Spellslinger"],
+  },
+  {
+    id: "illrigger",
+    name: "Illrigger",
+    description:
+      "A knight of Hell, a charismatic counter-paladin who commands devils and sows discord.",
+    source: "MCDM Productions",
+    edition: "5e",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["STR", "CHA"],
+    savingThrows: ["CON", "CHA"],
+    spellcaster: "third",
+    spellcastingAbility: "CHA",
+    features: [
+      {
+        level: 1,
+        name: "Forked Tongue",
+        description: "You are adept at manipulation and speak Infernal.",
+      },
+      {
+        level: 1,
+        name: "Infernal Conduit",
+        description: "You have a pool of dice to drain life from enemies or heal allies.",
+      },
+      {
+        level: 2,
+        name: "Baleful Interdict",
+        description: "You can place seals on enemies that detonate for damage when they are hit.",
+      },
+      {
+        level: 3,
+        name: "Diabolic Contract",
+        description: "You sign a contract with an archdevil, defining your subclass.",
+      },
+    ],
+    subclasses: ["Painkiller (Dispater)", "Shadowmaster (Moloch)", "Architect of Ruin (Asmodeus)"],
+  },
+  {
+    id: "investigator",
+    name: "Investigator",
+    description:
+      "A supernatural detective and monster slayer who uses rituals and trinkets to combat the occult.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["INT", "DEX"],
+    savingThrows: ["DEX", "INT"],
+    features: [
+      {
+        level: 1,
+        name: "Ritualist",
+        description: "You have a grimoire of ritual spells you can cast.",
+      },
+      {
+        level: 2,
+        name: "Myths and Legends",
+        description: "You have advantage on checks to research monsters and lore.",
+      },
+      {
+        level: 3,
+        name: "Occult Specialization",
+        description: "You choose a field of expertise in handling threats.",
+      },
+    ],
+    subclasses: ["Antiquarian", "Archivist", "Detective", "Exterminator", "Inquisitor", "Medium", "Occultist", "Spy"],
+  },
+  {
+    id: "martyr",
+    name: "Martyr",
+    description:
+      "A chosen of the gods fated to die for a cause, growing stronger as they suffer.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 12,
+    primaryAbility: ["CON", "WIS"],
+    savingThrows: ["STR", "WIS"],
+    spellcaster: "half",
+    spellcastingAbility: "WIS",
+    features: [
+      {
+        level: 1,
+        name: "Mortal Burden",
+        description: "You choose the burden (subclass) that defines your inevitable death.",
+      },
+      {
+        level: 1,
+        name: "Ordained Death",
+        description: "You are harder to kill until your destined time; you need 5 failed death saves to die.",
+      },
+      {
+        level: 2,
+        name: "Spellcasting",
+        description: "You cast spells by sacrificing your own hit points.",
+      },
+    ],
+    subclasses: ["Burden of Atonement", "Burden of Discord", "Burden of Mercy", "Burden of Revolution", "Burden of Truth", "Burden of Tyranny"],
+  },
+  {
+    id: "necromancer",
+    name: "Necromancer",
+    description:
+      "A master of death who animates thralls and manipulates life force.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 6,
+    primaryAbility: ["INT"],
+    savingThrows: ["CON", "INT"],
+    spellcaster: "full",
+    spellcastingAbility: "INT",
+    features: [
+      {
+        level: 1,
+        name: "Charnel Touch",
+        description: "You can unleash necrotic energy to harm the living or heal the undead.",
+      },
+      {
+        level: 2,
+        name: "Thralls",
+        description: "You can animate and permanently control a number of undead servants.",
+      },
+      {
+        level: 3,
+        name: "Grave Ambition",
+        description: "You choose the path of your necromantic research.",
+      },
+    ],
+    subclasses: ["Blood Ascendant", "Death Knight", "Overlord", "Pale Master", "Pharaoh", "Plague Lord", "Reanimator", "Reaper"],
+  },
+  {
+    id: "pugilist",
+    name: "Pugilist",
+    description:
+      "A rough-and-tumble brawler who relies on grit, moxie, and bare knuckles.",
+    source: "Sterling Vermin Adventuring Co.",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["STR", "CON"],
+    savingThrows: ["STR", "CON"],
+    features: [
+      {
+        level: 1,
+        name: "Fisticuffs",
+        description: "You master unarmed combat, dealing d6 damage and grappling as a bonus action.",
+      },
+      {
+        level: 1,
+        name: "Iron Chin",
+        description: "Your AC equals 12 + Con modifier when unarmored.",
+      },
+      {
+        level: 2,
+        name: "Moxie",
+        description: "You use Moxie points to fuel abilities like bracing for damage.",
+      },
+      {
+        level: 3,
+        name: "Fight Club",
+        description: "You join a Fight Club that defines your brawling style.",
+      },
+    ],
+    subclasses: ["Arena Royale", "Bloodhound Bruisers", "Dog & Hound", "Piss & Vinegar", "Squared Circle", "Sweet Science"],
+  },
+  {
+    id: "warden",
+    name: "Warden",
+    description:
+      "A vigilant guardian who draws on primal strength to protect a charge.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["CON", "STR"],
+    savingThrows: ["STR", "CON"],
+    features: [
+      {
+        level: 1,
+        name: "Sentinel's Stand",
+        description: "You choose a defensive bonus (Armor, HP, or Saves).",
+      },
+      {
+        level: 1,
+        name: "Warden's Grasp",
+        description: "You can lock down enemies near you, preventing them from moving away.",
+      },
+      {
+        level: 2,
+        name: "Warden's Mark",
+        description: "You mark enemies to hinder their attacks against your allies.",
+      },
+      {
+        level: 3,
+        name: "Champion's Call",
+        description: "You choose the nature of the duty you have sworn to uphold.",
+      },
+    ],
+    subclasses: ["Bloodwrath Guardian", "Grey Watchman", "Nightgaunt", "Soulblood Shaman", "Stoneheart Defender", "Storm Sentinel", "Verdant Protector"],
+  },
+  {
+    id: "warmage",
+    name: "Warmage",
+    description:
+      "A master of cantrips and battlefield tactics who treats magic as a weapon.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["INT", "DEX"],
+    savingThrows: ["CON", "INT"],
+    spellcaster: "special",
+    spellcastingAbility: "INT",
+    features: [
+      {
+        level: 1,
+        name: "Arcane Initiation",
+        description: "You choose where you learned your magic, gaining specific cantrips.",
+      },
+      {
+        level: 1,
+        name: "Warmage Edge",
+        description: "You deal extra damage with cantrips based on your Intelligence.",
+      },
+      {
+        level: 2,
+        name: "Warmage Tricks",
+        description: "You learn magical tricks to enhance your cantrips and utility.",
+      },
+      {
+        level: 3,
+        name: "Warmage House",
+        description: "You join a House that teaches specific tactical doctrines.",
+      },
+    ],
+    subclasses: ["House of Bishops", "House of Cards", "House of Dice", "House of Kings", "House of Knights", "House of Lancers", "House of Rooks"],
+  },
+  {
+    id: "witch",
+    name: "Witch",
+    description:
+      "A spellcaster stricken by a dark curse, using hexes and familiars to survive.",
+    source: "Kobold Press / Mage Hand Press",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["CHA", "CON"],
+    savingThrows: ["WIS", "CHA"],
+    spellcaster: "full",
+    spellcastingAbility: "CHA",
+    features: [
+      {
+        level: 1,
+        name: "Witch's Curse",
+        description: "You are afflicted by a curse (e.g., Burned, Feral) that grants power at a cost.",
+      },
+      {
+        level: 1,
+        name: "Hexes",
+        description: "You can cast minor curses to debilitating effect.",
+      },
+      {
+        level: 2,
+        name: "Cackle",
+        description: "You can use a bonus action to extend the duration of your hexes.",
+      },
+      {
+        level: 3,
+        name: "Witch's Craft",
+        description: "You choose a craft that defines your magical specialization.",
+      },
+    ],
+    subclasses: ["Black Magic", "Blood Magic", "Green Magic", "Purple Magic", "Red Magic", "Steel Magic", "White Magic"],
+  },
+];
