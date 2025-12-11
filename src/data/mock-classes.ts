@@ -7,6 +7,7 @@ export const combinedClasses: Class[] = [
     name: "Barbarian",
     description:
       "A fierce warrior of primal rage who can enter a battle frenzy to withstand damage and deal devastating blows.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -47,6 +48,7 @@ export const combinedClasses: Class[] = [
     name: "Bard",
     description:
       "An inspiring magician whose power echoes the music of creation.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -89,6 +91,7 @@ export const combinedClasses: Class[] = [
     name: "Cleric",
     description:
       "A priestly champion who wields divine magic in service of a higher power.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -126,6 +129,7 @@ export const combinedClasses: Class[] = [
     name: "Druid",
     description:
       "A priest of the Old Faith, wielding the powers of nature and adopting animal forms.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -163,6 +167,7 @@ export const combinedClasses: Class[] = [
     name: "Fighter",
     description:
       "A master of martial combat, skilled with a variety of weapons and armor.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -203,6 +208,7 @@ export const combinedClasses: Class[] = [
     name: "Monk",
     description:
       "A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -259,6 +265,7 @@ export const combinedClasses: Class[] = [
     name: "Paladin",
     description:
       "A holy warrior bound to a sacred oath, wielding both divine magic and martial prowess.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -311,6 +318,7 @@ export const combinedClasses: Class[] = [
     name: "Ranger",
     description:
       "A warrior who uses martial prowess and nature magic to combat threats on the edges of civilization.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -348,6 +356,7 @@ export const combinedClasses: Class[] = [
     name: "Rogue",
     description:
       "A scoundrel who uses stealth and trickery to overcome obstacles and enemies.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -388,6 +397,7 @@ export const combinedClasses: Class[] = [
     name: "Sorcerer",
     description:
       "A spellcaster who draws on inherent magic from a gift or bloodline.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -430,6 +440,7 @@ export const combinedClasses: Class[] = [
     name: "Warlock",
     description:
       "A wielder of magic derived from a bargain with an extraplanar entity.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -467,6 +478,7 @@ export const combinedClasses: Class[] = [
     name: "Wizard",
     description:
       "A scholarly magic-user capable of manipulating the structures of reality through careful study and arcane formulas.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "2024",
     version: 1,
@@ -512,6 +524,7 @@ export const combinedClasses: Class[] = [
     name: "Artificer",
     description:
       "Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "5e",
     version: 1,
@@ -549,6 +562,7 @@ export const combinedClasses: Class[] = [
     name: "Blood Hunter",
     description:
       "A warrior who uses hemocraft magic to hunt monsters, often at a cost to their own vitality.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "5e",
     version: 1,
@@ -586,6 +600,7 @@ export const combinedClasses: Class[] = [
     name: "Accursed",
     description:
       "Afflicted with a permanent magic curse, accurseds harness the power of their affliction to their own ends.",
+    imageUrl: "https://placehold.co/600x400",
     source: "The Ultimate Adventurer's Handbook",
     edition: "5e",
     version: 1,
@@ -621,6 +636,7 @@ export const combinedClasses: Class[] = [
     name: "Alchemist",
     description:
       "A master of chemical reactions, creating volatile bombs and potent potions.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -656,6 +672,7 @@ export const combinedClasses: Class[] = [
     name: "Beastheart",
     description:
       "An adventurer who forms a supernatural bond with a wild creature, fighting in tandem.",
+    imageUrl: "https://placehold.co/600x400",
     source: "MCDM Productions",
     edition: "5e",
     version: 1,
@@ -691,6 +708,7 @@ export const combinedClasses: Class[] = [
     name: "Blood Mage",
     description:
       "A mage who fuels their arcane power with their own life essence and blood.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Haigo Dungeoncrafts",
     edition: "5e",
     version: 1,
@@ -723,6 +741,7 @@ export const combinedClasses: Class[] = [
     name: "Captain",
     description:
       "A decisive leader and strategist who inspires allies and commands a loyal cohort.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -758,6 +777,7 @@ export const combinedClasses: Class[] = [
     name: "Craftsman",
     description:
       "A virtuoso artisan who forges masterwork equipment and invents ingenious devices.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -793,6 +813,7 @@ export const combinedClasses: Class[] = [
     name: "Gunslinger",
     description:
       "A bold renegade who relies on black powder, grit, and luck to survive.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -823,6 +844,7 @@ export const combinedClasses: Class[] = [
     name: "Illrigger",
     description:
       "A knight of Hell, a charismatic counter-paladin who commands devils and sows discord.",
+    imageUrl: "https://placehold.co/600x400",
     source: "MCDM Productions",
     edition: "5e",
     version: 1,
@@ -860,6 +882,7 @@ export const combinedClasses: Class[] = [
     name: "Investigator",
     description:
       "A supernatural detective and monster slayer who uses rituals and trinkets to combat the occult.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -890,6 +913,7 @@ export const combinedClasses: Class[] = [
     name: "Martyr",
     description:
       "A chosen of the gods fated to die for a cause, growing stronger as they suffer.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -922,6 +946,7 @@ export const combinedClasses: Class[] = [
     name: "Necromancer",
     description:
       "A master of death who animates thralls and manipulates life force.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -954,6 +979,7 @@ export const combinedClasses: Class[] = [
     name: "Pugilist",
     description:
       "A rough-and-tumble brawler who relies on grit, moxie, and bare knuckles.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Sterling Vermin Adventuring Co.",
     edition: "5e",
     version: 1,
@@ -989,6 +1015,7 @@ export const combinedClasses: Class[] = [
     name: "Warden",
     description:
       "A vigilant guardian who draws on primal strength to protect a charge.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -1024,6 +1051,7 @@ export const combinedClasses: Class[] = [
     name: "Warmage",
     description:
       "A master of cantrips and battlefield tactics who treats magic as a weapon.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -1061,6 +1089,7 @@ export const combinedClasses: Class[] = [
     name: "Witch",
     description:
       "A spellcaster stricken by a dark curse, using hexes and familiars to survive.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Kobold Press / Mage Hand Press",
     edition: "5e",
     version: 1,
@@ -1098,6 +1127,7 @@ export const combinedClasses: Class[] = [
     name: "Acolyte",
     description:
       "Mortal agents of immortal causes who bring cosmic power into their bodies and souls.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Adventures in Rokugan",
     edition: "5e",
     version: 1,
@@ -1128,6 +1158,7 @@ export const combinedClasses: Class[] = [
     name: "Adept",
     description:
       "Wielders of psionic power who use inner focus and will to manipulate energy and matter.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Esper Genesis Core Manual",
     edition: "5e",
     version: 1,
@@ -1163,6 +1194,7 @@ export const combinedClasses: Class[] = [
     name: "Animal Master",
     description:
       "An adventurer who has trained a loyal animal companion to fight by their side.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Valda's Spire of Secrets",
     edition: "5e",
     version: 1,
@@ -1183,6 +1215,7 @@ export const combinedClasses: Class[] = [
     name: "Apothecary",
     description:
       "A practiced medical expert and arcane user who wields knowledge to heal and harm.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Sebastian Crowe's Guide to Drakkenheim",
     edition: "5e",
     version: 1,

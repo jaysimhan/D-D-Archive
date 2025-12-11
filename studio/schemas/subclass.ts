@@ -38,6 +38,7 @@ export default {
             name: 'image',
             title: 'Image',
             type: 'image',
+            description: 'Minimum 300x300px, Maximum 2000x2000px',
             options: {
                 hotspot: true,
             },

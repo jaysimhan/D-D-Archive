@@ -6,6 +6,7 @@ export const mockBackgrounds: Background[] = [
     name: "Acolyte",
     description:
       "You have spent your life in the service of a temple to a specific god or pantheon of gods.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -31,6 +32,7 @@ export const mockBackgrounds: Background[] = [
     name: "Criminal",
     description:
       "You are an experienced criminal with a history of breaking the law.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -53,6 +55,7 @@ export const mockBackgrounds: Background[] = [
     name: "Folk Hero",
     description:
       "You come from a humble social rank, but you are destined for so much more. The people of your home village regard you as their champion.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -77,6 +80,7 @@ export const mockBackgrounds: Background[] = [
     name: "Noble",
     description:
       "You understand wealth, power, and privilege. You carry a noble title.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -100,6 +104,7 @@ export const mockBackgrounds: Background[] = [
     name: "Sage",
     description:
       "You spent years learning the lore of the multiverse. You scoured manuscripts, studied scrolls, and listened to the greatest experts.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -125,6 +130,7 @@ export const mockBackgrounds: Background[] = [
     name: "Soldier",
     description:
       "War has been your life for as long as you care to remember. You trained as a youth, studied the use of weapons and armor.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -149,6 +155,7 @@ export const mockBackgrounds: Background[] = [
     name: "Charlatan",
     description:
       "You have always had a way with people. You know what makes them tick and can tease out their hearts' desires.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -172,6 +179,7 @@ export const mockBackgrounds: Background[] = [
     name: "Outlander",
     description:
       "You grew up in the wilds, far from civilization and the comforts of town and technology.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -196,6 +204,7 @@ export const mockBackgrounds: Background[] = [
     name: "Guild Artisan",
     description:
       "You are a member of an artisan's guild, skilled in a particular field and closely associated with other artisans.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -219,6 +228,7 @@ export const mockBackgrounds: Background[] = [
     name: "Entertainer",
     description:
       "You thrive in front of an audience. You know how to entrance them, entertain them, and even inspire them.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -242,6 +252,7 @@ export const mockBackgrounds: Background[] = [
     name: "Urchin",
     description:
       "You grew up on the streets alone, orphaned, and poor. You had no one to watch over you or to provide for you, so you learned to provide for yourself.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -267,6 +278,7 @@ export const mockBackgrounds: Background[] = [
     name: "Hermit",
     description:
       "You lived in seclusion—either in a sheltered community or entirely alone—for a formative part of your life.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -291,6 +303,7 @@ export const mockBackgrounds: Background[] = [
     name: "Sailor",
     description:
       "You sailed on a seagoing vessel for years. In that time, you faced down mighty storms, monsters of the deep, and those who wanted to sink your craft.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -315,6 +328,7 @@ export const mockBackgrounds: Background[] = [
     name: "Haunted One",
     description:
       "You are haunted by something so terrible that you dare not speak of it. You've tried to bury it and run away from it, to no avail.",
+    imageUrl: "https://placehold.co/600x400",
     source: "Official",
     edition: "Both",
     version: 1,

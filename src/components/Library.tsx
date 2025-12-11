@@ -16,7 +16,7 @@ import {
 } from "../utils/search-utils";
 import { FeatCard } from "./FeatCard";
 import { SearchFilters } from "../types/dnd-types";
-import { BookOpen, Sparkles, Users, Package, Scroll, Plus, Shield, Award } from "lucide-react";
+import { BookOpen, Sparkles, Users, Package, Scroll, Shield, Award } from "lucide-react";
 
 type LibraryTab = "spells" | "classes" | "subclasses" | "races" | "items" | "backgrounds" | "feats";
 
@@ -84,10 +84,6 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
                 Browse spells, classes, races, items, and backgrounds
               </p>
             </div>
-            <button className="flex items-center gap-2 px-6 py-3 bg-white text-red-700 rounded-lg hover:bg-red-50 transition-colors w-full md:w-auto justify-center">
-              <Plus className="w-5 h-5" />
-              Add Homebrew
-            </button>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { ArrowRight, ArrowLeft, Check, User, Search, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subclass, Feat, Subrace } from "../types/dnd-types";
 import { RACES } from "../data/comprehensive-library";
@@ -45,354 +45,23 @@ interface CharacterData {
   };
 }
 
-export function CharacterCreator() {
-  const [currentStep, setCurrentStep] = useState<CreationStep>("name");
-  const [isComplete, setIsComplete] = useState(false);
-  const [characterData, setCharacterData] = useState<CharacterData>({
-    name: "",
-    level: 1,
-    abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-    selectedSpells: [],
-    feats: [],
-    equipment: [],
-    magicInitiateClass: undefined,
-    personality: {},
-  });
 
-  // All races including subraces as individual options
-  const allRaces = useMemo(() => {
-    const raceList: Race[] = [...RACES];
-    SUBRACES.forEach(subrace => {
-      const parentRace = RACES.find(r => r.id === subrace.parentRaceId);
-      if (parentRace) {
-        raceList.push({
-          ...subrace,
-          name: `${subrace.name}`,
-          description: subrace.description || parentRace.description,
-          id: subrace.id,
-          source: subrace.source,
-          edition: subrace.edition,
-          version: subrace.version,
-          abilityScoreIncrease: {
-            ...parentRace.abilityScoreIncrease,
-            ...subrace.abilityScoreIncrease
-          },
-          size: parentRace.size,
-          speed: parentRace.speed,
-          traits: [...parentRace.traits, ...(subrace.traits || [])],
-          languages: parentRace.languages,
-          racialSpellChoices: subrace.racialSpellChoices || parentRace.racialSpellChoices,
-        } as Race);
-      }
-    });
-    // Deduplicate races by name
-    const seenNames = new Set<string>();
-    const uniqueRaces: Race[] = [];
+// Memoized Step Components for Performance
+const NameStep = memo(_NameStep);
+const ClassStep = memo(_ClassStep);
+const SubclassStep = memo(_SubclassStep);
+const RaceStep = memo(_RaceStep);
+const AbilityScoreStep = memo(_AbilityScoreStep);
+const BackgroundStep = memo(_BackgroundStep);
+const SpellSelectionStep = memo(_SpellSelectionStep);
+const SpellSelectionModal = memo(_SpellSelectionModal);
+const EquipmentStep = memo(_EquipmentStep);
+const PersonalityStep = memo(_PersonalityStep);
+const FeatSelectionStep = memo(_FeatSelectionStep);
 
-    for (const r of raceList) {
-      // Filter out races without Ability Score Increases
-      const hasASI = r.abilityScoreIncrease && Object.values(r.abilityScoreIncrease).some(v => v !== 0);
-      if (!hasASI) continue;
-
-      if (r.id === "tortle" || r.id === "satyr") {
-        if (!seenNames.has(r.name)) {
-          seenNames.add(r.name);
-          uniqueRaces.push(r);
-        }
-      } else {
-        // Default checking for name duplicates for all races
-        if (!seenNames.has(r.name)) {
-          seenNames.add(r.name);
-          uniqueRaces.push(r);
-        }
-      }
-    }
-
-    return uniqueRaces;
-  }, []);
-
-  const steps: CreationStep[] = useMemo(() => {
-    const baseSteps: CreationStep[] = ["name", "race", "class"];
-
-    // Add subclass step if character level requires it
-    if (characterData.class) {
-      const subclassLevel = characterData.class.id === "cleric" ||
-        characterData.class.id === "sorcerer" ||
-        characterData.class.id === "warlock" ? 1 :
-        characterData.class.id === "wizard" ? 2 : 3;
-
-      // Check if there are any subclasses available for this class
-      const hasSubclasses = mockSubclasses.some(s => s.parentClassId === characterData.class?.id);
-
-      if (characterData.level >= subclassLevel && hasSubclasses) {
-        baseSteps.push("subclass");
-      }
-    }
-
-    baseSteps.push("abilities", "background");
-
-    // Check for spell-granting feats
-    const spellFeats = ["Magic Initiate", "Aberrant Dragonmark", "Fey Touched", "Shadow Touched", "Telekinetic"];
-    const hasSpellFeat = characterData.feats.some(f => spellFeats.some(sf => f.name.includes(sf)));
-
-    // Check for racial spell choices or known spells
-    const hasRacialSpells = (characterData.race?.racialSpellChoices && characterData.race.racialSpellChoices.length > 0) ||
-      (characterData.subrace?.racialSpellChoices && characterData.subrace.racialSpellChoices.length > 0) ||
-      (characterData.race?.racialKnownSpells && characterData.race.racialKnownSpells.length > 0) ||
-      (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0);
-
-    if (characterData.class?.spellcaster || hasSpellFeat || hasRacialSpells) {
-      if (characterData.class?.spellcaster || characterData.subclass?.spellcaster) {
-        baseSteps.push("spells");
-      } else {
-        baseSteps.push("feats");
-      }
-    } else {
-      baseSteps.push("feats");
-    }
-
-    baseSteps.push("equipment", "personality");
-
-    return baseSteps;
-  }, [characterData.class, characterData.level, characterData.feats, characterData.race, characterData.subrace]);
-
-  const currentStepIndex = steps.indexOf(currentStep);
-
-  const nextStep = () => {
-    if (currentStepIndex < steps.length - 1) {
-      setCurrentStep(steps[currentStepIndex + 1]);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStep(steps[currentStepIndex - 1]);
-    }
-  };
-
-  const canProgress = (): boolean => {
-    switch (currentStep) {
-      case "name":
-        return characterData.name.trim().length > 0;
-      case "race":
-        return !!characterData.race;
-      case "class":
-        return !!characterData.class;
-      case "subclass":
-        return !!characterData.subclass;
-      case "abilities":
-        return true;
-      case "background":
-        return !!characterData.background;
-      case "spells":
-        return characterData.selectedSpells.length > 0;
-      case "feats":
-        return true; // Feats are optional or determined by race/level, allowing skip if none selected is usually fine? Or enforcement? User just said "add a section". I'll default to allowing progress.
-      case "equipment":
-        return true; // Skippable as requested
-      case "personality":
-        return true;
-      default:
-        return false;
-    }
-  };
-
-  const completeCharacter = () => {
-    setIsComplete(true);
-  };
-
-  const editCharacter = () => {
-    setIsComplete(false);
-    setCurrentStep("name");
-  };
-
-  if (isComplete) {
-    return <CharacterSheet character={characterData} onEdit={editCharacter} />;
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <h1 className="text-gray-900 text-3xl mb-1">Beginner Character Creator</h1>
-          <p className="text-gray-600">Create your first D&D character (Levels 1-3)</p>
-        </div>
-      </div>
-
-      {/* Progress Tracker */}
-      {/* Progress Tracker Removed as per request */}
-
-      {/* Top Navigation */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={prevStep}
-              disabled={currentStepIndex === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Previous
-            </button>
-            <span className="text-gray-700 font-medium capitalize ml-2">{currentStep.replace("-", " ")}</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {currentStepIndex === steps.length - 1 ? (
-              <button
-                onClick={completeCharacter}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm"
-              >
-                <Check className="w-4 h-4" />
-                Complete
-              </button>
-            ) : (
-              <button
-                onClick={nextStep}
-                disabled={!canProgress()}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium shadow-sm"
-              >
-                Next
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-8">
-        <div className="bg-white rounded-xl shadow-lg border">
-          <div className="p-4 md:p-8">
-            {/* Step Content */}
-            {currentStep === "name" && <NameStep characterData={characterData} setCharacterData={setCharacterData} />}
-            {currentStep === "race" && (
-              <RaceStep
-                race={characterData.race}
-                subrace={characterData.subrace}
-                onChange={(race, subrace) =>
-                  setCharacterData({ ...characterData, race, subrace })
-                }
-              />
-            )}
-            {currentStep === "class" && (
-              <ClassStep
-                selected={characterData.class}
-                level={characterData.level}
-                onSelect={(classData) =>
-                  setCharacterData({ ...characterData, class: classData, subclass: undefined })
-                }
-                onLevelChange={(level) => setCharacterData({ ...characterData, level })}
-              />
-            )}
-            {currentStep === "subclass" && characterData.class && (
-              <SubclassStep
-                classData={characterData.class}
-                selectedSubclass={characterData.subclass}
-                level={characterData.level}
-                onSelect={(subclass) => setCharacterData({ ...characterData, subclass })}
-              />
-            )}
-            {currentStep === "abilities" && (
-              <AbilityScoreStep
-                scores={characterData.abilityScores}
-                race={characterData.race}
-                onScoresChange={(abilityScores) =>
-                  setCharacterData({ ...characterData, abilityScores })
-                }
-              />
-            )}
-            {currentStep === "background" && (
-              <BackgroundStep
-                selected={characterData.background}
-                onSelect={(background) => setCharacterData({ ...characterData, background })}
-              />
-            )}
-            {currentStep === "spells" && (
-              !!characterData.class?.spellcaster ||
-              characterData.feats.some(f => f.name.includes("Magic Initiate") || f.name.includes("Aberrant Dragonmark")) ||
-              (characterData.race?.racialSpellChoices && characterData.race.racialSpellChoices.length > 0) ||
-              (characterData.subrace?.racialSpellChoices && characterData.subrace.racialSpellChoices.length > 0) ||
-              (characterData.race?.racialKnownSpells && characterData.race.racialKnownSpells.length > 0) ||
-              (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0)
-            ) && (
-                <SpellSelectionStep
-                  classData={characterData.class!}
-                  level={characterData.level}
-                  selectedSpells={characterData.selectedSpells}
-                  race={characterData.race}
-                  subrace={characterData.subrace}
-                  onSpellsChange={(spells) =>
-                    setCharacterData({ ...characterData, selectedSpells: spells })
-                  }
-                  feats={characterData.feats}
-                  subclass={characterData.subclass}
-                  magicInitiateClass={characterData.magicInitiateClass}
-                  onMagicInitiateClassChange={(cls) => setCharacterData({ ...characterData, magicInitiateClass: cls })}
-                />
-              )}
-            {currentStep === "feats" && (
-              <FeatSelectionStep
-                selectedFeats={characterData.feats}
-                onFeatsChange={(feats) => setCharacterData({ ...characterData, feats })}
-              />
-            )}
-            {currentStep === "equipment" && (
-              <EquipmentStep
-                equipment={characterData.equipment}
-                classData={characterData.class}
-                onEquipmentChange={(equipment) => setCharacterData({ ...characterData, equipment })}
-              />
-            )}
-            {currentStep === "personality" && (
-              <PersonalityStep
-                personality={characterData.personality}
-                onPersonalityChange={(personality) =>
-                  setCharacterData({ ...characterData, personality })
-                }
-              />
-            )}
-
-            {/* Navigation */}
-            <div className="sticky bottom-0 z-10 bg-white -mx-8 -mb-8 px-8 py-6 border-t shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex justify-between mt-8">
-              <button
-                onClick={prevStep}
-                disabled={currentStepIndex === 0}
-                className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Previous
-              </button>
-
-              {currentStepIndex === steps.length - 1 ? (
-                <button
-                  onClick={completeCharacter}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-md"
-                >
-                  <Check className="w-5 h-5" />
-                  Complete Character
-                </button>
-              ) : (
-                <button
-                  onClick={nextStep}
-                  disabled={!canProgress()}
-                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md"
-                >
-                  Next
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Name Step Component
-function NameStep({
+function _NameStep({
   characterData,
   setCharacterData,
 }: {
@@ -429,7 +98,7 @@ function NameStep({
 
 
 // Class Step with Search - Limited to Level 1-3
-function ClassStep({
+function _ClassStep({
   selected,
   level,
   onSelect,
@@ -537,10 +206,10 @@ function ClassStep({
             <div className="animate-in fade-in duration-200">
               {/* Image Section */}
               <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-                {displayedClass?.image ? (
+                {displayedClass?.image || displayedClass?.imageUrl ? (
                   <img
-                    src={urlFor(displayedClass.image)?.width(400).height(300).url() || ''}
-                    alt={selected.name}
+                    src={displayedClass.imageUrl || (displayedClass.image ? urlFor(displayedClass.image)?.width(400).height(300).url() : '') || ''}
+                    alt={displayedClass.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -600,7 +269,7 @@ function ClassStep({
 }
 
 // Subclass Step
-function SubclassStep({
+function _SubclassStep({
   classData,
   selectedSubclass,
   level,
@@ -710,10 +379,10 @@ function SubclassStep({
           <div className="animate-in fade-in duration-200">
             {/* Image Section */}
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-              {displayedSubclass?.image ? (
+              {displayedSubclass?.image || displayedSubclass?.imageUrl ? (
                 <img
-                  src={urlFor(displayedSubclass.image)?.width(400).height(300).url() || ''}
-                  alt={selectedSubclass.name}
+                  src={displayedSubclass.imageUrl || (displayedSubclass.image ? urlFor(displayedSubclass.image)?.width(400).height(300).url() : '') || ''}
+                  alt={displayedSubclass.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -760,7 +429,7 @@ function SubclassStep({
 }
 
 // Race Selection Step
-function RaceStep({
+function _RaceStep({
   race,
   subrace,
   onChange,
@@ -924,7 +593,7 @@ function RaceStep({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
             {displayRaces.map(r => {
               // Check if active (selected)
               let isActive = false;
@@ -939,7 +608,7 @@ function RaceStep({
                   key={r.id}
                   onClick={() => handleRaceClick(r)}
                   className={`
-                            px-4 py-3 rounded text-xs font-bold transition-all h-full min-h-[50px] flex items-center justify-center text-center leading-tight
+                            px-2 py-2 md:px-4 md:py-3 rounded text-[10px] md:text-xs font-bold transition-all h-full min-h-[40px] md:min-h-[50px] flex items-center justify-center text-center leading-tight
                             ${isActive
                       ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600'
                       : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300'
@@ -960,9 +629,9 @@ function RaceStep({
           <div className="animate-in fade-in duration-200">
             {/* Image Section */}
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-              {displayedRace.image ? (
+              {displayedRace.image || displayedRace.imageUrl ? (
                 <img
-                  src={urlFor(displayedRace.image)?.width(400).height(300).url() || ''}
+                  src={displayedRace.imageUrl || (displayedRace.image ? urlFor(displayedRace.image)?.width(400).height(300).url() : '') || ''}
                   alt={displayedRace.name}
                   className="w-full h-full object-cover"
                 />
@@ -1035,7 +704,7 @@ function RaceStep({
   );
 }
 // Ability Score Step
-function AbilityScoreStep({
+function _AbilityScoreStep({
   scores,
   race,
   onScoresChange,
@@ -1085,7 +754,7 @@ function AbilityScoreStep({
 }
 
 // Background Step
-function BackgroundStep({
+function _BackgroundStep({
   selected,
   onSelect,
 }: {
@@ -1163,10 +832,10 @@ function BackgroundStep({
           <div className="animate-in fade-in duration-200">
             {/* Image Section */}
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-              {displayedBackground?.image ? (
+              {displayedBackground?.image || displayedBackground?.imageUrl ? (
                 <img
-                  src={urlFor(displayedBackground.image)?.width(400).height(300).url() || ''}
-                  alt={selected.name}
+                  src={displayedBackground.imageUrl || (displayedBackground.image ? urlFor(displayedBackground.image)?.width(400).height(300).url() : '') || ''}
+                  alt={displayedBackground.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -1201,7 +870,7 @@ function BackgroundStep({
 }
 
 // Spell Selection Step - Slot Based
-function SpellSelectionStep({
+function _SpellSelectionStep({
   classData,
   level,
   selectedSpells,
@@ -1263,6 +932,12 @@ function SpellSelectionStep({
     if (["bard", "cleric", "druid", "sorcerer", "wizard"].includes(classData.id) && level >= 3) {
       level2 = 2;
       level1 -= 1;
+    }
+
+    // Eldritch Knight & Arcane Trickster (Start at Level 3)
+    if ((subclass?.id === "eldritch-knight" || subclass?.id === "arcane-trickster") && level >= 3) {
+      cantrips = subclass.id === "arcane-trickster" ? 3 : 2;
+      level1 = 3;
     }
 
     return { cantrips, level1, level2 };
@@ -1516,7 +1191,7 @@ function SpellSelectionStep({
   );
 }
 
-function SpellSelectionModal({
+function _SpellSelectionModal({
   classData,
   slotLevel,
   slotSource,
@@ -1550,6 +1225,11 @@ function SpellSelectionModal({
   // Available spells filter
   const spells = useMemo(() => {
     let targetClass = classData.id;
+
+    // Subclass Logic: Eldritch Knight & Arcane Trickster use Wizard list
+    if (subclass?.id === "eldritch-knight" || subclass?.id === "arcane-trickster") {
+      targetClass = "wizard";
+    }
 
     // specialized logic for Divine Soul Class Slots
     if (isDivineSoulSelection) {
@@ -1710,7 +1390,7 @@ function SpellSelectionModal({
 
 
 // Equipment Step
-function EquipmentStep({
+function _EquipmentStep({
   equipment,
   classData,
   onEquipmentChange,
@@ -1832,7 +1512,7 @@ function EquipmentStep({
 }
 
 // Personality Step
-function PersonalityStep({
+function _PersonalityStep({
   personality,
   onPersonalityChange,
 }: {
@@ -1909,7 +1589,7 @@ function PersonalityStep({
 }
 
 // Feat Selection Step
-function FeatSelectionStep({
+function _FeatSelectionStep({
   selectedFeats,
   onFeatsChange,
 }: {
@@ -1989,3 +1669,345 @@ function FeatSelectionStep({
   );
 }
 
+export function CharacterCreator() {
+  const [currentStep, setCurrentStep] = useState<CreationStep>("name");
+  const [isComplete, setIsComplete] = useState(false);
+  const [characterData, setCharacterData] = useState<CharacterData>({
+    name: "",
+    level: 1,
+    abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+    selectedSpells: [],
+    feats: [],
+    equipment: [],
+    magicInitiateClass: undefined,
+    personality: {},
+  });
+
+  // All races including subraces as individual options
+  const allRaces = useMemo(() => {
+    const raceList: Race[] = [...RACES];
+    SUBRACES.forEach(subrace => {
+      const parentRace = RACES.find(r => r.id === subrace.parentRaceId);
+      if (parentRace) {
+        raceList.push({
+          ...subrace,
+          name: `${subrace.name}`,
+          description: subrace.description || parentRace.description,
+          id: subrace.id,
+          source: subrace.source,
+          edition: subrace.edition,
+          version: subrace.version,
+          abilityScoreIncrease: {
+            ...parentRace.abilityScoreIncrease,
+            ...subrace.abilityScoreIncrease
+          },
+          size: parentRace.size,
+          speed: parentRace.speed,
+          traits: [...parentRace.traits, ...(subrace.traits || [])],
+          languages: parentRace.languages,
+          racialSpellChoices: subrace.racialSpellChoices || parentRace.racialSpellChoices,
+        } as Race);
+      }
+    });
+    // Deduplicate races by name
+    const seenNames = new Set<string>();
+    const uniqueRaces: Race[] = [];
+
+    for (const r of raceList) {
+      // Filter out races without Ability Score Increases
+      const hasASI = r.abilityScoreIncrease && Object.values(r.abilityScoreIncrease).some(v => v !== 0);
+      if (!hasASI) continue;
+
+      if (r.id === "tortle" || r.id === "satyr") {
+        if (!seenNames.has(r.name)) {
+          seenNames.add(r.name);
+          uniqueRaces.push(r);
+        }
+      } else {
+        // Default checking for name duplicates for all races
+        if (!seenNames.has(r.name)) {
+          seenNames.add(r.name);
+          uniqueRaces.push(r);
+        }
+      }
+    }
+
+    return uniqueRaces;
+  }, []);
+
+  const steps: CreationStep[] = useMemo(() => {
+    const baseSteps: CreationStep[] = ["name", "race", "class"];
+
+    // Add subclass step if character level requires it
+    if (characterData.class) {
+      const subclassLevel = characterData.class.id === "cleric" ||
+        characterData.class.id === "sorcerer" ||
+        characterData.class.id === "warlock" ? 1 :
+        characterData.class.id === "wizard" ? 2 : 3;
+
+      // Check if there are any subclasses available for this class
+      const hasSubclasses = mockSubclasses.some(s => s.parentClassId === characterData.class?.id);
+
+      if (characterData.level >= subclassLevel && hasSubclasses) {
+        baseSteps.push("subclass");
+      }
+    }
+
+    baseSteps.push("abilities", "background");
+
+    // Check for spell-granting feats
+    const spellFeats = ["Magic Initiate", "Aberrant Dragonmark", "Fey Touched", "Shadow Touched", "Telekinetic"];
+    const hasSpellFeat = characterData.feats.some(f => spellFeats.some(sf => f.name.includes(sf)));
+
+    // Check for racial spell choices or known spells
+    const hasRacialSpells = (characterData.race?.racialSpellChoices && characterData.race.racialSpellChoices.length > 0) ||
+      (characterData.subrace?.racialSpellChoices && characterData.subrace.racialSpellChoices.length > 0) ||
+      (characterData.race?.racialKnownSpells && characterData.race.racialKnownSpells.length > 0) ||
+      (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0);
+
+    baseSteps.push("feats");
+
+    if (characterData.class?.spellcaster || characterData.subclass?.spellcaster || hasSpellFeat || hasRacialSpells) {
+      baseSteps.push("spells");
+    }
+
+    baseSteps.push("equipment", "personality");
+
+    return baseSteps;
+  }, [characterData.class, characterData.level, characterData.feats, characterData.race, characterData.subrace]);
+
+  const currentStepIndex = steps.indexOf(currentStep);
+
+  const nextStep = () => {
+    if (currentStepIndex < steps.length - 1) {
+      setCurrentStep(steps[currentStepIndex + 1]);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStep(steps[currentStepIndex - 1]);
+    }
+  };
+
+  const canProgress = (): boolean => {
+    switch (currentStep) {
+      case "name":
+        return characterData.name.trim().length > 0;
+      case "race":
+        return !!characterData.race;
+      case "class":
+        return !!characterData.class;
+      case "subclass":
+        return !!characterData.subclass;
+      case "abilities":
+        return true;
+      case "background":
+        return !!characterData.background;
+      case "spells":
+        return characterData.selectedSpells.length > 0;
+      case "feats":
+        return true; // Feats are optional or determined by race/level, allowing skip if none selected is usually fine? Or enforcement? User just said "add a section". I'll default to allowing progress.
+      case "equipment":
+        return true; // Skippable as requested
+      case "personality":
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const completeCharacter = () => {
+    setIsComplete(true);
+  };
+
+  const editCharacter = () => {
+    setIsComplete(false);
+    setCurrentStep("name");
+  };
+
+  if (isComplete) {
+    return <CharacterSheet character={characterData} onEdit={editCharacter} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <h1 className="text-gray-900 text-3xl mb-1">Beginner Character Creator</h1>
+          <p className="text-gray-600">Create your first D&D character (Levels 1-3)</p>
+        </div>
+      </div>
+
+      {/* Progress Tracker */}
+      {/* Progress Tracker Removed as per request */}
+
+      {/* Top Navigation */}
+      <div className="bg-white border-b shadow-sm sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={prevStep}
+              disabled={currentStepIndex === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Previous
+            </button>
+            <span className="text-gray-700 font-medium capitalize ml-2">{currentStep.replace("-", " ")}</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {currentStepIndex === steps.length - 1 ? (
+              <button
+                onClick={completeCharacter}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm"
+              >
+                <Check className="w-4 h-4" />
+                Complete
+              </button>
+            ) : (
+              <button
+                onClick={nextStep}
+                disabled={!canProgress()}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium shadow-sm"
+              >
+                Next
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-8">
+        <div className="bg-white rounded-xl shadow-lg border">
+          <div className="p-4 md:p-8">
+            {/* Step Content */}
+            {currentStep === "name" && <NameStep characterData={characterData} setCharacterData={setCharacterData} />}
+            {currentStep === "race" && (
+              <RaceStep
+                race={characterData.race}
+                subrace={characterData.subrace}
+                onChange={(race, subrace) =>
+                  setCharacterData({ ...characterData, race, subrace })
+                }
+              />
+            )}
+            {currentStep === "class" && (
+              <ClassStep
+                selected={characterData.class}
+                level={characterData.level}
+                onSelect={(classData) =>
+                  setCharacterData({ ...characterData, class: classData, subclass: undefined })
+                }
+                onLevelChange={(level) => setCharacterData({ ...characterData, level })}
+              />
+            )}
+            {currentStep === "subclass" && characterData.class && (
+              <SubclassStep
+                classData={characterData.class}
+                selectedSubclass={characterData.subclass}
+                level={characterData.level}
+                onSelect={(subclass) => setCharacterData({ ...characterData, subclass })}
+              />
+            )}
+            {currentStep === "abilities" && (
+              <AbilityScoreStep
+                scores={characterData.abilityScores}
+                race={characterData.race}
+                onScoresChange={(abilityScores) =>
+                  setCharacterData({ ...characterData, abilityScores })
+                }
+              />
+            )}
+            {currentStep === "background" && (
+              <BackgroundStep
+                selected={characterData.background}
+                onSelect={(background) => setCharacterData({ ...characterData, background })}
+              />
+            )}
+            {currentStep === "spells" && (
+              !!characterData.class?.spellcaster ||
+              !!characterData.subclass?.spellcaster ||
+              characterData.feats.some(f => f.name.includes("Magic Initiate") || f.name.includes("Aberrant Dragonmark")) ||
+              (characterData.race?.racialSpellChoices && characterData.race.racialSpellChoices.length > 0) ||
+              (characterData.subrace?.racialSpellChoices && characterData.subrace.racialSpellChoices.length > 0) ||
+              (characterData.race?.racialKnownSpells && characterData.race.racialKnownSpells.length > 0) ||
+              (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0)
+            ) && (
+                <SpellSelectionStep
+                  classData={characterData.class!}
+                  level={characterData.level}
+                  selectedSpells={characterData.selectedSpells}
+                  race={characterData.race}
+                  subrace={characterData.subrace}
+                  onSpellsChange={(spells) =>
+                    setCharacterData({ ...characterData, selectedSpells: spells })
+                  }
+                  feats={characterData.feats}
+                  subclass={characterData.subclass}
+                  magicInitiateClass={characterData.magicInitiateClass}
+                  onMagicInitiateClassChange={(cls) => setCharacterData({ ...characterData, magicInitiateClass: cls })}
+                />
+              )}
+            {currentStep === "feats" && (
+              <FeatSelectionStep
+                selectedFeats={characterData.feats}
+                onFeatsChange={(feats) => setCharacterData({ ...characterData, feats })}
+              />
+            )}
+            {currentStep === "equipment" && (
+              <EquipmentStep
+                equipment={characterData.equipment}
+                classData={characterData.class}
+                onEquipmentChange={(equipment) => setCharacterData({ ...characterData, equipment })}
+              />
+            )}
+            {currentStep === "personality" && (
+              <PersonalityStep
+                personality={characterData.personality}
+                onPersonalityChange={(personality) =>
+                  setCharacterData({ ...characterData, personality })
+                }
+              />
+            )}
+
+            {/* Navigation */}
+            <div className="sticky bottom-0 z-10 bg-white -mx-8 -mb-8 px-8 py-6 border-t shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex justify-between mt-8">
+              <button
+                onClick={prevStep}
+                disabled={currentStepIndex === 0}
+                className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                Previous
+              </button>
+
+              {currentStepIndex === steps.length - 1 ? (
+                <button
+                  onClick={completeCharacter}
+                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-md"
+                >
+                  <Check className="w-5 h-5" />
+                  Complete Character
+                </button>
+              ) : (
+                <button
+                  onClick={nextStep}
+                  disabled={!canProgress()}
+                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md"
+                >
+                  Next
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

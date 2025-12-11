@@ -5,6 +5,7 @@ export const extraRaces: Race[] = [
     {
         id: "warforged",
         name: "Warforged",
+        imageUrl: "https://placehold.co/600x400",
         description: "Created as soldiers for the Last War, warforged are artificial lifeforms built from wood and metal. Though they are constructs, they have much in common with living creatures, including emotions and social bonds.",
         source: "Eberron: Rising from the Last War",
         edition: "5e",
@@ -24,6 +25,7 @@ export const extraRaces: Race[] = [
     {
         id: "leonin",
         name: "Leonin",
+        imageUrl: "https://placehold.co/600x400",
         description: "Nomadic lion-folk of Theros, leonin are typically proud and self-reliant, living in the Oreskos plains.",
         source: "Mythic Odysseys of Theros",
         edition: "5e",
@@ -42,6 +44,7 @@ export const extraRaces: Race[] = [
     {
         id: "satyr",
         name: "Satyr",
+        imageUrl: "https://placehold.co/600x400",
         description: "Satyrs are fey creatures known for their raucous revelry and love of music. They resemble humans with the legs and horns of goats.",
         source: "Mythic Odysseys of Theros",
         edition: "5e",
@@ -60,6 +63,7 @@ export const extraRaces: Race[] = [
     {
         id: "loxodon",
         name: "Loxodon",
+        imageUrl: "https://placehold.co/600x400",
         description: "Loxodons are humanoids with the heads of elephants. They are known for their wisdom, patience, and loyalty.",
         source: "Guildmasters' Guide to Ravnica",
         edition: "5e",
@@ -79,6 +83,7 @@ export const extraRaces: Race[] = [
     {
         id: "feral-tiefling",
         name: "Feral Tiefling",
+        imageUrl: "https://placehold.co/600x400",
         description: "A variant of tieflings with a more bestial nature, prioritizing agility over charisma.",
         source: "Sword Coast Adventurer's Guide",
         edition: "5e",
@@ -96,6 +101,7 @@ export const extraRaces: Race[] = [
     {
         id: "tortle",
         name: "Tortle",
+        imageUrl: "https://placehold.co/600x400",
         description: "Tortles are turtle-like humanoids with massive shells. They live simple, adventurous lives.",
         source: "The Tortle Package",
         edition: "5e",
@@ -117,6 +123,7 @@ export const extraRaces: Race[] = [
     {
         id: "tarandus",
         name: "Tarandus",
+        imageUrl: "https://placehold.co/600x400",
         description: "Scholarly reindeer humanoids with a knack for history and navigation.",
         source: "One-Shot Wonders",
         edition: "5e",
@@ -136,6 +143,7 @@ export const extraRaces: Race[] = [
     {
         id: "canisar",
         name: "Canisar",
+        imageUrl: "https://placehold.co/600x400",
         description: "Playful and agile snow fox humanoids adapted to cold climates.",
         source: "One-Shot Wonders",
         edition: "5e",
@@ -155,6 +163,7 @@ export const extraRaces: Race[] = [
     {
         id: "hederan",
         name: "Hederan",
+        imageUrl: "https://placehold.co/600x400",
         description: "Solitary plant-like humanoids who protect the natural world.",
         source: "One-Shot Wonders",
         edition: "5e",
@@ -173,6 +182,7 @@ export const extraRaces: Race[] = [
     {
         id: "snowborn",
         name: "Snowborn",
+        imageUrl: "https://placehold.co/600x400",
         description: "Enchanted constructs made of living snow, curious and resilient.",
         source: "One-Shot Wonders",
         edition: "5e",
@@ -193,6 +203,7 @@ export const extraRaces: Race[] = [
     {
         id: "boggart",
         name: "Boggart",
+        imageUrl: "https://placehold.co/600x400",
         description: "Lorwyn's goblins; mischievous, prone to chaotic pranks, and communally focused.",
         source: "Lorwyn (Homebrew)",
         edition: "5e",
@@ -210,6 +221,7 @@ export const extraRaces: Race[] = [
     {
         id: "lorwyn-faerie",
         name: "Faerie (Lorwyn)",
+        imageUrl: "https://placehold.co/600x400",
         description: "Tiny, insect-winged pranksters who live briefly and vibrantly.",
         source: "Lorwyn (Homebrew)",
         edition: "5e",
@@ -227,6 +239,7 @@ export const extraRaces: Race[] = [
     {
         id: "flamekin",
         name: "Flamekin",
+        imageUrl: "https://placehold.co/600x400",
         description: "Beings of living rock and fire, passionate and volatile.",
         source: "Lorwyn (Homebrew)",
         edition: "5e",
@@ -244,6 +257,7 @@ export const extraRaces: Race[] = [
     {
         id: "kithkin",
         name: "Kithkin",
+        imageUrl: "https://placehold.co/600x400",
         description: "Highly communal halfling-like folk bound by the Thoughtweft.",
         source: "Lorwyn (Homebrew)",
         edition: "5e",
@@ -261,6 +275,7 @@ export const extraRaces: Race[] = [
     {
         id: "lorwyn-changeling",
         name: "Changeling (Lorwyn)",
+        imageUrl: "https://placehold.co/600x400",
         description: "Shapeshifters who wear many masks but keep their blue-tinged skin in true form.",
         source: "Lorwyn (Homebrew)",
         edition: "5e",
@@ -277,6 +292,7 @@ export const extraRaces: Race[] = [
     {
         id: "rimekin",
         name: "Rimekin",
+        imageUrl: "https://placehold.co/600x400",
         description: "Frost-touched variants of the Flamekin, reserved and enduring.",
         source: "Lorwyn (Homebrew)",
         edition: "5e",
@@ -294,6 +310,7 @@ export const extraRaces: Race[] = [
     {
         id: "merrow-lorwyn",
         name: "Merrow (Lorwyn)",
+        imageUrl: "https://placehold.co/600x400",
         description: "Aquatic merchants and guides of the Lorwyn waterways.",
         source: "Lorwyn (Homebrew)",
         edition: "5e",
@@ -311,6 +328,7 @@ export const extraRaces: Race[] = [
     {
         id: "bearfolk",
         name: "Bearfolk",
+        imageUrl: "https://placehold.co/600x400",
         description: "Hulking, bear-like humanoids who guard the deep forests.",
         source: "Homebrew",
         edition: "5e",
@@ -329,6 +347,7 @@ export const extraRaces: Race[] = [
     {
         id: "plasmoid",
         name: "Plasmoid",
+        imageUrl: "https://placehold.co/600x400",
         description: "Plasmoids are amorphous beings with no typical shape. In the presence of other folk, they often adopt a humanoid shape, but their true form is an amorphous blob.",
         source: "Spelljammer: Adventures in Space",
         edition: "5e",
@@ -348,6 +367,7 @@ export const extraRaces: Race[] = [
     {
         id: "astral-elf",
         name: "Astral Elf",
+        imageUrl: "https://placehold.co/600x400",
         description: "An elf who has journeyed to the Astral Plane, often dwelling there for eons. They have a connection to the gods of the multiverse.",
         source: "Spelljammer: Adventures in Space",
         edition: "5e",
@@ -376,6 +396,7 @@ export const extraRaces: Race[] = [
     {
         id: "kobold",
         name: "Kobold",
+        imageUrl: "https://placehold.co/600x400",
         description: "Small reptilian humanoids with a knack for traps and specialized skills.",
         source: "Mordenkainen Presents: Monsters of the Multiverse",
         edition: "5e",
@@ -400,6 +421,7 @@ export const extraRaces: Race[] = [
     {
         id: "githyanki",
         name: "Githyanki",
+        imageUrl: "https://placehold.co/600x400",
         description: "Astral warriors with a bond to red dragons.",
         source: "Mordenkainen Presents: Monsters of the Multiverse",
         edition: "5e",
@@ -422,6 +444,7 @@ export const extraRaces: Race[] = [
     {
         id: "githzerai",
         name: "Githzerai",
+        imageUrl: "https://placehold.co/600x400",
         description: "Monastic ascetics from Limbo who hone their minds to a razor's edge.",
         source: "Mordenkainen Presents: Monsters of the Multiverse",
         edition: "5e",

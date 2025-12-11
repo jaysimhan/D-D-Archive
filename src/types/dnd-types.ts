@@ -37,6 +37,7 @@ export interface Race {
   name: string;
   description: string;
   image?: SanityImage;
+  imageUrl?: string;
   source: Source;
   edition: Edition;
   version: number;
@@ -95,6 +96,7 @@ export interface Class {
   name: string;
   description: string;
   image?: SanityImage;
+  imageUrl?: string;
   source: Source;
   edition: Edition;
   version: number;
@@ -121,6 +123,7 @@ export interface Subclass {
   name: string;
   description: string;
   image?: SanityImage;
+  imageUrl?: string;
   source: Source;
   edition: Edition;
   version: number;
@@ -135,6 +138,7 @@ export interface Background {
   name: string;
   description: string;
   image?: SanityImage;
+  imageUrl?: string;
   source: Source;
   edition: Edition;
   version: number;
