@@ -1,3 +1,4 @@
+import React, { useRef } from 'react';
 import { User, Shield, Heart, Package, BookOpen, Sparkles, Download, Edit, FileText, Wand2 } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subrace, Subclass } from "../types/dnd-types";
 import { expandedSpells as mockSpells } from "../data/expanded-spells";
@@ -28,6 +29,8 @@ export function CharacterSheet({
   character: CharacterData;
   onEdit: () => void;
 }) {
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
   const getModifier = (score: number): string => {
     const mod = Math.floor((score - 10) / 2);
     return mod >= 0 ? `+${mod}` : `${mod}`;
@@ -75,125 +78,53 @@ export function CharacterSheet({
 
   const allSpells = getKnownSpells();
 
-  const downloadPDF = () => {
-    // Import jsPDF dynamically
-    import('jspdf').then(({ default: jsPDF }) => {
-      const doc = new jsPDF();
+  const downloadPDF = async () => {
+    if (!contentRef.current) return;
 
-      // Title
-      doc.setFontSize(20);
-      doc.text('D&D Character Sheet', 105, 20, { align: 'center' });
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const { default: html2canvas } = await import('html2canvas');
 
-      // Character Info
-      doc.setFontSize(12);
-      doc.text(`Name: ${character.name || 'Unnamed'}`, 20, 35);
-      doc.text(`Level: ${character.level}`, 20, 42);
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2, // Higher scale for better quality
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f9fafb' // match bg-gray-50
+      } as any);
 
-      if (character.race) {
-        const raceName = character.subrace
-          ? `${character.subrace.name} (${character.race.name})`
-          : character.race.name;
-        doc.text(`Race: ${raceName}`, 20, 49);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = imgWidth / imgHeight;
+      const width = pdfWidth;
+      const height = width / ratio;
+
+      let heightLeft = height;
+      let position = 0;
+
+      // First page
+      pdf.addImage(imgData, 'PNG', 0, position, width, height);
+      heightLeft -= pdfHeight;
+
+      // Extra pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - height;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, width, height);
+        heightLeft -= pdfHeight;
       }
 
-      if (character.class) {
-        const className = character.subclass
-          ? `${character.class.name} (${character.subclass.name})`
-          : character.class.name;
-        doc.text(`Class: ${className}`, 20, 56);
-      }
-
-      if (character.background) {
-        doc.text(`Background: ${character.background.name}`, 20, 63);
-      }
-
-      // Ability Scores
-      doc.setFontSize(14);
-      doc.text('Ability Scores', 20, 75);
-      doc.setFontSize(10);
-
-      const abilities: (keyof AbilityScores)[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
-      let yPos = 82;
-      abilities.forEach((ability) => {
-        const finalScore = getFinalScore(ability);
-        const modifier = getModifier(finalScore);
-        doc.text(`${ability}: ${finalScore} (${modifier})`, 20, yPos);
-        yPos += 7;
-      });
-
-      // Spells (if applicable)
-      const pdfSpells = allSpells; // Use calculated allSpells from closure
-      if (pdfSpells.length > 0) {
-        yPos += 5;
-        doc.setFontSize(14);
-        doc.text('Spells', 20, yPos);
-        yPos += 7;
-        doc.setFontSize(10);
-
-        pdfSpells.slice(0, 15).forEach((spell) => {
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = 20;
-          }
-          const spellLevel = spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`;
-          const sourceText = spell.source === 'Race' ? ' (Racial)' : '';
-          doc.text(`${spell.name} (${spellLevel})${sourceText}`, 20, yPos);
-          yPos += 7;
-        });
-      }
-
-      // Equipment
-      if (character.equipment.length > 0) {
-        yPos += 5;
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(14);
-        doc.text('Equipment', 20, yPos);
-        yPos += 7;
-        doc.setFontSize(10);
-
-        character.equipment.slice(0, 15).forEach((item) => {
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = 20;
-          }
-          doc.text(`• ${item.name}`, 20, yPos);
-          yPos += 7;
-        });
-      }
-
-      // Personality
-      if (character.personality.traits || character.personality.ideals ||
-        character.personality.bonds || character.personality.flaws) {
-        yPos += 5;
-        if (yPos > 220) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(14);
-        doc.text('Personality', 20, yPos);
-        yPos += 7;
-        doc.setFontSize(10);
-
-        if (character.personality.traits) {
-          doc.text(`Traits: ${character.personality.traits.substring(0, 100)}`, 20, yPos, { maxWidth: 170 });
-          yPos += 14;
-        }
-        if (character.personality.ideals) {
-          doc.text(`Ideals: ${character.personality.ideals.substring(0, 100)}`, 20, yPos, { maxWidth: 170 });
-          yPos += 14;
-        }
-      }
-
-      // Save the PDF
-      doc.save(`${character.name || 'character'}-sheet.pdf`);
-    });
+      pdf.save(`${character.name || 'character'}-sheet.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={contentRef} className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-700 to-indigo-900 text-white">
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -207,7 +138,7 @@ export function CharacterSheet({
                 {character.name || 'Unnamed Character'} - Level {character.level} {character.class?.name || 'Adventurer'}
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3" data-html2canvas-ignore="true">
               <button
                 onClick={onEdit}
                 className="flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
