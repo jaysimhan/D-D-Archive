@@ -3,8 +3,8 @@ import imageUrlBuilder from '@sanity/image-url';
 
 // Sanity client configuration
 export const sanityClient = createClient({
-    projectId: 'ylk0tk34',
-    dataset: 'production',
+    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'ylk0tk34',
+    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
     useCdn: true, // Enable CDN for faster reads (cached data)
     apiVersion: '2024-01-01', // Use a date-based API version
 });

@@ -8,8 +8,8 @@ export default defineConfig({
   name: 'default',
   title: 'D&D Omni-Archive',
 
-  projectId: 'ylk0tk34',
-  dataset: 'production',
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'ylk0tk34',
+  dataset: process.env.SANITY_STUDIO_DATASET || 'production',
 
   plugins: [structureTool(), visionTool(), media()],
 

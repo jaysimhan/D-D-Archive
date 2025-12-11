@@ -103,15 +103,17 @@ export interface Class {
   savingThrows: AbilityScore[];
   spellcaster?: "full" | "half" | "third" | "pact" | "special";
   spellcastingAbility?: AbilityScore;
-  features: ClassFeature[];
+  features: Feature[];
   subclasses: string[]; // IDs of subclasses
 }
 
-export interface ClassFeature {
+export interface Feature {
   level: number;
   name: string;
   description: string;
 }
+
+export interface ClassFeature extends Feature { }
 
 export interface Subclass {
   id: string;
@@ -122,7 +124,9 @@ export interface Subclass {
   source: Source;
   edition: Edition;
   version: number;
-  features: ClassFeature[];
+  features: Feature[];
+  spellcaster?: boolean;
+  spellcastingAbility?: string;
 }
 
 // ===== Background System =====
@@ -174,6 +178,7 @@ export interface Spell {
   description: string;
   higherLevels?: string;
   classes: string[]; // Class IDs that can cast this spell
+  subclasses?: string[]; // Subclass names that can cast this spell
   image?: SanityImage;
   source: Source;
   edition: Edition;

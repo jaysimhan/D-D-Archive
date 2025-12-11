@@ -291,6 +291,8 @@ export const mockSubclasses: Subclass[] = [
     name: "Eldritch Knight",
     description:
       "The archetypal Eldritch Knight combines the martial mastery common to all fighters with a careful study of magic.",
+    spellcaster: true,
+    spellcastingAbility: "INT",
     source: "Official",
     edition: "Both",
     version: 1,
@@ -558,7 +560,9 @@ export const mockSubclasses: Subclass[] = [
     parentClassId: "rogue",
     name: "Arcane Trickster",
     description:
-      "Some rogues enhance their fine-honed skills of stealth and agility with magic, learning tricks of enchantment and illusion.",
+      "Arcane Tricksters combine their maneuverability and precision with exactingly applied magic.",
+    spellcaster: true,
+    spellcastingAbility: "INT",
     source: "Official",
     edition: "Both",
     version: 1,

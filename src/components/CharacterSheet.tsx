@@ -2,6 +2,8 @@ import React, { useRef } from 'react';
 import { User, Shield, Heart, Package, BookOpen, Sparkles, Download, Edit, FileText, Wand2 } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subrace, Subclass } from "../types/dnd-types";
 import { expandedSpells as mockSpells } from "../data/expanded-spells";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDocument } from './pdf/PDFDocument';
 
 interface CharacterData {
   name: string;
@@ -78,50 +80,7 @@ export function CharacterSheet({
 
   const allSpells = getKnownSpells();
 
-  const downloadPDF = async () => {
-    if (!contentRef.current) return;
-
-    try {
-      const { default: jsPDF } = await import('jspdf');
-      const { default: html2canvas } = await import('html2canvas');
-
-      const canvas = await html2canvas(contentRef.current, {
-        scale: 2, // Higher scale for better quality
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#f9fafb' // match bg-gray-50
-      } as any);
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = imgWidth / imgHeight;
-      const width = pdfWidth;
-      const height = width / ratio;
-
-      let heightLeft = height;
-      let position = 0;
-
-      // First page
-      pdf.addImage(imgData, 'PNG', 0, position, width, height);
-      heightLeft -= pdfHeight;
-
-      // Extra pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - height;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, width, height);
-        heightLeft -= pdfHeight;
-      }
-
-      pdf.save(`${character.name || 'character'}-sheet.pdf`);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-    }
-  };
+  // Removed html2canvas/jspdf logic
 
   return (
     <div ref={contentRef} className="min-h-screen bg-gray-50">
@@ -146,13 +105,18 @@ export function CharacterSheet({
                 <Edit className="w-5 h-5" />
                 Edit Character
               </button>
-              <button
-                onClick={downloadPDF}
+              <PDFDownloadLink
+                document={<PDFDocument character={character} />}
+                fileName={`${character.name || 'character'}-sheet.pdf`}
                 className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
               >
-                <Download className="w-5 h-5" />
-                Download PDF
-              </button>
+                {({ loading }) => (
+                  <>
+                    {loading ? <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" /> : <Download className="w-5 h-5" />}
+                    {loading ? 'Preparing...' : 'Download PDF'}
+                  </>
+                )}
+              </PDFDownloadLink>
             </div>
           </div>
         </div>

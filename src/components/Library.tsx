@@ -76,16 +76,15 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-red-700 to-red-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-white mb-2">The Universal Library</h1>
-              <p className="text-red-100">
-                Browse spells, classes, races, items, and backgrounds from both 2014 and
-                2024 editions
+              <h1 className="text-white text-2xl md:text-3xl mb-2 font-bold">The Universal Library</h1>
+              <p className="text-red-100 text-sm md:text-base">
+                Browse spells, classes, races, items, and backgrounds
               </p>
             </div>
-            <button className="flex items-center gap-2 px-6 py-3 bg-white text-red-700 rounded-lg hover:bg-red-50 transition-colors">
+            <button className="flex items-center gap-2 px-6 py-3 bg-white text-red-700 rounded-lg hover:bg-red-50 transition-colors w-full md:w-auto justify-center">
               <Plus className="w-5 h-5" />
               Add Homebrew
             </button>

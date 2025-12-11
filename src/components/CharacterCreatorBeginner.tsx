@@ -142,8 +142,11 @@ export function CharacterCreator() {
       (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0);
 
     if (characterData.class?.spellcaster || hasSpellFeat || hasRacialSpells) {
-      baseSteps.push("feats");
-      baseSteps.push("spells");
+      if (characterData.class?.spellcaster || characterData.subclass?.spellcaster) {
+        baseSteps.push("spells");
+      } else {
+        baseSteps.push("feats");
+      }
     } else {
       baseSteps.push("feats");
     }
@@ -259,9 +262,9 @@ export function CharacterCreator() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-8">
         <div className="bg-white rounded-xl shadow-lg border">
-          <div className="p-8">
+          <div className="p-4 md:p-8">
             {/* Step Content */}
             {currentStep === "name" && <NameStep characterData={characterData} setCharacterData={setCharacterData} />}
             {currentStep === "race" && (
@@ -500,7 +503,7 @@ function ClassStep({
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredClasses.map((classData) => {
                 const isActive = selected?.id === classData.id;
                 return (
