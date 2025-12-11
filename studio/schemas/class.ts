@@ -27,6 +27,14 @@ export default {
             type: 'text',
             validation: (Rule: any) => Rule.required(),
         },
+        {
+            name: 'image',
+            title: 'Image',
+            type: 'image',
+            options: {
+                hotspot: true,
+            },
+        },
         sourceField,
         editionField,
         versionField,
@@ -81,6 +89,8 @@ export default {
                     { title: 'Full Caster', value: 'full' },
                     { title: 'Half Caster', value: 'half' },
                     { title: 'Third Caster', value: 'third' },
+                    { title: 'Pact Magic', value: 'pact' },
+                    { title: 'Special', value: 'special' },
                     { title: 'None', value: 'none' },
                 ],
             },
@@ -105,11 +115,25 @@ export default {
             of: [
                 {
                     type: 'object',
+                    name: 'classFeature',
+                    title: 'Feature',
                     fields: [
                         { name: 'level', title: 'Level', type: 'number', validation: (Rule: any) => Rule.required().min(1).max(20) },
                         { name: 'name', title: 'Name', type: 'string', validation: (Rule: any) => Rule.required() },
                         { name: 'description', title: 'Description', type: 'text', validation: (Rule: any) => Rule.required() },
                     ],
+                    preview: {
+                        select: {
+                            title: 'name',
+                            subtitle: 'level',
+                        },
+                        prepare(selection: any) {
+                            return {
+                                title: selection.title,
+                                subtitle: `Level ${selection.subtitle}`,
+                            };
+                        },
+                    },
                 },
             ],
         },

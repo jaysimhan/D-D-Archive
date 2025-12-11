@@ -1,6 +1,7 @@
 import { Class } from "../types/dnd-types";
-import { Sword, Sparkles, Heart, Shield } from "lucide-react";
+import { Sword, Sparkles, Heart, Shield, User } from "lucide-react";
 import { useState } from "react";
+import { urlFor } from "../lib/sanity";
 
 interface ClassCardProps {
   classData: Class;
@@ -24,6 +25,17 @@ export function ClassCard({ classData }: ClassCardProps) {
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow bg-white">
+      {/* Image Section */}
+      {classData.image && (
+        <div className="w-full h-32 rounded-lg mb-3 overflow-hidden bg-gray-100">
+          <img
+            src={urlFor(classData.image)?.width(400).height(200).url() || ''}
+            alt={classData.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">

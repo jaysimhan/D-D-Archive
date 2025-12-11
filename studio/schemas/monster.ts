@@ -22,6 +22,14 @@ export default {
             validation: (Rule: any) => Rule.required(),
         },
         {
+            name: 'image',
+            title: 'Image',
+            type: 'image',
+            options: {
+                hotspot: true,
+            },
+        },
+        {
             name: 'size',
             title: 'Size',
             type: 'string',
@@ -158,19 +166,7 @@ export default {
         {
             name: 'senses',
             title: 'Senses',
-            type: 'string', // Usually a string like "Darkvision 60ft., passive Perception 12" or could be object. Using string for simplicity to match common inputs or object map. Guide says object {key: number} but CSV says traits/languages? 
-            // Guide says `senses?: { [key: string]: number };`
-            // Let's make it an array of strings or object. Object is harder to dynamic key in Sanity without predefined fields or JSON plugin.
-            // I'll stick to a simple object with common senses if possible, or just a text field / tags.
-            // Given the guide: { [key: string]: number }, let's use an array of objects for flexibility?
-            // Or just hardcode common ones. "passivePerception" is most common.
-            // Let's follow the guide strictly: "senses?: { [key: string]: number };"
-            // In Sanity, a dynamic object is best represented as an array of Key-Value pairs if keys are arbitrary.
-            // But usually senses are standard.
-            // Let's use an array of strings for simplicity as that's often easier for "Darkvision 60ft".
-            // Wait, the guide type is `{ [key: string]: number }`. E.g. { "darkvision": 60 }.
-            // Let's implement as an object with common fields + custom array?
-            // Simpler: Just an object with common senses
+            // Implementing as an object with common senses fields
             type: 'object',
             fields: [
                 { name: 'passivePerception', title: 'Passive Perception', type: 'number' },

@@ -1,6 +1,7 @@
 import { Race } from "../types/dnd-types";
 import { Users, Gauge, Languages } from "lucide-react";
 import { useState } from "react";
+import { urlFor } from "../lib/sanity";
 
 interface RaceCardProps {
   race: Race;
@@ -34,6 +35,17 @@ export function RaceCard({ race }: RaceCardProps) {
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow bg-white">
+      {/* Image Section */}
+      {race.image && (
+        <div className="w-full h-32 rounded-lg mb-3 overflow-hidden bg-gray-100">
+          <img
+            src={urlFor(race.image)?.width(400).height(200).url() || ''}
+            alt={race.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">

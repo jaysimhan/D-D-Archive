@@ -4,6 +4,21 @@
 export type Edition = "2014" | "2024" | "Both" | "5e" | string;
 export type Source = "Official" | "Homebrew" | "Unofficial" | string;
 
+// Sanity Image type for CMS images
+export interface SanityImage {
+  _type: 'image';
+  asset: {
+    _ref: string;
+    _type: 'reference';
+  };
+  hotspot?: {
+    x: number;
+    y: number;
+    height: number;
+    width: number;
+  };
+}
+
 // ===== Ability Scores =====
 export type AbilityScore = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -21,6 +36,7 @@ export interface Race {
   id: string;
   name: string;
   description: string;
+  image?: SanityImage;
   source: Source;
   edition: Edition;
   version: number;
@@ -51,6 +67,7 @@ export interface Subrace {
   parentRaceId: string;
   name: string;
   description: string;
+  image?: SanityImage;
   source: Source;
   edition: Edition;
   version: number;
@@ -77,6 +94,7 @@ export interface Class {
   id: string;
   name: string;
   description: string;
+  image?: SanityImage;
   source: Source;
   edition: Edition;
   version: number;
@@ -100,6 +118,7 @@ export interface Subclass {
   parentClassId: string;
   name: string;
   description: string;
+  image?: SanityImage;
   source: Source;
   edition: Edition;
   version: number;
@@ -111,6 +130,7 @@ export interface Background {
   id: string;
   name: string;
   description: string;
+  image?: SanityImage;
   source: Source;
   edition: Edition;
   version: number;
@@ -154,6 +174,7 @@ export interface Spell {
   description: string;
   higherLevels?: string;
   classes: string[]; // Class IDs that can cast this spell
+  image?: SanityImage;
   source: Source;
   edition: Edition;
   version: number;
@@ -164,6 +185,7 @@ export interface Feat {
   id: string;
   name: string;
   description: string;
+  image?: SanityImage;
   source: Source;
   edition: Edition;
   version: number;
@@ -207,6 +229,7 @@ export interface Item {
   name: string;
   type: ItemType;
   description: string;
+  image?: SanityImage;
   magical: boolean;
   rarity?: ItemRarity;
   requiresAttunement: boolean;

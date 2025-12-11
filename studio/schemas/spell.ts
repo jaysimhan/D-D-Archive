@@ -87,6 +87,14 @@ export default {
             validation: (Rule: any) => Rule.required(),
         },
         {
+            name: 'image',
+            title: 'Image',
+            type: 'image',
+            options: {
+                hotspot: true,
+            },
+        },
+        {
             name: 'higherLevels',
             title: 'At Higher Levels',
             type: 'text',

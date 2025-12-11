@@ -28,6 +28,14 @@ export default {
             validation: (Rule: any) => Rule.required(),
         },
         {
+            name: 'image',
+            title: 'Image',
+            type: 'image',
+            options: {
+                hotspot: true,
+            },
+        },
+        {
             name: 'prerequisites',
             title: 'Prerequisites',
             type: 'object',

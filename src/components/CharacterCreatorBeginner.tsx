@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, ArrowLeft, Check, User, Search, Sparkles, Plus } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, User, Search, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subclass, Feat, Subrace } from "../types/dnd-types";
 import { RACES } from "../data/comprehensive-library";
 import { SUBRACES, BACKGROUNDS, FEATS } from "../data/comprehensive-library";
@@ -9,6 +9,8 @@ import { mockBackgrounds } from "../data/mock-backgrounds";
 import { expandedSpells } from "../data/expanded-spells";
 import { mockItems } from "../data/mock-items";
 import { CharacterSheet } from "./CharacterSheet";
+import { urlFor } from "../lib/sanity";
+import { useClasses, useRaces, useSubclasses, useBackgrounds } from "../hooks/useSanityData";
 
 type CreationStep =
   | "name"
@@ -437,11 +439,18 @@ function ClassStep({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch classes from Sanity, fall back to mock data
+  const { data: sanityClasses, loading: classesLoading } = useClasses();
+  const allClasses = sanityClasses && sanityClasses.length > 0 ? sanityClasses : combinedClasses;
+
   const filteredClasses = useMemo(() => {
-    return combinedClasses.filter((classData) =>
+    return allClasses.filter((classData) =>
       classData.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, allClasses]);
+
+  // Use the class from allClasses to ensure we have Sanity image data
+  const displayedClass = selected ? allClasses.find(c => c.id === selected.id) || selected : undefined;
 
   return (
     <div>
@@ -481,49 +490,70 @@ function ClassStep({
             />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-            {filteredClasses.map((classData) => {
-              const isActive = selected?.id === classData.id;
-              return (
-                <button
-                  key={classData.id}
-                  onClick={() => onSelect(classData)}
-                  className={`
+          {classesLoading ? (
+            <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="px-2 py-3 rounded-lg bg-gray-100 animate-pulse h-24 flex flex-col items-center justify-center gap-2">
+                  <div className="h-5 w-20 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-14 bg-gray-200 rounded-full"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+              {filteredClasses.map((classData) => {
+                const isActive = selected?.id === classData.id;
+                return (
+                  <button
+                    key={classData.id}
+                    onClick={() => onSelect(classData)}
+                    className={`
                     px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
                     ${isActive
-                      ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600'
-                      : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300'
-                    }
+                        ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600'
+                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300'
+                      }
                   `}
-                >
-                  <span className="font-bold text-lg mb-1">{classData.name}</span>
-                  {classData.spellcaster && (
-                    <span className={`text-[10px] px-2 py-1 rounded-full ${isActive ? 'bg-indigo-500 text-white' : 'bg-purple-100 text-purple-700'}`}>
-                      {classData.spellcaster}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                  >
+                    <span className="font-bold text-lg mb-1">{classData.name}</span>
+                    {classData.spellcaster && (
+                      <span className={`text-[10px] px-2 py-1 rounded-full ${isActive ? 'bg-indigo-500 text-white' : 'bg-purple-100 text-purple-700'}`}>
+                        {classData.spellcaster}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Details Panel */}
         <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-white border border-gray-200 rounded-xl shadow-sm min-h-[400px]">
           {selected ? (
             <div className="animate-in fade-in duration-200">
-              {/* Image Placeholder */}
+              {/* Image Section */}
               <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-                <div className="text-center p-4">
-                  <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <span className="text-xs text-gray-400">Class Icon</span>
-                </div>
-                <img
-                  src={`/images/classes/${selected.id}.jpg`}
-                  alt={selected.name}
-                  className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
-                  onError={(e) => (e.currentTarget.style.display = 'none')}
-                />
+                {displayedClass?.image ? (
+                  <img
+                    src={urlFor(displayedClass.image)?.width(400).height(300).url() || ''}
+                    alt={selected.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <div className="text-center p-4">
+                      <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                      <span className="text-xs text-gray-400">Class Icon</span>
+                    </div>
+                    <img
+                      src={`/images/classes/${selected.id}.jpg`}
+                      alt={selected.name}
+                      className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                  </>
+                )}
               </div>
 
               <h3 className="text-2xl font-bold text-gray-900 mb-2 text-indigo-700 font-serif">{selected.name}</h3>
@@ -580,20 +610,27 @@ function SubclassStep({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch subclasses from Sanity, fall back to mock data
+  const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses();
+
   const subclassLevel = classData.id === "cleric" ||
     classData.id === "sorcerer" ||
     classData.id === "warlock" ? 1 :
     classData.id === "wizard" ? 2 : 3;
 
   const availableSubclasses = useMemo(() => {
-    return mockSubclasses.filter((sc) => sc.parentClassId === classData.id);
-  }, [classData.id]);
+    const allSubclasses = sanitySubclasses && sanitySubclasses.length > 0 ? sanitySubclasses : mockSubclasses;
+    return allSubclasses.filter((sc) => sc.parentClassId === classData.id);
+  }, [classData.id, sanitySubclasses]);
 
   const filteredSubclasses = useMemo(() => {
     return availableSubclasses.filter((subclass) =>
       subclass.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [availableSubclasses, searchTerm]);
+
+  // Use the subclass from availableSubclasses to ensure we have Sanity image data
+  const displayedSubclass = selectedSubclass ? availableSubclasses.find(sc => sc.id === selectedSubclass.id) || selectedSubclass : undefined;
 
   if (level < subclassLevel) {
     return (
@@ -629,44 +666,67 @@ function SubclassStep({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
-          {filteredSubclasses.map((subclass) => (
-            <button
-              key={subclass.id}
-              onClick={() => onSelect(subclass)}
-              className={`text-left p-4 border-2 rounded-lg transition-all ${selectedSubclass?.id === subclass.id
-                ? "border-indigo-600 bg-indigo-50 shadow-md"
-                : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
-                }`}
-            >
-              <h3 className="text-gray-900 font-semibold text-lg mb-1">{subclass.name}</h3>
-              {subclass.edition && (
-                <span className="text-[10px] px-2 py-1 bg-gray-100 text-gray-700 rounded inline-block mb-2">
-                  {subclass.edition}
-                </span>
-              )}
-              <p className="text-sm text-gray-600 line-clamp-2">{subclass.description}</p>
-            </button>
-          ))}
-        </div>
+        {subclassesLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4 border-2 border-gray-200 rounded-lg animate-pulse">
+                <div className="h-5 w-32 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 w-16 bg-gray-200 rounded mb-3"></div>
+                <div className="h-4 w-full bg-gray-200 rounded mb-1"></div>
+                <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+            {filteredSubclasses.map((subclass) => (
+              <button
+                key={subclass.id}
+                onClick={() => onSelect(subclass)}
+                className={`text-left p-4 border-2 rounded-lg transition-all ${selectedSubclass?.id === subclass.id
+                  ? "border-indigo-600 bg-indigo-50 shadow-md"
+                  : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
+                  }`}
+              >
+                <h3 className="text-gray-900 font-semibold text-lg mb-1">{subclass.name}</h3>
+                {subclass.edition && (
+                  <span className="text-[10px] px-2 py-1 bg-gray-100 text-gray-700 rounded inline-block mb-2">
+                    {subclass.edition}
+                  </span>
+                )}
+                <p className="text-sm text-gray-600 line-clamp-2">{subclass.description}</p>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Right Column: Details Panel */}
       <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-white border border-gray-200 rounded-xl shadow-sm min-h-[400px]">
         {selectedSubclass ? (
           <div className="animate-in fade-in duration-200">
-            {/* Image Placeholder */}
+            {/* Image Section */}
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-              <div className="text-center p-4">
-                <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                <span className="text-xs text-gray-400">Subclass Icon</span>
-              </div>
-              <img
-                src={`/images/subclasses/${selectedSubclass.id}.jpg`}
-                alt={selectedSubclass.name}
-                className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
+              {displayedSubclass?.image ? (
+                <img
+                  src={urlFor(displayedSubclass.image)?.width(400).height(300).url() || ''}
+                  alt={selectedSubclass.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <div className="text-center p-4">
+                    <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <span className="text-xs text-gray-400">Subclass Icon</span>
+                  </div>
+                  <img
+                    src={`/images/subclasses/${selectedSubclass.id}.jpg`}
+                    alt={selectedSubclass.name}
+                    className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                </>
+              )}
             </div>
 
             <h3 className="text-2xl font-bold text-gray-900 mb-2 text-indigo-700 font-serif">{selectedSubclass.name}</h3>
@@ -709,8 +769,31 @@ function RaceStep({
   const [showNonCore, setShowNonCore] = useState(true); // Default to true now to show expansions
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Flatten races and subraces logic
+  // Fetch races from Sanity
+  const { data: sanityRaces, loading: racesLoading } = useRaces();
+  const useSanityData = sanityRaces && sanityRaces.length > 0;
+
+  // Flatten races and subraces logic (for local data only)
   const displayRaces = useMemo(() => {
+    // If we have Sanity data, use it directly
+    if (useSanityData) {
+      let all = [...sanityRaces];
+
+      // Filter by search term
+      if (searchTerm) {
+        const lower = searchTerm.toLowerCase();
+        all = all.filter(r => r.name.toLowerCase().includes(lower));
+      }
+
+      // Filter non-core if needed
+      if (!showNonCore) {
+        all = all.filter(r => r.source === "Player's Handbook" || r.source === "Official");
+      }
+
+      return all.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Fallback to local data with synthetic subrace logic
     const flattened: Race[] = [];
 
     // Helper to check if a race has specific flattened variants coming up
@@ -771,12 +854,19 @@ function RaceStep({
     }
 
     return all.sort((a, b) => a.name.localeCompare(b.name));
-  }, [showNonCore, searchTerm]);
+  }, [showNonCore, searchTerm, useSanityData, sanityRaces]);
 
-  const displayedRace = race;
+  // Use the race from displayRaces to ensure we have Sanity image data
+  const displayedRace = race ? displayRaces.find(r => r.id === race.id) || race : undefined;
 
   const handleRaceClick = (r: Race) => {
-    // Check if it's a subrace wrapper
+    // If using Sanity data, just pass the race directly
+    if (useSanityData) {
+      onChange(r, undefined);
+      return;
+    }
+
+    // Check if it's a subrace wrapper (for local data only)
     const isSynthetic = (r as any).isSubrace;
     if (isSynthetic) {
       const parent = RACES.find(p => p.id === (r as any).parentRaceId);
@@ -822,51 +912,71 @@ function RaceStep({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {displayRaces.map(r => {
-            // Check if active (selected)
-            let isActive = false;
-            if (subrace) {
-              isActive = r.id === subrace.id;
-            } else if (race) {
-              isActive = r.id === race.id;
-            }
+        {racesLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {Array.from({ length: 15 }).map((_, i) => (
+              <div key={i} className="px-4 py-3 rounded bg-gray-100 animate-pulse h-[50px] flex items-center justify-center">
+                <div className="h-4 w-16 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {displayRaces.map(r => {
+              // Check if active (selected)
+              let isActive = false;
+              if (subrace) {
+                isActive = r.id === subrace.id;
+              } else if (race) {
+                isActive = r.id === race.id;
+              }
 
-            return (
-              <button
-                key={r.id}
-                onClick={() => handleRaceClick(r)}
-                className={`
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => handleRaceClick(r)}
+                  className={`
                             px-4 py-3 rounded text-xs font-bold transition-all h-full min-h-[50px] flex items-center justify-center text-center leading-tight
                             ${isActive
-                    ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300'
-                  }
+                      ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600'
+                      : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300'
+                    }
                         `}
-              >
-                {r.name}
-              </button>
-            );
-          })}
-        </div>
+                >
+                  {r.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Right Column: Details Panel */}
       <div className="w-full lg:w-1/3 lg:sticky lg:top-8 p-6 bg-white border border-gray-200 rounded-xl shadow-sm min-h-[400px]">
         {displayedRace ? (
           <div className="animate-in fade-in duration-200">
-            {/* Image Placeholder */}
+            {/* Image Section */}
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-              <div className="text-center p-4">
-                <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                <span className="text-xs text-gray-400">Race Appearance</span>
-              </div>
-              <img
-                src={`/images/races/${displayedRace.id}.jpg`}
-                alt={displayedRace.name}
-                className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300" // Hidden by default as we don't have real images yet
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
+              {displayedRace.image ? (
+                <img
+                  src={urlFor(displayedRace.image)?.width(400).height(300).url() || ''}
+                  alt={displayedRace.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <div className="text-center p-4">
+                    <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <span className="text-xs text-gray-400">Race Appearance</span>
+                  </div>
+                  <img
+                    src={`/images/races/${displayedRace.id}.jpg`}
+                    alt={displayedRace.name}
+                    className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                </>
+              )}
             </div>
 
             <h3 className="text-2xl font-bold text-gray-900 mb-4 text-indigo-700">{displayedRace.name}</h3>
@@ -914,7 +1024,7 @@ function RaceStep({
           </div>
         ) : (
           <div className="text-center text-gray-500 mt-12">
-            <p>Hover over or select a race to view details.</p>
+            <p>Select a race to view details.</p>
           </div>
         )}
       </div>
@@ -981,11 +1091,18 @@ function BackgroundStep({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch backgrounds from Sanity, fall back to mock data
+  const { data: sanityBackgrounds, loading: backgroundsLoading } = useBackgrounds();
+  const allBackgrounds = sanityBackgrounds && sanityBackgrounds.length > 0 ? sanityBackgrounds : mockBackgrounds;
+
   const filteredBackgrounds = useMemo(() => {
-    return mockBackgrounds.filter((bg) =>
+    return allBackgrounds.filter((bg) =>
       bg.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, allBackgrounds]);
+
+  // Use the background from allBackgrounds to ensure we have Sanity image data
+  const displayedBackground = selected ? allBackgrounds.find(bg => bg.id === selected.id) || selected : undefined;
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px]">
@@ -1008,39 +1125,61 @@ function BackgroundStep({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
-          {filteredBackgrounds.map((background) => (
-            <button
-              key={background.id}
-              onClick={() => onSelect(background)}
-              className={`text-left p-4 border-2 rounded-lg transition-all ${selected?.id === background.id
-                ? "border-indigo-600 bg-indigo-50 shadow-md"
-                : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
-                }`}
-            >
-              <h3 className="text-gray-900 font-semibold text-lg mb-1">{background.name}</h3>
-              <p className="text-sm text-gray-600 line-clamp-2">{background.description}</p>
-            </button>
-          ))}
-        </div>
+        {backgroundsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="p-4 border-2 border-gray-200 rounded-lg animate-pulse">
+                <div className="h-5 w-28 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 w-full bg-gray-200 rounded mb-1"></div>
+                <div className="h-4 w-2/3 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+            {filteredBackgrounds.map((background) => (
+              <button
+                key={background.id}
+                onClick={() => onSelect(background)}
+                className={`text-left p-4 border-2 rounded-lg transition-all ${selected?.id === background.id
+                  ? "border-indigo-600 bg-indigo-50 shadow-md"
+                  : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
+                  }`}
+              >
+                <h3 className="text-gray-900 font-semibold text-lg mb-1">{background.name}</h3>
+                <p className="text-sm text-gray-600 line-clamp-2">{background.description}</p>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Right Column: Details Panel */}
       <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-white border border-gray-200 rounded-xl shadow-sm min-h-[400px]">
         {selected ? (
           <div className="animate-in fade-in duration-200">
-            {/* Image Placeholder */}
+            {/* Image Section */}
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-              <div className="text-center p-4">
-                <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                <span className="text-xs text-gray-400">Background Scene</span>
-              </div>
-              <img
-                src={`/images/backgrounds/${selected.id}.jpg`}
-                alt={selected.name}
-                className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
+              {displayedBackground?.image ? (
+                <img
+                  src={urlFor(displayedBackground.image)?.width(400).height(300).url() || ''}
+                  alt={selected.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <div className="text-center p-4">
+                    <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <span className="text-xs text-gray-400">Background Scene</span>
+                  </div>
+                  <img
+                    src={`/images/backgrounds/${selected.id}.jpg`}
+                    alt={selected.name}
+                    className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                </>
+              )}
             </div>
 
             <h3 className="text-2xl font-bold text-gray-900 mb-2 text-indigo-700 font-serif">{selected.name}</h3>

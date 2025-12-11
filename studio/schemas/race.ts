@@ -27,6 +27,14 @@ export default {
             type: 'text',
             validation: (Rule: any) => Rule.required(),
         },
+        {
+            name: 'image',
+            title: 'Image',
+            type: 'image',
+            options: {
+                hotspot: true,
+            },
+        },
         sourceField,
         editionField,
         versionField,
@@ -67,7 +75,23 @@ export default {
             name: 'traits',
             title: 'Traits',
             type: 'array',
-            of: [{ type: 'string' }],
+            of: [
+                {
+                    type: 'object',
+                    name: 'trait',
+                    title: 'Trait',
+                    fields: [
+                        { name: 'name', title: 'Name', type: 'string', validation: (Rule: any) => Rule.required() },
+                        { name: 'description', title: 'Description', type: 'text', validation: (Rule: any) => Rule.required() },
+                    ],
+                    preview: {
+                        select: {
+                            title: 'name',
+                            subtitle: 'description',
+                        },
+                    },
+                },
+            ],
         },
         {
             name: 'languages',
@@ -80,7 +104,82 @@ export default {
             title: 'Subraces',
             type: 'array',
             of: [{ type: 'string' }],
-            description: 'IDs of subraces (or references if implemented as documents)',
+            description: 'IDs of subraces',
+        },
+        {
+            name: 'racialSpellChoices',
+            title: 'Racial Spell Choices',
+            type: 'array',
+            of: [
+                {
+                    type: 'object',
+                    name: 'racialSpellChoice',
+                    title: 'Spell Choice',
+                    fields: [
+                        { name: 'choose', title: 'Number to Choose', type: 'number', validation: (Rule: any) => Rule.required().min(1) },
+                        { name: 'name', title: 'Choice Name', type: 'string', validation: (Rule: any) => Rule.required() },
+                        { name: 'list', title: 'Spell IDs', type: 'array', of: [{ type: 'string' }] },
+                        { name: 'school', title: 'School Restriction', type: 'string' },
+                        { name: 'level', title: 'Max Spell Level', type: 'number', description: '0 for cantrips' },
+                    ],
+                    preview: {
+                        select: {
+                            title: 'name',
+                            subtitle: 'choose',
+                        },
+                    },
+                },
+            ],
+        },
+        {
+            name: 'racialKnownSpells',
+            title: 'Racial Known Spells',
+            type: 'array',
+            of: [
+                {
+                    type: 'object',
+                    name: 'racialKnownSpell',
+                    title: 'Known Spell',
+                    fields: [
+                        { name: 'level', title: 'Character Level Required', type: 'number', validation: (Rule: any) => Rule.required().min(1) },
+                        { name: 'spellId', title: 'Spell ID', type: 'string', validation: (Rule: any) => Rule.required() },
+                        {
+                            name: 'abilityScore',
+                            title: 'Casting Ability',
+                            type: 'string',
+                            options: {
+                                list: [
+                                    { title: 'Strength', value: 'STR' },
+                                    { title: 'Dexterity', value: 'DEX' },
+                                    { title: 'Constitution', value: 'CON' },
+                                    { title: 'Intelligence', value: 'INT' },
+                                    { title: 'Wisdom', value: 'WIS' },
+                                    { title: 'Charisma', value: 'CHA' },
+                                ],
+                            },
+                        },
+                        {
+                            name: 'type',
+                            title: 'Usage Type',
+                            type: 'string',
+                            options: {
+                                list: [
+                                    { title: 'At-Will', value: 'at-will' },
+                                    { title: '1/Day', value: '1/day' },
+                                    { title: 'Recharge', value: 'recharge' },
+                                ],
+                            },
+                        },
+                        { name: 'spellName', title: 'Display Name Override', type: 'string' },
+                    ],
+                    preview: {
+                        select: {
+                            title: 'spellId',
+                            subtitle: 'type',
+                        },
+                    },
+                },
+            ],
         },
     ],
     preview: {
