@@ -13,6 +13,7 @@ interface Roll {
   total: number;
   timestamp: Date;
   displayText: string;
+  droppedIndices?: number[];
 }
 
 export function DiceRoller() {
@@ -25,42 +26,104 @@ export function DiceRoller() {
   const [isRolling, setIsRolling] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
+  const [rollMode, setRollMode] = useState<'normal' | 'advantage' | 'disadvantage'>('normal');
+
   const diceTypes: DiceType[] = [4, 6, 8, 10, 12, 20, 100];
+
+  /* Custom Stat Roll Config */
+  const [statConfig, setStatConfig] = useState({ count: 4, sides: 6, drop: 1 });
+
+  const rollStats = () => {
+    setIsRolling(true);
+    const { count, sides, drop } = statConfig;
+
+    setTimeout(() => {
+      // Roll 'count' dice with 'sides'
+      const results = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
+
+      // Convert to (value, index) pairs to identify which specific dice to drop
+      const indexed = results.map((val, idx) => ({ val, idx }));
+      // Sort by value
+      indexed.sort((a, b) => a.val - b.val);
+
+      // Identify dropped indices
+      const droppedItems = indexed.slice(0, drop);
+      const droppedIndices = droppedItems.map(item => item.idx);
+
+      // Calculate sum of kept dice
+      const keptItems = indexed.slice(drop);
+      const sum = keptItems.reduce((a, b) => a + b.val, 0);
+
+      const newRoll: Roll = {
+        id: `stat-${Date.now()}`,
+        dice: sides as DiceType,
+        count: count,
+        result: results,
+        modifier: 0,
+        total: sum,
+        timestamp: new Date(),
+        displayText: `Stat Roll (${count}d${sides} drop lowest ${drop})`,
+        droppedIndices: droppedIndices,
+      };
+
+      setCurrentRoll(newRoll);
+      setRollHistory((prev) => [newRoll, ...prev].slice(0, 50));
+      setIsRolling(false);
+    }, 500);
+  };
 
   const rollDice = (sides: DiceType, count: number = 1) => {
     setIsRolling(true);
 
+    // Advantage/Disadvantage only applies to single d20 rolls usually, but let's support it if sides === 20 and count === 1
+    const effectiveCount = (sides === 20 && count === 1 && rollMode !== 'normal') ? 2 : count;
+
     // Simulate rolling animation
     let counter = 0;
     const interval = setInterval(() => {
-      const tempResults = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
-      const tempSum = tempResults.reduce((a, b) => a + b, 0);
+      const tempResults = Array.from({ length: effectiveCount }, () => Math.floor(Math.random() * sides) + 1);
+
+      let tempTotal = 0;
+      if (sides === 20 && count === 1 && rollMode !== 'normal') {
+        // Advantage: max, Disadvantage: min
+        tempTotal = rollMode === 'advantage' ? Math.max(...tempResults) : Math.min(...tempResults);
+      } else {
+        tempTotal = tempResults.reduce((a, b) => a + b, 0);
+      }
+
       setCurrentRoll({
         id: `temp-${Date.now()}`,
         dice: sides,
-        count,
+        count: effectiveCount,
         result: tempResults,
         modifier,
-        total: tempSum + modifier,
+        total: tempTotal + modifier,
         timestamp: new Date(),
-        displayText: `${count}d${sides}${modifier !== 0 ? ` ${modifier > 0 ? '+' : ''}${modifier}` : ''}`,
+        displayText: `${count}d${sides}${modifier !== 0 ? ` ${modifier > 0 ? '+' : ''}${modifier}` : ''}${rollMode !== 'normal' && sides === 20 ? ` (${rollMode})` : ''}`,
       });
       counter++;
 
       if (counter >= 10) {
         clearInterval(interval);
         // Final roll
-        const finalResults = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
-        const sum = finalResults.reduce((a, b) => a + b, 0);
+        const finalResults = Array.from({ length: effectiveCount }, () => Math.floor(Math.random() * sides) + 1);
+
+        let finalTotal = 0;
+        if (sides === 20 && count === 1 && rollMode !== 'normal') {
+          finalTotal = rollMode === 'advantage' ? Math.max(...finalResults) : Math.min(...finalResults);
+        } else {
+          finalTotal = finalResults.reduce((a, b) => a + b, 0);
+        }
+
         const finalRoll: Roll = {
           id: `roll-${Date.now()}`,
           dice: sides,
-          count,
+          count: effectiveCount,
           result: finalResults,
           modifier,
-          total: sum + modifier,
+          total: finalTotal + modifier,
           timestamp: new Date(),
-          displayText: `${count}d${sides}${modifier !== 0 ? ` ${modifier > 0 ? '+' : ''}${modifier}` : ''}`,
+          displayText: `${count}d${sides}${modifier !== 0 ? ` ${modifier > 0 ? '+' : ''}${modifier}` : ''}${rollMode !== 'normal' && sides === 20 ? ` (${rollMode})` : ''}`,
         };
         setCurrentRoll(finalRoll);
         setRollHistory((prev) => [finalRoll, ...prev].slice(0, 50)); // Keep last 50 rolls
@@ -337,33 +400,36 @@ export function DiceRoller() {
                       damping: 15
                     }}
                     className={`mb-4 p-6 rounded-lg text-center overflow-hidden ${isRolling
-                        ? "bg-gradient-to-br from-gray-100 to-gray-200"
-                        : currentRoll.result.every(r => r === currentRoll.dice)
-                          ? "bg-gradient-to-br from-green-100 to-green-200"
-                          : currentRoll.result.every(r => r === 1)
-                            ? "bg-gradient-to-br from-red-100 to-red-200"
-                            : "bg-gradient-to-br from-blue-100 to-blue-200"
+                      ? "bg-gradient-to-br from-gray-100 to-gray-200"
+                      : currentRoll.result.every(r => r === currentRoll.dice)
+                        ? "bg-gradient-to-br from-green-100 to-green-200"
+                        : currentRoll.result.every(r => r === 1)
+                          ? "bg-gradient-to-br from-red-100 to-red-200"
+                          : "bg-gradient-to-br from-blue-100 to-blue-200"
                       }`}
                   >
                     <div className="text-sm text-gray-600 mb-2">
                       {currentRoll.displayText}
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                      {currentRoll.result.map((r, idx) => (
-                        <motion.span
-                          key={idx}
-                          className="text-2xl text-gray-900 font-semibold"
-                          animate={isRolling ? {
-                            scale: [1, 1.2, 1],
-                          } : {}}
-                          transition={{ duration: 0.5, repeat: isRolling ? Infinity : 0 }}
-                        >
-                          {r}
-                        </motion.span>
-                      ))}
+                      {currentRoll.result.map((r, idx) => {
+                        const isDropped = currentRoll.droppedIndices?.includes(idx);
+                        return (
+                          <motion.span
+                            key={idx}
+                            className={`text-2xl font-semibold ${isDropped ? "text-gray-300 line-through decoration-2" : "text-gray-900"}`}
+                            animate={isRolling ? {
+                              scale: [1, 1.2, 1],
+                            } : {}}
+                            transition={{ duration: 0.5, repeat: isRolling ? Infinity : 0 }}
+                          >
+                            {r}
+                          </motion.span>
+                        );
+                      })}
                     </div>
                     <div className="text-sm text-gray-600">
-                      Sum: {currentRoll.result.reduce((a, b) => a + b, 0)}
+                      Sum: {currentRoll.total - currentRoll.modifier}
                       {currentRoll.modifier !== 0 && (
                         <span> {currentRoll.modifier > 0 ? '+' : ''}{currentRoll.modifier}</span>
                       )}
@@ -424,30 +490,104 @@ export function DiceRoller() {
                   </div>
                 </div>
 
-                {/* Modifier Input */}
-                <div className="mb-4">
-                  <label className="block text-sm text-gray-700 mb-2">
-                    Modifier
-                  </label>
-                  <div className="flex items-center gap-2">
+                {/* Roll Options */}
+                <div className="mb-4 space-y-3">
+                  {/* Roll Mode */}
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">Roll Mode</label>
+                    <div className="flex gap-2">
+                      {/* Normal, Advantage, Disadvantage buttons - simplified as a specialized toggle or just buttons */}
+                      <button
+                        onClick={() => setRollMode('normal')}
+                        className={`flex-1 py-1 px-2 text-xs rounded border ${rollMode === 'normal' ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-300 text-gray-700'}`}
+                      >
+                        Normal
+                      </button>
+                      <button
+                        onClick={() => setRollMode('advantage')}
+                        className={`flex-1 py-1 px-2 text-xs rounded border ${rollMode === 'advantage' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-white border-gray-300 text-gray-700'}`}
+                      >
+                        Advantage
+                      </button>
+                      <button
+                        onClick={() => setRollMode('disadvantage')}
+                        className={`flex-1 py-1 px-2 text-xs rounded border ${rollMode === 'disadvantage' ? 'bg-red-100 border-red-500 text-red-700' : 'bg-white border-gray-300 text-gray-700'}`}
+                      >
+                        Disadvantage
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Custom Stat Roll */}
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <label className="block text-xs font-semibold text-amber-800 mb-2 uppercase tracking-wide">
+                      Custom Stat Roll (Drop Lowest)
+                    </label>
+                    <div className="flex gap-2 mb-2">
+                      <div className="flex-1">
+                        <span className="text-[10px] text-gray-500 block mb-1">Count</span>
+                        <input
+                          type="number"
+                          min="1" max="20"
+                          value={statConfig.count}
+                          onChange={(e) => setStatConfig({ ...statConfig, count: parseInt(e.target.value) || 4 })}
+                          className="w-full text-sm border-gray-300 rounded px-2 py-1"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-[10px] text-gray-500 block mb-1">Sides</span>
+                        <select
+                          value={statConfig.sides}
+                          onChange={(e) => setStatConfig({ ...statConfig, sides: parseInt(e.target.value) || 6 })}
+                          className="w-full text-sm border-gray-300 rounded px-2 py-1"
+                        >
+                          {diceTypes.map(d => <option key={d} value={d}>d{d}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-[10px] text-gray-500 block mb-1">Drop</span>
+                        <input
+                          type="number"
+                          min="0" max={statConfig.count - 1}
+                          value={statConfig.drop}
+                          onChange={(e) => setStatConfig({ ...statConfig, drop: parseInt(e.target.value) || 1 })}
+                          className="w-full text-sm border-gray-300 rounded px-2 py-1"
+                        />
+                      </div>
+                    </div>
                     <button
-                      onClick={() => setModifier(Math.max(-99, modifier - 1))}
-                      className="p-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                      onClick={rollStats}
+                      className="w-full py-2 bg-amber-100 text-amber-800 border border-amber-300 rounded hover:bg-amber-200 text-xs font-semibold transition-colors"
                     >
-                      <Minus className="w-4 h-4" />
+                      Roll Stats ({statConfig.count}d{statConfig.sides} drop {statConfig.drop})
                     </button>
-                    <input
-                      type="number"
-                      value={modifier}
-                      onChange={(e) => setModifier(parseInt(e.target.value) || 0)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <button
-                      onClick={() => setModifier(Math.min(99, modifier + 1))}
-                      className="p-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
+                  </div>
+
+                  {/* Modifier Input */}
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      Modifier
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setModifier(Math.max(-99, modifier - 1))}
+                        className="p-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="number"
+                        value={modifier}
+                        onChange={(e) => setModifier(parseInt(e.target.value) || 0)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                      <button
+                        onClick={() => setModifier(Math.min(99, modifier + 1))}
+                        className="p-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

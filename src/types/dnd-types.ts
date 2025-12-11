@@ -27,9 +27,23 @@ export interface Race {
   abilityScoreIncrease: Partial<AbilityScores>;
   size: "Tiny" | "Small" | "Medium" | "Large";
   speed: number;
-  traits: string[];
+  traits: { name: string; description: string }[];
   languages: string[];
   subraces?: string[]; // IDs of subraces
+  racialSpellChoices?: {
+    choose: number;
+    list: string[]; // List of Spell IDs or "any:classId" or "cantrip:classId"
+    school?: string; // Optional school restriction
+    level?: number; // Max level (0 for cantrip)
+    name: string; // "High Elf Cantrip", "Legacy of Stygia", etc.
+  }[];
+  racialKnownSpells?: {
+    level: number; // Character level required
+    spellId: string;
+    abilityScore?: AbilityScore; // Casting stat
+    type?: "at-will" | "1/day" | "recharge";
+    name?: string; // Optional override name
+  }[];
 }
 
 export interface Subrace {
@@ -41,7 +55,21 @@ export interface Subrace {
   edition: Edition;
   version: number;
   abilityScoreIncrease: Partial<AbilityScores>;
-  traits: string[];
+  traits: { name: string; description: string }[];
+  racialSpellChoices?: {
+    choose: number;
+    list: string[]; // List of Spell IDs or "any:classId" or "cantrip:classId"
+    school?: string; // Optional school restriction
+    level?: number; // Max level (0 for cantrip)
+    name: string; // "High Elf Cantrip", "Legacy of Stygia", etc.
+  }[];
+  racialKnownSpells?: {
+    level: number; // Character level required
+    spellId: string;
+    abilityScore?: AbilityScore; // Casting stat
+    type?: "at-will" | "1/day" | "recharge";
+    name?: string; // Optional override name
+  }[];
 }
 
 // ===== Class System =====
@@ -297,6 +325,9 @@ export interface SearchFilters {
   school?: SpellSchool;
   class?: string;
   spellcaster?: boolean;
+  concentration?: boolean;
+  ritual?: boolean;
+  components?: ("verbal" | "somatic" | "material")[];
 }
 
 // ===== Spell Slot Progression Tables =====

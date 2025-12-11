@@ -14,9 +14,11 @@ import type {
   Source
 } from "../types/dnd-types";
 import { species } from "./mock-races";
+import { extraRaces } from "./extra-races";
+import { MOCK_FEATS } from "./mock-feats";
 
 // ===== EXPANDED RACES =====
-export const RACES: Race[] = species;
+export const RACES: Race[] = [...species, ...extraRaces];
 
 // ===== SUBRACES =====
 export const SUBRACES: Subrace[] = [
@@ -29,7 +31,18 @@ export const SUBRACES: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { INT: 1 },
-    traits: ["Elf Weapon Training", "Cantrip", "Extra Language"]
+    traits: [
+      { name: "Elf Weapon Training", description: "Proficiency with longsword, shortsword, shortbow, longbow" },
+      { name: "Cantrip", description: "One wizard cantrip of your choice" },
+      { name: "Extra Language", description: "One additional language" },
+    ],
+    racialSpellChoices: [
+      {
+        choose: 1,
+        list: ["cantrip:wizard"],
+        name: "High Elf Cantrip"
+      }
+    ]
   },
   {
     id: "wood-elf",
@@ -40,7 +53,11 @@ export const SUBRACES: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
-    traits: ["Elf Weapon Training", "Fleet of Foot", "Mask of the Wild"]
+    traits: [
+      { name: "Elf Weapon Training", description: "Proficiency with longsword, shortsword, shortbow, longbow" },
+      { name: "Fleet of Foot", description: "Base speed 35 ft." },
+      { name: "Mask of the Wild", description: "Hide in light natural phenomena" },
+    ]
   },
   {
     id: "drow",
@@ -51,7 +68,12 @@ export const SUBRACES: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CHA: 1 },
-    traits: ["Superior Darkvision", "Sunlight Sensitivity", "Drow Magic", "Drow Weapon Training"]
+    traits: [
+      { name: "Superior Darkvision", description: "120 ft." },
+      { name: "Sunlight Sensitivity", description: "Disadvantage in bright light" },
+      { name: "Drow Magic", description: "Dancing lights cantrip, faerie fire, darkness" },
+      { name: "Drow Weapon Training", description: "Proficiency with rapiers, shortswords, and hand crossbows" },
+    ]
   },
   {
     id: "hill-dwarf",
@@ -62,7 +84,7 @@ export const SUBRACES: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
-    traits: ["Dwarven Toughness"]
+    traits: [{ name: "Dwarven Toughness", description: "+1 HP per level" }]
   },
   {
     id: "mountain-dwarf",
@@ -73,7 +95,7 @@ export const SUBRACES: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { STR: 2 },
-    traits: ["Dwarven Armor Training"]
+    traits: [{ name: "Dwarven Armor Training", description: "Proficiency with light and medium armor" }]
   },
   {
     id: "lightfoot-halfling",
@@ -84,7 +106,7 @@ export const SUBRACES: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CHA: 1 },
-    traits: ["Naturally Stealthy"]
+    traits: [{ name: "Naturally Stealthy", description: "Hide behind creatures one size larger" }]
   },
   {
     id: "stout-halfling",
@@ -95,7 +117,40 @@ export const SUBRACES: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CON: 1 },
-    traits: ["Stout Resilience"]
+    traits: [{ name: "Stout Resilience", description: "Advantage on saves against poison, resistance to poison damage" }]
+  },
+  {
+    id: "half-elf-standard",
+    parentRaceId: "half-elf",
+    name: "Half-Elf (Standard)",
+    description: "The most common versatility of half-elves.",
+    source: "Player's Handbook",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: {},
+    traits: [
+      { name: "Skill Versatility", description: "You gain proficiency in two skills of your choice." }
+    ]
+  },
+  {
+    id: "half-elf-high-variant",
+    parentRaceId: "half-elf",
+    name: "Half-Elf (High Elf Descent)",
+    description: "Some half-elves have a stronger connection to their high elf heritage.",
+    source: "SCAG / PHB",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: {},
+    traits: [
+      { name: "High Elf Descent", description: "You know one wizard cantrip of your choice. Intelligence is your spellcasting ability for it." }
+    ],
+    racialSpellChoices: [
+      {
+        choose: 1,
+        list: ["cantrip:wizard"],
+        name: "High Elf Descent"
+      }
+    ]
   }
 ];
 
@@ -232,139 +287,8 @@ export const BACKGROUNDS: Background[] = [
 ];
 
 // ===== EXPANDED FEATS =====
-export const FEATS: Feat[] = [
-  {
-    id: "alert",
-    name: "Alert",
-    description: "Always on the lookout for danger, you gain the following benefits: You can't be surprised while you are conscious. You gain a +5 bonus to initiative. Other creatures don't gain advantage on attack rolls against you as a result of being unseen by you.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {}
-  },
-  {
-    id: "athlete",
-    name: "Athlete",
-    description: "You have undergone extensive physical training to gain the following benefits.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      abilityScoreIncrease: { STR: 1 },
-      features: ["Climbing doesn't cost extra movement", "Running jump distance increases", "Standing from prone costs only 5 feet"]
-    }
-  },
-  {
-    id: "lucky",
-    name: "Lucky",
-    description: "You have inexplicable luck that seems to kick in at just the right moment.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      features: ["You have 3 luck points", "You can spend a luck point to roll an additional d20 when making an attack roll, ability check, or saving throw"]
-    }
-  },
-  {
-    id: "magic-initiate",
-    name: "Magic Initiate",
-    description: "Choose a class: bard, cleric, druid, sorcerer, warlock, or wizard. You learn two cantrips and one 1st-level spell from that class's spell list.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      spells: [],
-      features: ["Learn 2 cantrips from chosen class", "Learn one 1st-level spell from chosen class"]
-    }
-  },
-  {
-    id: "tough",
-    name: "Tough",
-    description: "Your hit point maximum increases by an amount equal to twice your level when you gain this feat. Whenever you gain a level thereafter, your hit point maximum increases by an additional 2 hit points.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      features: ["Hit point maximum increases by 2 per level"]
-    }
-  },
-  {
-    id: "war-caster",
-    name: "War Caster",
-    description: "You have practiced casting spells in the midst of combat, learning techniques that grant you the following benefits.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    prerequisites: {
-      class: ["wizard", "sorcerer", "cleric", "bard", "druid", "warlock", "artificer", "paladin", "ranger"]
-    },
-    benefits: {
-      features: [
-        "Advantage on Constitution saving throws to maintain concentration",
-        "Can perform somatic components even with weapons or shield",
-        "Can cast spells as opportunity attacks"
-      ]
-    }
-  },
-  {
-    id: "great-weapon-master",
-    name: "Great Weapon Master",
-    description: "You've learned to put the weight of a weapon to your advantage, letting its momentum empower your strikes.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      features: [
-        "On critical hit or reduce creature to 0 HP, make bonus melee weapon attack",
-        "Before making melee attack with heavy weapon, take -5 to attack roll to gain +10 to damage"
-      ]
-    }
-  },
-  {
-    id: "sharpshooter",
-    name: "Sharpshooter",
-    description: "You have mastered ranged weapons and can make shots that others find impossible.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      features: [
-        "Attacking at long range doesn't impose disadvantage",
-        "Ranged attacks ignore half cover and three-quarters cover",
-        "Before making ranged attack, take -5 to attack roll to gain +10 to damage"
-      ]
-    }
-  },
-  {
-    id: "sentinel",
-    name: "Sentinel",
-    description: "You have mastered techniques to take advantage of every drop in any enemy's guard.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      features: [
-        "Opportunity attacks reduce target's speed to 0",
-        "Can make opportunity attacks even if target Disengages",
-        "When creature attacks ally, can use reaction to make melee attack"
-      ]
-    }
-  },
-  {
-    id: "polearm-master",
-    name: "Polearm Master",
-    description: "You can keep your enemies at bay with reach weapons.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    benefits: {
-      features: [
-        "Can make bonus attack with opposite end of weapon",
-        "Creatures provoke opportunity attack when entering your reach"
-      ]
-    }
-  }
-];
+// ===== EXPANDED FEATS =====
+export const FEATS: Feat[] = MOCK_FEATS;
 
 // Export all data
 export const LIBRARY_DATA = {

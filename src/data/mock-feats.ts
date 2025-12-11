@@ -195,5 +195,142 @@ export const MOCK_FEATS: Feat[] = [
         "Reroll one die when you have advantage on DEX/INT/WIS/CHA attacks"
       ]
     }
+  },
+  {
+    id: "feat-metamagic-initiate",
+    name: "Metamagic Initiate",
+    description: "You've learned how to exert your will on your spells to alter how they function. You gain the following benefits: You learn two Metamagic options of your choice from the sorcerer class. You have 2 sorcery points to spend on Metamagic. You regain all spent sorcery points when you finish a long rest.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    benefits: {
+      features: [
+        "Learn 2 Metamagic options",
+        "2 Sorcery Points (recharge on long rest)"
+      ]
+    }
+  },
+  {
+    id: "feat-aberrant-dragonmark",
+    name: "Aberrant Dragonmark",
+    description: "You have manifested an aberrant dragonmark. You gain the following benefits: Increase your Constitution score by 1, to a maximum of 20. You learn a cantrip and a 1st-level spell from the sorcerer spell list (+CON is spellcasting mod). You can cast the 1st-level spell once without a spell slot (short/long rest). casting the spell has a random effect.",
+    source: "Eberron: Rising from the Last War",
+    edition: "2024",
+    version: 1,
+    benefits: {
+      abilityScoreIncrease: { CON: 1 },
+      features: [
+        "Learn Sorcerer cantrip",
+        "Learn 1st-level Sorcerer spell (cast once free/rest)",
+        "Random effect when casting 1st-level spell"
+      ]
+    }
+  },
+  {
+    id: "feat-fey-touched",
+    name: "Fey Touched",
+    description: "Your exposure to the Feywild's magic has changed you. Increase your Int, Wis, or Cha by 1. You learn the Misty Step spell and one 1st-level spell of your choice from the Divination or Enchantment school.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    benefits: {
+      abilityScoreIncrease: { INT: 1 }, // Or WIS/CHA
+      features: [
+        "Learn Misty Step",
+        "Learn 1st-level Divination or Enchantment spell",
+        "Can cast each once without spell slot per long rest"
+      ]
+    }
+  },
+  {
+    id: "feat-shadow-touched",
+    name: "Shadow Touched",
+    description: "Your exposure to the Shadowfell's magic has changed you. Increase your Int, Wis, or Cha by 1. You learn the Invisibility spell and one 1st-level spell of your choice from the Illusion or Necromancy school.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    benefits: {
+      abilityScoreIncrease: { INT: 1 }, // Or WIS/CHA
+      features: [
+        "Learn Invisibility",
+        "Learn 1st-level Illusion or Necromancy spell",
+        "Can cast each once without spell slot per long rest"
+      ]
+    }
+  },
+  {
+    id: "feat-telekinetic",
+    name: "Telekinetic",
+    description: "You learn to move things with your mind. Increase your Int, Wis, or Cha by 1. You learn the Mage Hand cantrip (invisible, 60ft range). As a bonus action, you can try to shove a creature within 30 feet of you using your mind.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    benefits: {
+      abilityScoreIncrease: { INT: 1 }, // Or WIS/CHA
+      features: [
+        "Improved Mage Hand (invisible, 60ft range)",
+        "Bonus action telekinetic shove (5ft push/pull, STR save)"
+      ]
+    }
+  },
+  {
+    id: "feat-crossbow-expert",
+    name: "Crossbow Expert",
+    description: "Thanks to extensive practice with the crossbow, you gain the following benefits: You ignore the loading quality of crossbows with which you are proficient. Being within 5 feet of a hostile creature doesn't impose disadvantage on your ranged attack rolls. When you use the Attack action and attack with a one-handed weapon, you can use a bonus action to attack with a hand crossbow you are holding.",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    benefits: {
+      features: [
+        "Ignore loading quality of crossbows",
+        "No disadvantage on ranged attacks in melee",
+        "Bonus action attack with hand crossbow"
+      ]
+    }
+  },
+  {
+    id: "feat-healer",
+    name: "Healer",
+    description: "You are an able physician, allowing you to mend wounds quickly and get your allies back in the fight. You gain the following benefits: When you use a healer's kit to stabilize a dying creature, that creature also regains 1 hit point. As an action, you can spend one use of a healer's kit to tend to a creature and restore 1d6 + 4 hit points to it, plus additional hit points equal to the creature's maximum number of Hit Dice. The creature can't regain hit points from this feat again until it finishes a short or long rest.",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    benefits: {
+      features: [
+        "Stabilize dying creature to 1 HP",
+        "Restore 1d6 + 4 + max Hit Dice HP (once per rest per creature)"
+      ]
+    }
+  },
+  {
+    id: "feat-keen-mind",
+    name: "Keen Mind",
+    description: "You have a mind that can track time, direction, and detail with uncanny precision. You gain the following benefits: Increase your Intelligence score by 1, to a maximum of 20. You always know which way is north. You always know the number of hours left before the next sunrise or sunset. You can accurately recall anything you have seen or heard within the past month.",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    benefits: {
+      abilityScoreIncrease: { INT: 1 },
+      features: [
+        "Always know North",
+        "Always know time until sunrise/sunset",
+        "Perfect recall for 1 month"
+      ]
+    }
+  },
+  {
+    id: "feat-observant",
+    name: "Observant",
+    description: "Quick to notice details of your environment, you gain the following benefits: Increase your Intelligence or Wisdom score by 1, to a maximum of 20. If you can see a creature's mouth while it is speaking a language you understand, you can interpret what it's saying by reading its lips. You have a +5 bonus to your passive Wisdom (Perception) and passive Intelligence (Investigation) scores.",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    benefits: {
+      abilityScoreIncrease: { WIS: 1 }, // Or INT
+      features: [
+        "Read lips",
+        "+5 to Passive Perception and Passive Investigation"
+      ]
+    }
   }
 ];

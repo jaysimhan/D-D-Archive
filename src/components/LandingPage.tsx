@@ -1,17 +1,15 @@
-import { BookOpen, Wand2, Dices, FileText, Sparkles, Shield, Settings } from "lucide-react";
+import { BookOpen, Wand2, Dices, FileText, Sparkles, Shield } from "lucide-react";
 
-interface LandingPageProps {
-  onNavigate: (page: "library" | "creator" | "admin") => void;
-}
+import { Link } from "react-router-dom";
 
-export function LandingPage({ onNavigate }: LandingPageProps) {
+export function LandingPage() {
   const features = [
     {
       icon: BookOpen,
       title: "Universal Library",
       description:
         "Browse comprehensive archives of spells, classes, races, items, and backgrounds from both 2014 and 2024 editions.",
-      action: () => onNavigate("library"),
+      to: "/library",
       buttonText: "Explore Library",
       color: "from-red-600 to-red-800",
     },
@@ -20,18 +18,9 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       title: "Character Creator",
       description:
         "Build your perfect character with our intelligent step-by-step wizard featuring automatic rules validation.",
-      action: () => onNavigate("creator"),
+      to: "/creator",
       buttonText: "Create Character",
       color: "from-purple-600 to-indigo-800",
-    },
-    {
-      icon: Settings,
-      title: "Content Manager",
-      description:
-        "Add, edit, and manage D&D content. Import SRD data or create your own homebrew content with full validation.",
-      action: () => onNavigate("admin"),
-      buttonText: "Manage Content",
-      color: "from-amber-600 to-orange-800",
     },
   ];
 
@@ -85,7 +74,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           </p>
 
           {/* Main Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
@@ -100,12 +89,12 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                   </div>
                   <h2 className="text-white text-2xl mb-4">{feature.title}</h2>
                   <p className="text-purple-200 mb-6">{feature.description}</p>
-                  <button
-                    onClick={feature.action}
-                    className={`px-8 py-3 bg-gradient-to-r ${feature.color} text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all`}
+                  <Link
+                    to={feature.to}
+                    className={`inline-block px-8 py-3 bg-gradient-to-r ${feature.color} text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all w-full md:w-auto text-center`}
                   >
                     {feature.buttonText}
-                  </button>
+                  </Link>
                 </div>
               );
             })}

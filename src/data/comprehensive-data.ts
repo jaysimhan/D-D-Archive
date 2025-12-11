@@ -26,10 +26,10 @@ export const comprehensiveRaces: Race[] = [
     size: "Medium",
     speed: 25,
     traits: [
-      "Darkvision",
-      "Dwarven Resilience",
-      "Dwarven Combat Training",
-      "Stonecunning",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Dwarven Resilience", description: "Advantage on saving throws against poison" },
+      { name: "Dwarven Combat Training", description: "Proficiency with battleaxe, handaxe, light hammer, warhammer" },
+      { name: "Stonecunning", description: "Add double proficiency to History checks related to stone" },
     ],
     languages: ["Common", "Dwarvish"],
     subraces: ["hill-dwarf", "mountain-dwarf"],
@@ -45,7 +45,12 @@ export const comprehensiveRaces: Race[] = [
     abilityScoreIncrease: { DEX: 2 },
     size: "Medium",
     speed: 30,
-    traits: ["Darkvision", "Keen Senses", "Fey Ancestry", "Trance"],
+    traits: [
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Keen Senses", description: "Proficiency in Perception" },
+      { name: "Fey Ancestry", description: "Advantage against being charmed, magic can't put you to sleep" },
+      { name: "Trance", description: "4 hours instead of 8 for long rest" },
+    ],
     languages: ["Common", "Elvish"],
     subraces: ["high-elf", "wood-elf", "dark-elf"],
   },
@@ -60,7 +65,11 @@ export const comprehensiveRaces: Race[] = [
     abilityScoreIncrease: { DEX: 2 },
     size: "Small",
     speed: 25,
-    traits: ["Lucky", "Brave", "Halfling Nimbleness"],
+    traits: [
+      { name: "Lucky", description: "Reroll 1s on d20 rolls" },
+      { name: "Brave", description: "Advantage on saving throws against being frightened" },
+      { name: "Halfling Nimbleness", description: "Move through space of larger creatures" },
+    ],
     languages: ["Common", "Halfling"],
     subraces: ["lightfoot-halfling", "stout-halfling"],
   },
@@ -75,7 +84,7 @@ export const comprehensiveRaces: Race[] = [
     abilityScoreIncrease: { STR: 1, DEX: 1, CON: 1, INT: 1, WIS: 1, CHA: 1 },
     size: "Medium",
     speed: 30,
-    traits: ["Extra Language"],
+    traits: [{ name: "Extra Language", description: "You speak, read, and write one extra language of your choice." }],
     languages: ["Common"],
   },
   {
@@ -89,7 +98,11 @@ export const comprehensiveRaces: Race[] = [
     abilityScoreIncrease: { STR: 2, CHA: 1 },
     size: "Medium",
     speed: 30,
-    traits: ["Draconic Ancestry", "Breath Weapon", "Damage Resistance"],
+    traits: [
+      { name: "Draconic Ancestry", description: "Choose a dragon type" },
+      { name: "Breath Weapon", description: "Exhale destructive energy" },
+      { name: "Damage Resistance", description: "Resistance to your draconic ancestry damage type" },
+    ],
     languages: ["Common", "Draconic"],
   },
   {
@@ -103,7 +116,10 @@ export const comprehensiveRaces: Race[] = [
     abilityScoreIncrease: { INT: 2 },
     size: "Small",
     speed: 25,
-    traits: ["Darkvision", "Gnome Cunning"],
+    traits: [
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Gnome Cunning", description: "Advantage on INT, WIS, CHA saves against magic" },
+    ],
     languages: ["Common", "Gnomish"],
     subraces: ["forest-gnome", "rock-gnome"],
   },
@@ -119,10 +135,10 @@ export const comprehensiveRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Darkvision",
-      "Fey Ancestry",
-      "Skill Versatility",
-      "Ability Score Increase (Choose 2)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Fey Ancestry", description: "Advantage on saving throws against being charmed, and magic can't put you to sleep." },
+      { name: "Skill Versatility", description: "Proficiency in two skills of your choice" },
+      { name: "Ability Score Increase (Choose 2)", description: "Two different ability scores increase by 1" },
     ],
     languages: ["Common", "Elvish"],
   },
@@ -137,7 +153,12 @@ export const comprehensiveRaces: Race[] = [
     abilityScoreIncrease: { STR: 2, CON: 1 },
     size: "Medium",
     speed: 30,
-    traits: ["Darkvision", "Menacing", "Relentless Endurance", "Savage Attacks"],
+    traits: [
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Menacing", description: "Proficiency in Intimidation" },
+      { name: "Relentless Endurance", description: "Drop to 1 HP instead of 0, once per long rest" },
+      { name: "Savage Attacks", description: "Extra damage die on critical hits" },
+    ],
     languages: ["Common", "Orc"],
   },
   {
@@ -151,7 +172,11 @@ export const comprehensiveRaces: Race[] = [
     abilityScoreIncrease: { CHA: 2, INT: 1 },
     size: "Medium",
     speed: 30,
-    traits: ["Darkvision", "Hellish Resistance", "Infernal Legacy"],
+    traits: [
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Hellish Resistance", description: "Resistance to fire damage" },
+      { name: "Infernal Legacy", description: "Know thaumaturgy cantrip, cast hellish rebuke and darkness" },
+    ],
     languages: ["Common", "Infernal"],
   },
 ];
@@ -167,7 +192,7 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
-    traits: ["Dwarven Toughness"],
+    traits: [{ name: "Dwarven Toughness", description: "+1 HP per level" }],
   },
   {
     id: "mountain-dwarf",
@@ -179,7 +204,7 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { STR: 2 },
-    traits: ["Dwarven Armor Training"],
+    traits: [{ name: "Dwarven Armor Training", description: "Proficiency with light and medium armor" }],
   },
   {
     id: "high-elf",
@@ -191,7 +216,11 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { INT: 1 },
-    traits: ["Elf Weapon Training", "Cantrip", "Extra Language"],
+    traits: [
+      { name: "Elf Weapon Training", description: "Proficiency with longsword, shortsword, shortbow, longbow" },
+      { name: "Cantrip", description: "One wizard cantrip of your choice" },
+      { name: "Extra Language", description: "One additional language" },
+    ],
   },
   {
     id: "wood-elf",
@@ -203,7 +232,11 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
-    traits: ["Elf Weapon Training", "Fleet of Foot", "Mask of the Wild"],
+    traits: [
+      { name: "Elf Weapon Training", description: "Proficiency with longsword, shortsword, shortbow, longbow" },
+      { name: "Fleet of Foot", description: "Base speed 35 ft." },
+      { name: "Mask of the Wild", description: "Hide in light natural phenomena" },
+    ],
   },
   {
     id: "dark-elf",
@@ -216,10 +249,10 @@ export const comprehensiveSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { CHA: 1 },
     traits: [
-      "Superior Darkvision",
-      "Sunlight Sensitivity",
-      "Drow Magic",
-      "Drow Weapon Training",
+      { name: "Superior Darkvision", description: "120 ft." },
+      { name: "Sunlight Sensitivity", description: "Disadvantage in bright light" },
+      { name: "Drow Magic", description: "Dancing lights cantrip, faerie fire, darkness" },
+      { name: "Drow Weapon Training", description: "Proficiency with rapiers, shortswords, and hand crossbows" },
     ],
   },
   {
@@ -232,7 +265,7 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CHA: 1 },
-    traits: ["Naturally Stealthy"],
+    traits: [{ name: "Naturally Stealthy", description: "Hide behind creatures one size larger" }],
   },
   {
     id: "stout-halfling",
@@ -244,7 +277,7 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CON: 1 },
-    traits: ["Stout Resilience"],
+    traits: [{ name: "Stout Resilience", description: "Advantage on saves against poison, resistance to poison damage" }],
   },
   {
     id: "forest-gnome",
@@ -256,7 +289,10 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { DEX: 1 },
-    traits: ["Natural Illusionist", "Speak with Small Beasts"],
+    traits: [
+      { name: "Natural Illusionist", description: "Minor illusion cantrip" },
+      { name: "Speak with Small Beasts", description: "Communicate simple ideas with small animals" },
+    ],
   },
   {
     id: "rock-gnome",
@@ -268,7 +304,10 @@ export const comprehensiveSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CON: 1 },
-    traits: ["Artificer's Lore", "Tinker"],
+    traits: [
+      { name: "Artificer's Lore", description: "Add double proficiency to History checks related to magic items, alchemical objects, or tech devices" },
+      { name: "Tinker", description: "Create tiny clockwork devices" },
+    ],
   },
 ];
 

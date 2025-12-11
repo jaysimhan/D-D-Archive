@@ -5,18 +5,20 @@ import { ClassCard } from "./ClassCard";
 import { SubclassCard } from "./SubclassCard";
 import { RaceCard } from "./RaceCard";
 import { ItemCard } from "./ItemCard";
-import type { Race, Class, Spell, Item, Background, Subclass } from "../types/dnd-types";
+import type { Race, Class, Spell, Item, Background, Subclass, Feat } from "../types/dnd-types";
 import {
   searchSpells,
   searchClasses,
   searchRaces,
   searchItems,
   searchBackgrounds,
+  searchFeats,
 } from "../utils/search-utils";
+import { FeatCard } from "./FeatCard";
 import { SearchFilters } from "../types/dnd-types";
-import { BookOpen, Sparkles, Users, Package, Scroll, Plus, Shield } from "lucide-react";
+import { BookOpen, Sparkles, Users, Package, Scroll, Plus, Shield, Award } from "lucide-react";
 
-type LibraryTab = "spells" | "classes" | "subclasses" | "races" | "items" | "backgrounds";
+type LibraryTab = "spells" | "classes" | "subclasses" | "races" | "items" | "backgrounds" | "feats";
 
 interface LibraryProps {
   spells: Spell[];
@@ -25,9 +27,10 @@ interface LibraryProps {
   races: Race[];
   items: Item[];
   backgrounds: Background[];
+  feats: Feat[];
 }
 
-export function Library({ spells, classes, subclasses, races, items, backgrounds }: LibraryProps) {
+export function Library({ spells, classes, subclasses, races, items, backgrounds, feats }: LibraryProps) {
   const [activeTab, setActiveTab] = useState<LibraryTab>("spells");
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
@@ -38,7 +41,8 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
   const filteredRaces = searchRaces(races, filters);
   const filteredItems = searchItems(items, filters);
   const filteredBackgrounds = searchBackgrounds(backgrounds, filters);
-  
+  const filteredFeats = searchFeats(feats, filters);
+
   // Filter subclasses by search query
   const filteredSubclasses = subclasses.filter((subclass) => {
     if (!filters.query) return true;
@@ -58,6 +62,7 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
     { id: "classes", label: "Classes", icon: Scroll, count: filteredClasses.length },
     { id: "subclasses", label: "Subclasses", icon: Shield, count: filteredSubclasses.length },
     { id: "races", label: "Races", icon: Users, count: filteredRaces.length },
+    { id: "feats", label: "Feats", icon: Award, count: filteredFeats.length },
     { id: "items", label: "Items", icon: Package, count: filteredItems.length },
     {
       id: "backgrounds",
@@ -98,20 +103,18 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as LibraryTab)}
-                  className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? "border-red-700 text-red-700"
-                      : "border-transparent text-gray-600 hover:text-gray-900"
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+                    ? "border-red-700 text-red-700"
+                    : "border-transparent text-gray-600 hover:text-gray-900"
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{tab.label}</span>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      activeTab === tab.id
-                        ? "bg-red-100 text-red-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
+                    className={`text-xs px-2 py-0.5 rounded-full ${activeTab === tab.id
+                      ? "bg-red-100 text-red-700"
+                      : "bg-gray-100 text-gray-600"
+                      }`}
                   >
                     {tab.count}
                   </span>
@@ -135,7 +138,7 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
         </div>
 
         {/* Results */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {activeTab === "spells" &&
             filteredSpells.map((spell) => <SpellCard key={spell.id} spell={spell} />)}
 
@@ -154,6 +157,9 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
 
           {activeTab === "items" &&
             filteredItems.map((item) => <ItemCard key={item.id} item={item} />)}
+
+          {activeTab === "feats" &&
+            filteredFeats.map((feat) => <FeatCard key={feat.id} feat={feat} />)}
 
           {activeTab === "backgrounds" &&
             filteredBackgrounds.map((background) => (
@@ -194,13 +200,14 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
           (activeTab === "subclasses" && filteredSubclasses.length === 0) ||
           (activeTab === "races" && filteredRaces.length === 0) ||
           (activeTab === "items" && filteredItems.length === 0) ||
-          (activeTab === "backgrounds" && filteredBackgrounds.length === 0)) && (
-          <div className="text-center py-12">
-            <p className="text-gray-600">
-              No results found. Try adjusting your filters.
-            </p>
-          </div>
-        )}
+          (activeTab === "backgrounds" && filteredBackgrounds.length === 0) ||
+          (activeTab === "feats" && filteredFeats.length === 0)) && (
+            <div className="text-center py-12">
+              <p className="text-gray-600">
+                No results found. Try adjusting your filters.
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );

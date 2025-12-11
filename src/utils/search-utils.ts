@@ -1,4 +1,4 @@
-import { Spell, Class, Race, Item, Background, SearchFilters } from "../types/dnd-types";
+import { Spell, Class, Race, Item, Background, SearchFilters, Feat } from "../types/dnd-types";
 
 export function searchSpells(spells: Spell[], filters: SearchFilters): Spell[] {
   return spells.filter((spell) => {
@@ -34,8 +34,28 @@ export function searchSpells(spells: Spell[], filters: SearchFilters): Spell[] {
     }
 
     // Class filter
-    if (filters.class && !spell.classes.includes(filters.class)) {
+    if (filters.class && !spell.classes.includes(filters.class.toLowerCase())) {
       return false;
+    }
+
+    // Concentration filter
+    if (filters.concentration !== undefined && spell.concentration !== filters.concentration) {
+      return false;
+    }
+
+    // Ritual filter
+    if (filters.ritual !== undefined && spell.ritual !== filters.ritual) {
+      return false;
+    }
+
+    // Components filter
+    if (filters.components && filters.components.length > 0) {
+      // Logic: Must contain ALL selected components? 
+      // User intent usually "I want spells with V" -> includes V, VS, VSM.
+      // If user checks V and S, usually means "Must have V AND S".
+      for (const comp of filters.components) {
+        if (!spell.components[comp]) return false;
+      }
     }
 
     return true;
@@ -61,8 +81,18 @@ export function searchClasses(classes: Class[], filters: SearchFilters): Class[]
     }
 
     // Source filter
-    if (filters.source && classItem.source !== filters.source) {
-      return false;
+    if (filters.source) {
+      if (filters.source === "Unofficial") {
+        // Unofficial matches anything that isn't Official or Homebrew
+        if (classItem.source === "Official" || classItem.source === "Homebrew") {
+          return false;
+        }
+      } else {
+        // Exact match for Official and Homebrew
+        if (classItem.source !== filters.source) {
+          return false;
+        }
+      }
     }
 
     // Spellcaster filter
@@ -185,6 +215,33 @@ export function getAvailableSpells(
 
     // Must be within spell level range (cantrips are always available)
     if (spell.level > 0 && spell.level > maxSpellLevel) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+export function searchFeats(feats: Feat[], filters: SearchFilters): Feat[] {
+  return feats.filter((feat) => {
+    // Text search
+    if (
+      filters.query &&
+      !feat.name.toLowerCase().includes(filters.query.toLowerCase()) &&
+      !feat.description.toLowerCase().includes(filters.query.toLowerCase())
+    ) {
+      return false;
+    }
+
+    // Edition filter
+    if (filters.edition && filters.edition !== "Both") {
+      if (feat.edition !== filters.edition && feat.edition !== "Both") {
+        return false;
+      }
+    }
+
+    // Source filter
+    if (filters.source && feat.source !== filters.source) {
       return false;
     }
 

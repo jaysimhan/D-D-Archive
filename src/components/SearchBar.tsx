@@ -120,6 +120,107 @@ export function SearchBar({
                 <option value="Transmutation">Transmutation</option>
               </select>
             </div>
+
+
+            {/* Class Filter */}
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-sm mb-1 text-gray-700">Class List</label>
+              <select
+                value={filters.class || ""}
+                onChange={(e) =>
+                  onFiltersChange({
+                    ...filters,
+                    class: e.target.value || undefined,
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Classes</option>
+                <option value="artificer">Artificer</option>
+                <option value="bard">Bard</option>
+                <option value="cleric">Cleric</option>
+                <option value="druid">Druid</option>
+                <option value="paladin">Paladin</option>
+                <option value="ranger">Ranger</option>
+                <option value="sorcerer">Sorcerer</option>
+                <option value="warlock">Warlock</option>
+                <option value="wizard">Wizard</option>
+              </select>
+            </div>
+
+            <div className="w-full h-0 basis-full md:hidden"></div> {/* Break row on small screens */}
+
+            {/* Components Filter */}
+            <div className="flex items-center gap-3 min-w-[200px] border border-gray-200 rounded-lg px-3 py-2 bg-white">
+              <span className="text-sm text-gray-700 font-medium">Require:</span>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.components?.includes("verbal") || false}
+                  onChange={(e) => {
+                    const current = filters.components || [];
+                    const next = e.target.checked
+                      ? [...current, "verbal"]
+                      : current.filter(c => c !== "verbal");
+                    onFiltersChange({ ...filters, components: next as any });
+                  }}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">V</span>
+              </label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.components?.includes("somatic") || false}
+                  onChange={(e) => {
+                    const current = filters.components || [];
+                    const next = e.target.checked
+                      ? [...current, "somatic"]
+                      : current.filter(c => c !== "somatic");
+                    onFiltersChange({ ...filters, components: next as any });
+                  }}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">S</span>
+              </label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.components?.includes("material") || false}
+                  onChange={(e) => {
+                    const current = filters.components || [];
+                    const next = e.target.checked
+                      ? [...current, "material"]
+                      : current.filter(c => c !== "material");
+                    onFiltersChange({ ...filters, components: next as any });
+                  }}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">M</span>
+              </label>
+            </div>
+
+            {/* Conc/Ritual Toggles */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => onFiltersChange({ ...filters, concentration: filters.concentration === true ? undefined : true })}
+                className={`px-3 py-2 rounded-lg text-sm border transition-colors ${filters.concentration
+                  ? "bg-blue-100 border-blue-200 text-blue-700 font-medium"
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+              >
+                Conc.
+              </button>
+              <button
+                onClick={() => onFiltersChange({ ...filters, ritual: filters.ritual === true ? undefined : true })}
+                className={`px-3 py-2 rounded-lg text-sm border transition-colors ${filters.ritual
+                  ? "bg-blue-100 border-blue-200 text-blue-700 font-medium"
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+              >
+                Ritual
+              </button>
+            </div>
           </>
         )}
 
@@ -154,25 +255,25 @@ export function SearchBar({
           filters.level !== undefined ||
           filters.school ||
           filters.spellcaster !== undefined) && (
-          <div className="flex items-end">
-            <button
-              onClick={() =>
-                onFiltersChange({
-                  query: "",
-                  edition: undefined,
-                  source: undefined,
-                  level: undefined,
-                  school: undefined,
-                  spellcaster: undefined,
-                })
-              }
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 underline"
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
+            <div className="flex items-end">
+              <button
+                onClick={() =>
+                  onFiltersChange({
+                    query: "",
+                    edition: undefined,
+                    source: undefined,
+                    level: undefined,
+                    school: undefined,
+                    spellcaster: undefined,
+                  })
+                }
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 underline"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
       </div>
-    </div>
+    </div >
   );
 }

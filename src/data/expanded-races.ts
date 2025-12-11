@@ -13,7 +13,10 @@ export const expandedRaces: Race[] = [
     abilityScoreIncrease: { STR: 1, DEX: 1, CON: 1, INT: 1, WIS: 1, CHA: 1 },
     size: "Medium",
     speed: 30,
-    traits: ["Extra Language", "Versatile"],
+    traits: [
+      { name: "Extra Language", description: "You speak, read, and write one extra language of your choice." },
+      { name: "Versatile", description: "Humans are adaptable and have different customs." }
+    ],
     languages: ["Common", "One additional language of your choice"],
   },
   {
@@ -28,10 +31,10 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Darkvision (60 ft.)",
-      "Keen Senses (Proficiency in Perception)",
-      "Fey Ancestry (Advantage against being charmed, magic can't put you to sleep)",
-      "Trance (4 hours instead of 8 for long rest)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Keen Senses", description: "Proficiency in Perception" },
+      { name: "Fey Ancestry", description: "Advantage against being charmed, magic can't put you to sleep" },
+      { name: "Trance", description: "4 hours instead of 8 for long rest" },
     ],
     languages: ["Common", "Elvish"],
     subraces: ["high-elf", "wood-elf", "drow"],
@@ -48,14 +51,14 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 25,
     traits: [
-      "Darkvision (60 ft.)",
-      "Dwarven Resilience (Advantage on saving throws against poison)",
-      "Dwarven Combat Training (Proficiency with battleaxe, handaxe, light hammer, warhammer)",
-      "Tool Proficiency (One artisan's tool of your choice)",
-      "Stonecunning (Add double proficiency to History checks related to stone)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Dwarven Resilience", description: "Advantage on saving throws against poison" },
+      { name: "Dwarven Combat Training", description: "Proficiency with battleaxe, handaxe, light hammer, warhammer" },
+      { name: "Tool Proficiency", description: "One artisan's tool of your choice" },
+      { name: "Stonecunning", description: "Add double proficiency to History checks related to stone" },
     ],
     languages: ["Common", "Dwarvish"],
-    subraces: ["hill-dwarf", "mountain-dwarf"],
+    subraces: ["hill-dwarf", "mountain-dwarf", "duergar"],
   },
   {
     id: "halfling",
@@ -69,9 +72,9 @@ export const expandedRaces: Race[] = [
     size: "Small",
     speed: 25,
     traits: [
-      "Lucky (Reroll 1s on d20 rolls)",
-      "Brave (Advantage on saving throws against being frightened)",
-      "Halfling Nimbleness (Move through space of larger creatures)",
+      { name: "Lucky", description: "Reroll 1s on d20 rolls" },
+      { name: "Brave", description: "Advantage on saving throws against being frightened" },
+      { name: "Halfling Nimbleness", description: "Move through space of larger creatures" },
     ],
     languages: ["Common", "Halfling"],
     subraces: ["lightfoot-halfling", "stout-halfling"],
@@ -88,9 +91,9 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Draconic Ancestry (Choose a dragon type)",
-      "Breath Weapon (Exhale destructive energy)",
-      "Damage Resistance (Resistance to your draconic ancestry damage type)",
+      { name: "Draconic Ancestry", description: "Choose a dragon type" },
+      { name: "Breath Weapon", description: "Exhale destructive energy" },
+      { name: "Damage Resistance", description: "Resistance to your draconic ancestry damage type" },
     ],
     languages: ["Common", "Draconic"],
   },
@@ -106,8 +109,8 @@ export const expandedRaces: Race[] = [
     size: "Small",
     speed: 25,
     traits: [
-      "Darkvision (60 ft.)",
-      "Gnome Cunning (Advantage on INT, WIS, CHA saves against magic)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Gnome Cunning", description: "Advantage on INT, WIS, CHA saves against magic" },
     ],
     languages: ["Common", "Gnomish"],
     subraces: ["forest-gnome", "rock-gnome"],
@@ -124,10 +127,10 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Darkvision (60 ft.)",
-      "Fey Ancestry",
-      "Skill Versatility (Proficiency in two skills of your choice)",
-      "Ability Score Increase (Two different ability scores increase by 1)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Fey Ancestry", description: "Advantage on saving throws against being charmed, and magic can't put you to sleep." },
+      { name: "Skill Versatility", description: "Proficiency in two skills of your choice" },
+      { name: "Ability Score Increase", description: "Two different ability scores increase by 1" },
     ],
     languages: ["Common", "Elvish", "One additional language"],
   },
@@ -143,10 +146,10 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Darkvision (60 ft.)",
-      "Menacing (Proficiency in Intimidation)",
-      "Relentless Endurance (Drop to 1 HP instead of 0, once per long rest)",
-      "Savage Attacks (Extra damage die on critical hits)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Menacing", description: "Proficiency in Intimidation" },
+      { name: "Relentless Endurance", description: "Drop to 1 HP instead of 0, once per long rest" },
+      { name: "Savage Attacks", description: "Extra damage die on critical hits" },
     ],
     languages: ["Common", "Orc"],
   },
@@ -162,9 +165,9 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Darkvision (60 ft.)",
-      "Hellish Resistance (Resistance to fire damage)",
-      "Infernal Legacy (Know thaumaturgy cantrip, cast hellish rebuke and darkness)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Hellish Resistance", description: "Resistance to fire damage" },
+      { name: "Infernal Legacy", description: "Know thaumaturgy cantrip, cast hellish rebuke and darkness" },
     ],
     languages: ["Common", "Infernal"],
   },
@@ -180,10 +183,10 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Natural Athlete (Proficiency in Athletics)",
-      "Stone's Endurance (Reduce damage taken once per short rest)",
-      "Powerful Build (Count as one size larger for carry capacity)",
-      "Mountain Born (Acclimated to high altitude and cold climate)",
+      { name: "Natural Athlete", description: "Proficiency in Athletics" },
+      { name: "Stone's Endurance", description: "Reduce damage taken once per short rest" },
+      { name: "Powerful Build", description: "Count as one size larger for carry capacity" },
+      { name: "Mountain Born", description: "Acclimated to high altitude and cold climate" },
     ],
     languages: ["Common", "Giant"],
   },
@@ -199,10 +202,10 @@ export const expandedRaces: Race[] = [
     size: "Medium",
     speed: 30,
     traits: [
-      "Darkvision (60 ft.)",
-      "Celestial Resistance (Resistance to necrotic and radiant damage)",
-      "Healing Hands (Heal HP equal to your level)",
-      "Light Bearer (Know the light cantrip)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Celestial Resistance", description: "Resistance to necrotic and radiant damage" },
+      { name: "Healing Hands", description: "Heal HP equal to your level" },
+      { name: "Light Bearer", description: "Know the light cantrip" },
     ],
     languages: ["Common", "Celestial"],
     subraces: ["protector-aasimar", "scourge-aasimar", "fallen-aasimar"],
@@ -218,7 +221,7 @@ export const expandedRaces: Race[] = [
     abilityScoreIncrease: { CON: 2 },
     size: "Medium",
     speed: 30,
-    traits: ["Elemental Heritage"],
+    traits: [{ name: "Elemental Heritage", description: "You are descended from creatures of the elemental planes." }],
     languages: ["Common", "Primordial"],
     subraces: ["air-genasi", "earth-genasi", "fire-genasi", "water-genasi"],
   },
@@ -237,9 +240,9 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { INT: 1 },
     traits: [
-      "Elf Weapon Training (Proficiency with longsword, shortsword, shortbow, longbow)",
-      "Cantrip (One wizard cantrip of your choice)",
-      "Extra Language (One additional language)",
+      { name: "Elf Weapon Training", description: "Proficiency with longsword, shortsword, shortbow, longbow" },
+      { name: "Cantrip", description: "One wizard cantrip of your choice" },
+      { name: "Extra Language", description: "One additional language" },
     ],
   },
   {
@@ -253,9 +256,9 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
     traits: [
-      "Elf Weapon Training",
-      "Fleet of Foot (Base speed 35 ft.)",
-      "Mask of the Wild (Hide in light natural phenomena)",
+      { name: "Elf Weapon Training", description: "Proficiency with longsword, shortsword, shortbow, longbow" },
+      { name: "Fleet of Foot", description: "Base speed 35 ft." },
+      { name: "Mask of the Wild", description: "Hide in light natural phenomena" },
     ],
   },
   {
@@ -269,10 +272,15 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { CHA: 1 },
     traits: [
-      "Superior Darkvision (120 ft.)",
-      "Sunlight Sensitivity (Disadvantage in bright light)",
-      "Drow Magic (Dancing lights cantrip, faerie fire, darkness)",
-      "Drow Weapon Training",
+      { name: "Superior Darkvision", description: "120 ft." },
+      { name: "Sunlight Sensitivity", description: "Disadvantage in bright light" },
+      { name: "Drow Magic", description: "Dancing lights cantrip, faerie fire, darkness" },
+      { name: "Drow Weapon Training", description: "Proficiency with rapiers, shortswords, and hand crossbows" },
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "dancing-lights", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "faerie-fire", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "darkness", abilityScore: "CHA", type: "1/day" }
     ],
   },
 
@@ -287,7 +295,7 @@ export const expandedSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
-    traits: ["Dwarven Toughness (+1 HP per level)"],
+    traits: [{ name: "Dwarven Toughness", description: "+1 HP per level" }],
   },
   {
     id: "mountain-dwarf",
@@ -299,7 +307,191 @@ export const expandedSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { STR: 2 },
-    traits: ["Dwarven Armor Training (Proficiency with light and medium armor)"],
+    traits: [{ name: "Dwarven Armor Training", description: "Proficiency with light and medium armor" }],
+  },
+  {
+    id: "duergar",
+    parentRaceId: "dwarf",
+    name: "Duergar (Gray Dwarf)",
+    description: "As a duergar, you are a master of sneaking and ambushing, with magic to aid you.",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { STR: 2 },
+    traits: [
+      { name: "Superior Darkvision", description: "120 ft." },
+      { name: "Duergar Resilience", description: "Advantage on saves vs illusion, charm, paralysis" },
+      { name: "Duergar Magic", description: "Invisibility and Enlarge/Reduce" },
+      { name: "Sunlight Sensitivity", description: "Disadvantage in direct sunlight" }
+    ],
+    racialKnownSpells: [
+      { level: 3, spellId: "enlarge-reduce", abilityScore: "INT", type: "1/day" },
+      { level: 5, spellId: "invisibility", abilityScore: "INT", type: "1/day" }
+    ]
+  },
+
+  // Tiefling Subraces
+  {
+    id: "tiefling-asmodeus",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Asmodeus",
+    description: "The most common lineage, linked to the ruler of the Nine Hells.",
+    source: "PHB",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { INT: 1, CHA: 2 },
+    traits: [
+      { name: "Infernal Legacy", description: "Thaumaturgy, Hellish Rebuke, Darkness" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "thaumaturgy", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "hellish-rebuke", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "darkness", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-baalzebul",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Baalzebul",
+    description: "Linked to the Lord of Flies, imparting a talent for corruption.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { INT: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Maladomini", description: "Thaumaturgy, Ray of Sickness, Crown of Madness" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "thaumaturgy", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "ray-of-sickness", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "crown-of-madness", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-dispater",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Dispater",
+    description: "Linked to the Iron City, granting stealth and deception.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { DEX: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Dis", description: "Thaumaturgy, Disguise Self, Detect Thoughts" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "thaumaturgy", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "disguise-self", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "detect-thoughts", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-fierna",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Fierna",
+    description: "Linked to Phlegethos, granting mastery over emotion.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { WIS: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Phlegethos", description: "Friends, Charm Person, Suggestion" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "friends", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "charm-person", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "suggestion", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-glasya",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Glasya",
+    description: "Linked to Malbolge, granting criminal magic.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { DEX: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Malbolge", description: "Minor Illusion, Disguise Self, Invisibility" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "minor-illusion", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "disguise-self", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "invisibility", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-levistus",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Levistus",
+    description: "Linked to Stygia, granting ice magic.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { CON: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Stygia", description: "Ray of Frost, Armor of Agathys, Darkness" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "ray-of-frost", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "armor-of-agathys", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "darkness", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-mammon",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Mammon",
+    description: "Linked to Minauros, granting utility magic.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { INT: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Minauros", description: "Mage Hand, Tenser's Floating Disk, Arcane Lock" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "mage-hand", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "tensers-floating-disk", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "arcane-lock", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-mephistopheles",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Mephistopheles",
+    description: "Linked to Cania, granting hellfire magic.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { INT: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Cania", description: "Mage Hand, Burning Hands, Flame Blade" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "mage-hand", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "burning-hands", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "flame-blade", abilityScore: "CHA", type: "1/day" }
+    ]
+  },
+  {
+    id: "tiefling-zariel",
+    parentRaceId: "tiefling",
+    name: "Bloodline of Zariel",
+    description: "Linked to Avernus, granting martial magic.",
+    source: "MToF",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { STR: 1, CHA: 2 },
+    traits: [
+      { name: "Legacy of Avernus", description: "Thaumaturgy, Searing Smite, Branding Smite" }
+    ],
+    racialKnownSpells: [
+      { level: 0, spellId: "thaumaturgy", abilityScore: "CHA", type: "at-will" },
+      { level: 3, spellId: "searing-smite", abilityScore: "CHA", type: "1/day" },
+      { level: 5, spellId: "branding-smite", abilityScore: "CHA", type: "1/day" }
+    ]
   },
 
   // Halfling Subraces
@@ -313,7 +505,7 @@ export const expandedSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CHA: 1 },
-    traits: ["Naturally Stealthy (Hide behind creatures one size larger)"],
+    traits: [{ name: "Naturally Stealthy", description: "Hide behind creatures one size larger" }],
   },
   {
     id: "stout-halfling",
@@ -325,7 +517,7 @@ export const expandedSubraces: Subrace[] = [
     edition: "Both",
     version: 1,
     abilityScoreIncrease: { CON: 1 },
-    traits: ["Stout Resilience (Advantage on saves against poison, resistance to poison damage)"],
+    traits: [{ name: "Stout Resilience", description: "Advantage on saves against poison, resistance to poison damage" }],
   },
 
   // Gnome Subraces
@@ -340,8 +532,8 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { DEX: 1 },
     traits: [
-      "Natural Illusionist (Minor illusion cantrip)",
-      "Speak with Small Beasts (Communicate simple ideas with small animals)",
+      { name: "Natural Illusionist", description: "Minor illusion cantrip" },
+      { name: "Speak with Small Beasts", description: "Communicate simple ideas with small animals" },
     ],
   },
   {
@@ -355,8 +547,8 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { CON: 1 },
     traits: [
-      "Artificer's Lore (Add double proficiency to History checks related to magic items, alchemical objects, or tech devices)",
-      "Tinker (Create tiny clockwork devices)",
+      { name: "Artificer's Lore", description: "Add double proficiency to History checks related to magic items, alchemical objects, or tech devices" },
+      { name: "Tinker", description: "Create tiny clockwork devices" },
     ],
   },
 
@@ -372,8 +564,8 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { DEX: 1 },
     traits: [
-      "Unending Breath (Can hold breath indefinitely)",
-      "Mingle with the Wind (Cast levitate once per long rest)",
+      { name: "Unending Breath", description: "Can hold breath indefinitely" },
+      { name: "Mingle with the Wind", description: "Cast levitate once per long rest" },
     ],
   },
   {
@@ -387,8 +579,8 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { STR: 1 },
     traits: [
-      "Earth Walk (Move across difficult terrain made of earth or stone without extra movement)",
-      "Merge with Stone (Cast pass without trace once per long rest)",
+      { name: "Earth Walk", description: "Move across difficult terrain made of earth or stone without extra movement" },
+      { name: "Merge with Stone", description: "Cast pass without trace once per long rest" },
     ],
   },
   {
@@ -402,9 +594,9 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { INT: 1 },
     traits: [
-      "Darkvision (60 ft.)",
-      "Fire Resistance",
-      "Reach to the Blaze (Produce flame cantrip, burning hands once per long rest)",
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Fire Resistance", description: "Resistance to fire damage" },
+      { name: "Reach to the Blaze", description: "Produce flame cantrip, burning hands once per long rest" },
     ],
   },
   {
@@ -418,10 +610,10 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
     traits: [
-      "Acid Resistance",
-      "Amphibious (Breathe air and water)",
-      "Swim (30 ft. swim speed)",
-      "Call to the Wave (Shape water cantrip, create or destroy water once per long rest)",
+      { name: "Acid Resistance", description: "Resistance to acid damage" },
+      { name: "Amphibious", description: "Breathe air and water" },
+      { name: "Swim", description: "30 ft. swim speed" },
+      { name: "Call to the Wave", description: "Shape water cantrip, create or destroy water once per long rest" },
     ],
   },
 
@@ -437,7 +629,7 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { WIS: 1 },
     traits: [
-      "Radiant Soul (Once per long rest, sprout wings and fly 30 ft., deal extra radiant damage)",
+      { name: "Radiant Soul", description: "Once per long rest, sprout wings and fly 30 ft., deal extra radiant damage" },
     ],
   },
   {
@@ -451,7 +643,7 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { CON: 1 },
     traits: [
-      "Radiant Consumption (Once per long rest, emit radiant light dealing damage to nearby creatures and yourself)",
+      { name: "Radiant Consumption", description: "Once per long rest, emit radiant light dealing damage to nearby creatures and yourself" },
     ],
   },
   {
@@ -465,7 +657,7 @@ export const expandedSubraces: Subrace[] = [
     version: 1,
     abilityScoreIncrease: { STR: 1 },
     traits: [
-      "Necrotic Shroud (Once per long rest, frighten nearby creatures and deal extra necrotic damage)",
+      { name: "Necrotic Shroud", description: "Once per long rest, frighten nearby creatures and deal extra necrotic damage" },
     ],
   },
 ];

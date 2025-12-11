@@ -76,32 +76,27 @@ export function RaceCard({ race }: RaceCardProps) {
       <p className="text-sm text-gray-700 mb-3">
         {expanded
           ? race.description
-          : `${race.description.substring(0, 120)}${
-              race.description.length > 120 ? "..." : ""
-            }`}
+          : `${race.description.substring(0, 120)}${race.description.length > 120 ? "..." : ""
+          }`}
       </p>
 
-      {race.description.length > 120 && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-sm text-blue-600 hover:text-blue-800 mb-3"
-        >
-          {expanded ? "Show Less" : "Show More"}
-        </button>
-      )}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="text-sm text-blue-600 hover:text-blue-800 mb-3 flex items-center gap-1"
+      >
+        {expanded ? "Show Less" : "Show Details"}
+      </button>
 
       {/* Traits */}
       {expanded && race.traits && race.traits.length > 0 && (
         <div className="mt-3 mb-3">
           <p className="text-sm text-gray-900 mb-1">Racial Traits:</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="space-y-3">
             {race.traits.map((trait, i) => (
-              <span
-                key={i}
-                className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full"
-              >
-                {trait}
-              </span>
+              <div key={i} className="text-sm">
+                <span className="font-medium text-gray-900 block">{trait.name}</span>
+                <span className="text-gray-600">{trait.description}</span>
+              </div>
             ))}
           </div>
         </div>

@@ -40,7 +40,7 @@ export const combinedClasses: Class[] = [
         description: "You choose a path that shapes your rage.",
       },
     ],
-    subclasses: ["Berserker", "Wild Heart", "World Tree", "Zealot"],
+    subclasses: ["Berserker", "Wild Heart", "path-of-the-world-tree", "Zealot"],
   },
   {
     id: "bard",
@@ -82,7 +82,7 @@ export const combinedClasses: Class[] = [
         description: "You choose a college that grants you special features.",
       },
     ],
-    subclasses: ["Dance", "Glamour", "Lore", "Valor"],
+    subclasses: ["college-of-dance", "Glamour", "Lore", "Valor"],
   },
   {
     id: "cleric",
@@ -156,7 +156,7 @@ export const combinedClasses: Class[] = [
         description: "You choose a circle that grants you special features.",
       },
     ],
-    subclasses: ["Land", "Moon", "Sea", "Stars"],
+    subclasses: ["Land", "Moon", "circle-of-the-sea", "Stars"],
   },
   {
     id: "fighter",
@@ -236,7 +236,23 @@ export const combinedClasses: Class[] = [
         description: "You choose a tradition that grants you special features.",
       },
     ],
-    subclasses: ["Warrior of Mercy", "Warrior of Shadow", "Warrior of the Elements", "Warrior of the Open Hand"],
+    subclasses: [
+      "warrior-of-mercy",
+      "warrior-of-shadow",
+      "warrior-of-the-elements",
+      "warrior-of-the-open-hand",
+      "astral-self",
+      "ascendant-dragon",
+      "drunken-master",
+      "four-elements",
+      "kensei",
+      "long-death",
+      "mercy-5e",
+      "open-hand",
+      "shadow",
+      "sun-soul",
+      "tranquility"
+    ],
   },
   {
     id: "paladin",
@@ -278,7 +294,17 @@ export const combinedClasses: Class[] = [
         description: "You swear an oath that grants you special features.",
       },
     ],
-    subclasses: ["Devotion", "Glory", "Ancients", "Vengeance"],
+    subclasses: [
+      "devotion",
+      "glory",
+      "ancients",
+      "vengeance",
+      "conquest",
+      "crown",
+      "redemption",
+      "watchers",
+      "oathbreaker"
+    ],
   },
   {
     id: "ranger",
@@ -486,7 +512,7 @@ export const combinedClasses: Class[] = [
     name: "Artificer",
     description:
       "Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects.",
-    source: "Eberron: Rising from the Last War",
+    source: "Official",
     edition: "5e",
     version: 1,
     hitDie: 8,
@@ -517,6 +543,43 @@ export const combinedClasses: Class[] = [
       },
     ],
     subclasses: ["Alchemist", "Armorer", "Artillerist", "Battle Smith"],
+  },
+  {
+    id: "blood-hunter",
+    name: "Blood Hunter",
+    description:
+      "A warrior who uses hemocraft magic to hunt monsters, often at a cost to their own vitality.",
+    source: "Official",
+    edition: "5e",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["STR", "DEX", "INT"],
+    savingThrows: ["DEX", "INT"],
+    spellcaster: "third",
+    spellcastingAbility: "INT",
+    features: [
+      {
+        level: 1,
+        name: "HunterBS Bane",
+        description: "You have advantage on tracking fey, fiends, and undead.",
+      },
+      {
+        level: 1,
+        name: "Blood Maledict",
+        description: "You can unleash blood curses to debilitate your enemies.",
+      },
+      {
+        level: 2,
+        name: "Crimson Rite",
+        description: "You can ignite your weapon with elemental energy at the cost of hit points.",
+      },
+      {
+        level: 3,
+        name: "Blood Hunter Order",
+        description: "You commit to an order of blood hunters.",
+      },
+    ],
+    subclasses: ["Order of the Ghostslayer", "Order of the Lycan", "Order of the Mutant", "Order of the Profane Soul"],
   },
   {
     id: "accursed",
@@ -1029,5 +1092,122 @@ export const combinedClasses: Class[] = [
       },
     ],
     subclasses: ["Black Magic", "Blood Magic", "Green Magic", "Purple Magic", "Red Magic", "Steel Magic", "White Magic"],
+  },
+  {
+    id: "acolyte",
+    name: "Acolyte",
+    description:
+      "Mortal agents of immortal causes who bring cosmic power into their bodies and souls.",
+    source: "Adventures in Rokugan",
+    edition: "5e",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["STR", "DEX"],
+    savingThrows: ["WIS"],
+    features: [
+      {
+        level: 1,
+        name: "Acolyte Archetype",
+        description: "You choose an archetype reflecting the cosmic being you serve (e.g., Togashi, Shadows).",
+      },
+      {
+        level: 2,
+        name: "Ego Synthesis",
+        description: "You gain inspiration when you complete a long rest.",
+      },
+      {
+        level: 3,
+        name: "Renewing Purpose",
+        description: "You can spend inspiration to regain use of class features on a failure.",
+      },
+    ],
+    subclasses: ["Acolyte of Togashi", "Acolyte of Shadows"],
+  },
+  {
+    id: "adept",
+    name: "Adept",
+    description:
+      "Wielders of psionic power who use inner focus and will to manipulate energy and matter.",
+    source: "Esper Genesis Core Manual",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["CHA", "WIS"],
+    savingThrows: ["CHA", "WIS"],
+    features: [
+      {
+        level: 1,
+        name: "Prime Talents",
+        description: "You know psi blast and two prime talents (psionic powers).",
+      },
+      {
+        level: 1,
+        name: "Psychic Paradigm",
+        description: "You choose a paradigm determining the source of your abilities.",
+      },
+      {
+        level: 2,
+        name: "Intellect Fortress",
+        description: "You have advantage on saves vs charmed or frightened.",
+      },
+      {
+        level: 3,
+        name: "Psionic Combat",
+        description: "You can use psionic combat modes to enhance offense or defense.",
+      },
+    ],
+    subclasses: ["Animota", "Battlemind", "Dreamshaper"],
+  },
+  {
+    id: "animal-master",
+    name: "Animal Master",
+    description:
+      "An adventurer who has trained a loyal animal companion to fight by their side.",
+    source: "Valda's Spire of Secrets",
+    edition: "5e",
+    version: 1,
+    hitDie: 10,
+    primaryAbility: ["WIS", "DEX"],
+    savingThrows: ["WIS"],
+    features: [
+      {
+        level: 1,
+        name: "Beast Companion",
+        description: "You gain a beast companion that obeys your commands and fights with you.",
+      },
+    ],
+    subclasses: [],
+  },
+  {
+    id: "apothecary",
+    name: "Apothecary",
+    description:
+      "A practiced medical expert and arcane user who wields knowledge to heal and harm.",
+    source: "Sebastian Crowe's Guide to Drakkenheim",
+    edition: "5e",
+    version: 1,
+    hitDie: 8,
+    primaryAbility: ["INT"],
+    savingThrows: ["INT", "WIS"],
+    spellcaster: "special",
+    spellcastingAbility: "INT",
+    features: [
+      {
+        level: 1,
+        name: "Apothecary Magic",
+        description: "You cast spells using a formula book and Intelligence.",
+      },
+      {
+        level: 1,
+        name: "Occult Practices",
+        description: "You choose a discipline of research (e.g., Alienist, Chemist).",
+      },
+      {
+        level: 2,
+        name: "Esoteric Theories",
+        description: "You learn forbidden lore to augment your abilities.",
+      },
+    ],
+    subclasses: ["Alienist", "Chemist", "Exorcist", "Mutagenist", "Pathogenist", "Reanimator"],
   },
 ];

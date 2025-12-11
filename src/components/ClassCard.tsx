@@ -85,26 +85,23 @@ export function ClassCard({ classData }: ClassCardProps) {
       <p className="text-sm text-gray-700 mb-3">
         {expanded
           ? classData.description
-          : `${classData.description.substring(0, 120)}${
-              classData.description.length > 120 ? "..." : ""
-            }`}
+          : `${classData.description.substring(0, 120)}${classData.description.length > 120 ? "..." : ""
+          }`}
       </p>
 
-      {classData.description.length > 120 && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-sm text-blue-600 hover:text-blue-800 mb-3"
-        >
-          {expanded ? "Show Less" : "Show More"}
-        </button>
-      )}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="text-sm text-blue-600 hover:text-blue-800 mb-3 flex items-center gap-1"
+      >
+        {expanded ? "Show Less" : "Show Details"}
+      </button>
 
       {/* Key Features */}
       {expanded && (
         <div className="mt-3 space-y-2">
           <p className="text-sm text-gray-900">Key Features:</p>
           <div className="space-y-1">
-            {classData.features.slice(0, 4).map((feature, i) => (
+            {classData.features.map((feature, i) => (
               <div key={i} className="text-sm pl-3 border-l-2 border-blue-500">
                 <span className="text-gray-900">{feature.name}</span>
                 <span className="text-gray-600"> (Level {feature.level})</span>

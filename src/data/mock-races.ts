@@ -2,25 +2,6 @@ import { Race } from "../types/dnd-types";
 
 export const species: Race[] = [
   {
-    "id": "aarakocra",
-    "name": "Aarakocra",
-    "description": "A winged people who originated on the Elemental Plane of Air, aarakocra soar through the sky wherever they wander. The first aarakocra served the Wind Dukes of Aaqa—mighty beings of air—and were imbued with a measure of their masters’ power over winds. Their descendants still command echoes of that power. From below, aarakocra look like large birds and thus are sometimes called birdfolk. Only when they roost on a branch or walk across the ground is their Humanoid nature clear. Standing upright, aarakocra are typically about 5 feet tall, and they have long, narrow legs that taper to sharp talons. Feathers cover their bodies—usually red, orange, yellow, brown, or gray. Their heads are also avian, often resembling those of parrots or eagles.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Flight",
-      "Talons",
-      "Wind Caller"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
     "id": "aarakocra-1",
     "name": "Aarakocra",
     "description": "Many people across Wildemount consider the winged aarakocra to be a myth, so infrequently do they descend from their lofty aeries to deal with wingless folk. Where they are known, the aarakocra rarely engage with the land-bound societies of Wildemount, though some take great pleasure in traveling on the open ocean with Concord sailors and Revelry pirates. Some legends say that Melora the Wild Mother created the aarakocra as storm herders who drive the clouds across the sky, and some aarakocra tribes play a sport called h’aara-shie , or “cloud chasing,” that reflects this ancient tale.",
@@ -34,8 +15,14 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 25,
     "traits": [
-      "Flight",
-      "Talons"
+      {
+        name: "Flight",
+        description: "You have a flying speed of 50 feet. To use this speed, you can't be wearing medium or heavy armor."
+      },
+      {
+        name: "Talons",
+        description: "Your talons are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+      }
     ],
     "languages": [
       "Aarakocra",
@@ -57,10 +44,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Resistance",
-      "Celestial Legacy",
-      "Celestial Resistance"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Resistance",
+        description: "You have resistance to necrotic damage and radiant damage."
+      },
+      {
+        name: "Celestial Legacy",
+        description: "You know the light cantrip. Once you reach 3rd level, you can cast the lesser restoration spell once with this trait, and you regain the ability to do so when you finish a long rest. Once you reach 5th level, you can cast the daylight spell once with this trait as a 3rd-level spell, and you regain the ability to do so when you finish a long rest. Charisma is your spellcasting ability for these spells."
+      },
+      {
+        name: "Celestial Resistance",
+        description: "You have resistance to necrotic damage and radiant damage."
+      }
     ],
     "languages": [
       "Common",
@@ -83,42 +82,42 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Radiant Soul",
-      "Light Bearer",
-      "Necrotic Shroud",
-      "Radiant Consumption",
-      "Healing Hands",
-      "Resistance",
-      "Celestial Resistance"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Radiant Soul",
+        description: "Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing your eyes to glimmer and two luminous, incorporeal wings to sprout from your back. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you have a flying speed of 30 feet, and once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your level."
+      },
+      {
+        name: "Light Bearer",
+        description: "You know the Light cantrip. Charisma is your spellcasting ability for it."
+      },
+      {
+        name: "Necrotic Shroud",
+        description: "Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing your eyes to turn into pools of darkness and two skeletal, ghostly, flightless wings to sprout from your back. The instant you transform, other creatures within 10 feet of you that can see you must each succeed on a Charisma saving throw (DC 8 + your proficiency bonus + your Charisma modifier) or become frightened of you until the end of your next turn. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, once on each of your turns, you can deal extra necrotic damage to one target when you deal damage to it with an attack or a spell. The extra necrotic damage equals your level."
+      },
+      {
+        name: "Radiant Consumption",
+        description: "Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing a searing light to radiate from you, pour out of your eyes and mouth, and threaten to char you. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you shed bright light in a 10-foot radius and dim light for an additional 10 feet, and at the end of each of your turns, you and each creature within 10 feet of you take radiant damage equal to half your level (rounded up). In addition, once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your level."
+      },
+      {
+        name: "Healing Hands",
+        description: "As an action, you can touch a creature and cause it to regain a number of hit points equal to your level. Once you use this trait, you can't use it again until you finish a long rest."
+      },
+      {
+        name: "Resistance",
+        description: "You have resistance to necrotic damage and radiant damage."
+      },
+      {
+        name: "Celestial Resistance",
+        description: "You have resistance to necrotic damage and radiant damage."
+      }
     ],
     "languages": [
       "Common",
       "Celestial"
-    ]
-  },
-  {
-    "id": "aasimar-2",
-    "name": "Aasimar",
-    "description": "Whether descended from a celestial being or infused with heavenly power, aasimar are mortals who carry a spark of the Upper Planes within their souls. They can fan that spark to bring light, ease wounds, and unleash the fury of the heavens. Aasimar can arise among any population of mortals. They resemble their parents, but they live for up to 160 years and often have features that hint at their celestial heritage. These often begin subtle and become more obvious when the aasimar gains the ability to reveal their full celestial nature.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Radiant Soul",
-      "Light Bearer",
-      "Necrotic Shroud",
-      "Radiant Consumption",
-      "Healing Hands",
-      "Resistance",
-      "Celestial Resistance"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -134,33 +133,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Light Bearer",
-      "Healing Hands",
-      "Resistance",
-      "Celestial Resistance"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "aasimar-4",
-    "name": "Aasimar",
-    "description": "Aasimar (pronounced AH-sih-mar) are mortals who carry a spark of the Upper Planes within their souls. Whether descended from an angelic being or infused with celestial power, they can fan that spark to bring light, healing, and heavenly fury. Aasimar can arise among any population of mortals. They resemble their parents, but they live for up to 160 years and have features that hint at their celestial heritage, such as metallic freckles, luminous eyes, a halo, or the skin color of an angel (silver, opalescent green, or coppery red). These features start subtle and become obvious when the aasimar learns to reveal their full celestial nature.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Light Bearer",
-      "Necrotic Shroud",
-      "Healing Hands",
-      "Resistance",
-      "Celestial Resistance"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Light Bearer",
+        description: "You know the Light cantrip. Charisma is your spellcasting ability for it."
+      },
+      {
+        name: "Healing Hands",
+        description: "As an action, you can touch a creature and cause it to regain a number of hit points equal to your level. Once you use this trait, you can't use it again until you finish a long rest."
+      },
+      {
+        name: "Resistance",
+        description: "You have resistance to necrotic damage and radiant damage."
+      },
+      {
+        name: "Celestial Resistance",
+        description: "You have resistance to necrotic damage and radiant damage."
+      }
     ],
     "languages": [
       "Common"
@@ -180,33 +172,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Surprise Attack",
-      "Powerful Build"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Surprise Attack",
+        description: "If you surprise a creature and hit it with an attack on your first turn in combat, the attack deals an extra 2d6 damage to it. You can use this trait only once per combat."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      }
     ],
     "languages": [
       "Common",
       "Goblin"
-    ]
-  },
-  {
-    "id": "bugbear-1",
-    "name": "Bugbear",
-    "description": "Neither bugs nor bears, bugbears are the hulking cousins of goblins and hobgoblins. With roots in the Feywild, early bugbears resided in hidden places, in hard-to-reach and shadowed spaces. Long ago and from out of the corner of your eye, they came to the Material Plane, urged to spread throughout the multiverse by the conquering god Maglubiyet. Meturies later, they still bear a fey gift that allows them to hide in plain sight, and many of them have reclaimed their fey spirit.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Surprise Attack",
-      "Powerful Build",
-      "Fey Ancestry"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -223,9 +204,18 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Surprise Attack",
-      "Powerful Build"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Surprise Attack",
+        description: "If you surprise a creature and hit it with an attack on your first turn in combat, the attack deals an extra 2d6 damage to it. You can use this trait only once per combat."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      }
     ],
     "languages": [
       "Common",
@@ -246,8 +236,14 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 40,
     "traits": [
-      "Fey Ancestry",
-      "Charge"
+      {
+        name: "Fey Ancestry",
+        description: "You have advantage on saving throws against being charmed, and magic can't put you to sleep."
+      },
+      {
+        name: "Charge",
+        description: "If you move at least 30 feet straight toward a target and then hit it with a melee weapon attack on the same turn, you can immediately follow that attack with a bonus action to make one attack against the target with your hooves."
+      }
     ],
     "languages": [
       "Common",
@@ -268,30 +264,18 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 40,
     "traits": [
-      "Fey Ancestry",
-      "Charge"
+      {
+        name: "Fey Ancestry",
+        description: "You have advantage on saving throws against being charmed, and magic can't put you to sleep."
+      },
+      {
+        name: "Charge",
+        description: "If you move at least 30 feet straight toward a target and then hit it with a melee weapon attack on the same turn, you can immediately follow that attack with a bonus action to make one attack against the target with your hooves."
+      }
     ],
     "languages": [
       "Common",
       "Sylvan"
-    ]
-  },
-  {
-    "id": "centaur-2",
-    "name": "Centaur",
-    "description": "Centaurs gallop throughout the multiverse and trace their origins to many different realms. The centaurs of the Feywild, for example, reside in glades and forests where they act as wardens and nature\u2019s protectors. Centaurs have the upper bodies, down to the waist, of muscular humans, displaying all the human variety of skin tones and features. Their ears are slightly pointed, but their faces are wider and squarer than those of elves. Below the waist, they have the bodies of horses, with coats ranging from chestnut brown to slate gray or pitch black.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 40,
-    "traits": [
-      "Fey Ancestry",
-      "Charge"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -307,50 +291,13 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Shapechanger"
+      {
+        name: "Shapechanger",
+        description: "As an action, you can change your appearance and your voice. You determine the specifics of the changes, including your coloration, hair length, and sex. You can also adjust your height and weight, but not so much that your size changes. You can make yourself appear as a member of another race, though none of your game statistics change. You can't duplicate the appearance of a creature you've never seen, and you must adopt a form that has the same basic arrangement of limbs that you have. Your clothing and equipment aren't changed by this trait. You stay in the new form until you use an action to revert to your true form or until you die."
+      }
     ],
     "languages": [
       "Common"
-    ]
-  },
-  {
-    "id": "changeling-1",
-    "name": "Changeling",
-    "description": "With ever-changing appearances, changelings reside in many societies undetected. Each changeling can supernaturally adopt any face they like. For some changelings, a new face is only a disguise. For others, a new face may reveal an aspect of their soul.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Shapechanger",
-      "Fey Ancestry"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "deep-gnome",
-    "name": "Deep Gnome",
-    "description": "Deep gnomes, or svirfneblin, live far below the world\u2019s surface in twisting warrens and endless caverns. They survive by their wits and their ability to blend into the stone around them. Their gray skin and stone-colored eyes allow them to hide from the dangerous creatures of the Underdark.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Small",
-    "speed": 30,
-    "traits": [
-      "Gnome Cunning",
-      "Darkvision",
-      "Svirfneblin Camouflage",
-      "Stone Camouflage"
-    ],
-    "languages": [
-      "Common",
-      "Gnomish",
-      "Undercommon"
     ]
   },
   {
@@ -367,30 +314,18 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Resistance",
-      "Breath Weapon",
-      "Damage Resistance"
-    ],
-    "languages": [
-      "Common",
-      "Draconic"
-    ]
-  },
-  {
-    "id": "dragonborn-1",
-    "name": "Dragonborn",
-    "description": "Draconians are the dragonborn of the Dragonlance setting. Created from the eggs of metallic dragons, draconians were bred to be super soldiers for the Dragon Armies. They are reptilian humanoids with scales, snouts, and tails. There are five types of draconians, each corresponding to a metallic dragon type: baaz (brass), kapak (copper), bozak (bronze), sivak (silver), and aurak (gold).",
-    "source": "Fizban's Treasury of Dragons",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Breath Weapon",
-      "Draconic Ancestry",
-      "Resistance",
-      "Damage Resistance"
+      {
+        name: "Resistance",
+        description: "You have resistance to the damage type associated with your draconic ancestry."
+      },
+      {
+        name: "Breath Weapon",
+        description: "You can use your action to exhale destructive energy."
+      },
+      {
+        name: "Damage Resistance",
+        description: "You have resistance to the damage type associated with your ancestry."
+      }
     ],
     "languages": [
       "Common",
@@ -411,55 +346,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Resistance",
-      "Breath Weapon",
-      "Damage Resistance"
+      {
+        name: "Resistance",
+        description: "You have resistance to the damage type associated with your draconic ancestry."
+      },
+      {
+        name: "Breath Weapon",
+        description: "You can use your action to exhale destructive energy."
+      },
+      {
+        name: "Damage Resistance",
+        description: "You have resistance to the damage type associated with your ancestry."
+      }
     ],
     "languages": [
       "Common",
       "Draconic"
-    ]
-  },
-  {
-    "id": "dragonborn-3",
-    "name": "Dragonborn",
-    "description": "Creature Type Humanoid Size Medium (about 5\u20137 feet tall), chosen when you select this species Speed 30 feet The dragonborn of the D&D multiverse are a diverse people. Their most distinguishing feature is their affinity for the elemental power of dragons. Some dragonborn are faithful servants to true dragons, others form the ranks of soldiers in great wars, and still others find themselves adrift, with no clear calling in life.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Breath Weapon",
-      "Flight",
-      "Resistance",
-      "Damage Resistance"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "duergar",
-    "name": "Duergar",
-    "description": "The gray dwarves, or duergar, live deep in the Underdark. After delving deeper than any other dwarves, they were enslaved by mind flayers for eons. Although they eventually won their freedom, they remained in the Underdark, forging their own dark empire. They are dour and pessimistic, having been shaped by their time in slavery and the harsh environment of the Underdark.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 25,
-    "traits": [
-      "Darkvision",
-      "Psionic Fortitude",
-      "Duergar Magic"
-    ],
-    "languages": [
-      "Common",
-      "Dwarvish",
-      "Undercommon"
     ]
   },
   {
@@ -475,55 +377,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 25,
     "traits": [
-      "Darkvision",
-      "Stonecunning",
-      "Dwarven Resilience",
-      "Dwarven Combat Training"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Stonecunning",
+        description: "Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check."
+      },
+      {
+        name: "Dwarven Resilience",
+        description: "You have advantage on saving throws against poison, and you have resistance against poison damage."
+      },
+      {
+        name: "Dwarven Combat Training",
+        description: "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer."
+      }
     ],
     "languages": [
       "Common",
       "Dwarvish"
-    ]
-  },
-  {
-    "id": "dwarf-1",
-    "name": "Dwarf",
-    "description": "Creature Type Humanoid Size Medium (about 4\u20135 feet tall), chosen when you select this species Speed 30 feet Dwarves are a short, stout people who look as if they were carved from the mountains they love. They have a reputation for being stoic and serious, but this is largely because they are often found in the company of other dwarves, where they can let their guard down. When they are among friends, dwarves can be quite boisterous.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Stonecunning",
-      "Dwarven Toughness",
-      "Dwarven Resilience"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "eladrin",
-    "name": "Eladrin",
-    "description": "Eladrin are elves of the Feywild, a realm of beauty, unpredictable emotion, and boundless magic. An eladrin is associated with one of the four seasons and has coloration reminiscent of that season, which can change based on the eladrin\u2019s mood.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Fey Step",
-      "Fey Ancestry",
-      "Trance",
-      "Keen Senses",
-      "Darkvision"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -539,53 +412,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Fey Ancestry",
-      "Trance",
-      "Keen Senses"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Fey Ancestry",
+        description: "You have advantage on saving throws against being charmed, and magic can't put you to sleep."
+      },
+      {
+        name: "Trance",
+        description: "Elves don't need to sleep. Instead, they meditate deeply, remaining semiconscious, for 4 hours a day."
+      },
+      {
+        name: "Keen Senses",
+        description: "You have proficiency in the Perception skill."
+      }
     ],
     "languages": [
       "Common",
       "Elvish"
-    ]
-  },
-  {
-    "id": "elf-1",
-    "name": "Elf",
-    "description": "Creature Type Humanoid Size Medium (about 5\u20136 feet tall), chosen when you select this species Speed 30 feet Elves are a magical people of otherworldly grace, living in the world but not entirely part of it. They live in places of ethereal beauty, in the midst of ancient forests or in silvery spires glittering with faerie light, where soft music drifts through the air and gentle fragrances waft on the breeze. Elves love nature and magic, art and artistry, music and poetry, and the good things of the world.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Fey Ancestry",
-      "Keen Senses",
-      "Trance"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "fairy",
-    "name": "Fairy",
-    "description": "The Feywild is home to many fantastic peoples, including fairies. Fairies are a wee folk, but not nearly as small as their pixie and sprite friends. The first fairies spoke Elvish, Goblin, or Sylvan, and encounters with humanoids prompted them to learn Common. Infused with the magic of the Feywild, most fairies look like Small elves with insect wings, but each fairy has a special physical characteristic that sets the fairy apart.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Small",
-    "speed": 30,
-    "traits": [
-      "Fey Ancestry",
-      "Flight",
-      "Fairy Magic"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -602,35 +448,27 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Speech of Beast and Leaf",
-      "Firbolg Magic",
-      "Hidden Step",
-      "Powerful Build"
+      {
+        name: "Speech of Beast and Leaf",
+        description: "You have the ability to communicate in a limited manner with beasts and plants. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them."
+      },
+      {
+        name: "Firbolg Magic",
+        description: "You can cast detect magic and disguise self with this trait, using Wisdom as your spellcasting ability for them. Once you cast either spell, you can't cast it again with this trait until you finish a short or long rest. When you use this version of disguise self, you can seem up to 3 feet shorter than you are, allowing you to more easily blend in with humans and elves."
+      },
+      {
+        name: "Hidden Step",
+        description: "As a bonus action, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw. Once you use this trait, you can't use it again until you finish a short or long rest."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      }
     ],
     "languages": [
       "Common",
       "Elvish",
       "Giant"
-    ]
-  },
-  {
-    "id": "firbolg-1",
-    "name": "Firbolg",
-    "description": "Distant cousins of giants, the first firbolgs wandered the primeval forests of the multiverse, and the magic of those forests entwined itself with the firbolgs\u2019 souls. Centuries later, that magic still thrums inside a firbolg, even one who has never lived under the boughs of a great forest.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Speech of Beast and Leaf",
-      "Firbolg Magic",
-      "Hidden Step",
-      "Powerful Build"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -647,40 +485,27 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Speech of Beast and Leaf",
-      "Firbolg Magic",
-      "Hidden Step",
-      "Powerful Build"
+      {
+        name: "Speech of Beast and Leaf",
+        description: "You have the ability to communicate in a limited manner with beasts and plants. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them."
+      },
+      {
+        name: "Firbolg Magic",
+        description: "You can cast detect magic and disguise self with this trait, using Wisdom as your spellcasting ability for them. Once you cast either spell, you can't cast it again with this trait until you finish a short or long rest. When you use this version of disguise self, you can seem up to 3 feet shorter than you are, allowing you to more easily blend in with humans and elves."
+      },
+      {
+        name: "Hidden Step",
+        description: "As a bonus action, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw. Once you use this trait, you can't use it again until you finish a short or long rest."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      }
     ],
     "languages": [
       "Common",
       "Elvish",
       "Giant"
-    ]
-  },
-  {
-    "id": "genasi",
-    "name": "Genasi",
-    "description": "Genasi are the offspring of genies and mortals. The Elemental Planes are often inhospitable to native of the Material Plane: crushing earth, searing flames, boundless skies, and endless seas make visiting these places dangerous for even a short time. The powerful genies, however, don\u2019t face such troubles when venturing to the Material Plane. They adapt well to the mingled elements of the Material Plane, and they sometimes visit\u2014whether of their own volition or compelled by magic. Some genies can adopt mortal guise and travel incognito.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Reach to the Blaze",
-      "Resistance",
-      "Call to the Wave",
-      "Earth Walk",
-      "Amphibious",
-      "Unending Breath",
-      "Mingle with the Wind",
-      "Merge with Stone"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -694,11 +519,22 @@ export const species: Race[] = [
       "CON": 2,
       "DEX": 1
     },
+    "racialKnownSpells": [
+      { "level": 1, "spellId": "shocking-grasp", "abilityScore": "CON", "type": "at-will" },
+      { "level": 3, "spellId": "feather-fall", "abilityScore": "CON", "type": "1/day" },
+      { "level": 5, "spellId": "levitate", "abilityScore": "CON", "type": "1/day" }
+    ],
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Unending Breath",
-      "Mingle with the Wind"
+      {
+        name: "Unending Breath",
+        description: "You can hold your breath indefinitely while you're not incapacitated."
+      },
+      {
+        name: "Mingle with the Wind",
+        description: "You can cast the levitate spell once with this trait, requiring no material components, and you regain the ability to cast it this way when you finish a long rest. Constitution is your spellcasting ability for this spell."
+      }
     ],
     "languages": [
       "Common",
@@ -716,11 +552,21 @@ export const species: Race[] = [
       "CON": 2,
       "STR": 1
     },
+    "racialKnownSpells": [
+      { "level": 1, "spellId": "blade-ward", "abilityScore": "CON", "type": "at-will" },
+      { "level": 5, "spellId": "pass-without-trace", "abilityScore": "CON", "type": "1/day" }
+    ],
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Earth Walk",
-      "Merge with Stone"
+      {
+        name: "Earth Walk",
+        description: "You can move across difficult terrain made of earth or stone without expending extra movement."
+      },
+      {
+        name: "Merge with Stone",
+        description: "You can cast the pass without trace spell once with this trait, requiring no material components, and you regain the ability to cast it this way when you finish a long rest. Constitution is your spellcasting ability for this spell."
+      }
     ],
     "languages": [
       "Common",
@@ -738,12 +584,27 @@ export const species: Race[] = [
       "CON": 2,
       "INT": 1
     },
+    "racialKnownSpells": [
+      { "level": 1, "spellId": "produce-flame", "abilityScore": "CON", "type": "at-will" },
+      { "level": 3, "spellId": "burning-hands", "abilityScore": "CON", "type": "1/day" },
+      { "level": 5, "spellId": "flame-blade", "abilityScore": "CON", "type": "1/day" }
+    ],
+
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Reach to the Blaze",
-      "Resistance"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Reach to the Blaze",
+        description: "You know the produce flame cantrip. When you reach 3rd level, you can cast the burning hands spell once with this trait as a 1st-level spell, and you regain the ability to cast it this way when you finish a long rest. Constitution is your spellcasting ability for these spells."
+      },
+      {
+        name: "Resistance",
+        description: "You have resistance to acid damage."
+      }
     ],
     "languages": [
       "Common",
@@ -761,56 +622,30 @@ export const species: Race[] = [
       "CON": 2,
       "WIS": 1
     },
+    "racialKnownSpells": [
+      { "level": 1, "spellId": "acid-splash", "abilityScore": "CON", "type": "at-will" },
+      { "level": 3, "spellId": "create-or-destroy-water", "abilityScore": "CON", "type": "1/day" },
+      { "level": 5, "spellId": "water-walk", "abilityScore": "CON", "type": "1/day" }
+    ],
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Resistance",
-      "Call to the Wave",
-      "Amphibious"
+      {
+        name: "Resistance",
+        description: "You have resistance to acid damage."
+      },
+      {
+        name: "Call to the Wave",
+        description: "You know the shape water cantrip. When you reach 3rd level, you can cast the create or destroy water spell as a 2nd-level spell once with this trait, and you regain the ability to cast it this way when you finish a long rest. Constitution is your spellcasting ability for these spells."
+      },
+      {
+        name: "Amphibious",
+        description: "You can breathe air and water."
+      }
     ],
     "languages": [
       "Common",
       "Primordial"
-    ]
-  },
-  {
-    "id": "githyanki",
-    "name": "Githyanki",
-    "description": "Githyanki are a martial people who live in the Astral Plane. They were once enslaved by mind flayers, but they won their freedom and now seek to conquer the multiverse. They are known for their silver swords and their red dragons.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Astral Knowledge",
-      "Githyanki Psionics",
-      "Psychic Resilience"
-    ],
-    "languages": [
-      "Common",
-      "Gith"
-    ]
-  },
-  {
-    "id": "githzerai",
-    "name": "Githzerai",
-    "description": "Githzerai are a monastic people who live in Limbo. They were once enslaved by mind flayers, but they won their freedom and now seek to master their minds. They are known for their discipline and their ability to shape the chaos of Limbo.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Githzerai Psionics",
-      "Mental Discipline",
-      "Psychic Resilience"
-    ],
-    "languages": [
-      "Common",
-      "Gith"
     ]
   },
   {
@@ -826,30 +661,18 @@ export const species: Race[] = [
     "size": "Small",
     "speed": 25,
     "traits": [
-      "Darkvision",
-      "Gnome Cunning"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Gnome Cunning",
+        description: "You have advantage on all Intelligence, Wisdom, and Charisma saving throws against magic."
+      }
     ],
     "languages": [
       "Common",
       "Gnomish"
-    ]
-  },
-  {
-    "id": "gnome-1",
-    "name": "Gnome",
-    "description": "Creature Type Humanoid Size Small (about 3\u20134 feet tall), chosen when you select this species Speed 30 feet Gnomes are a small, burrowing people who are known for their eccentricity, their humor, and their love of life. They are often found living in hills or forests, where they can be close to nature. Gnomes are natural illusionists and tricksters, and they love to play pranks on their friends and enemies alike.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Small",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Gnome Cunning"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -866,33 +689,22 @@ export const species: Race[] = [
     "size": "Small",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Nimble Escape",
-      "Fury of the Small"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Nimble Escape",
+        description: "You can take the Disengage or Hide action as a bonus action on each of your turns."
+      },
+      {
+        name: "Fury of the Small",
+        description: "When you damage a creature with an attack or a spell and the creature's size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your level. Once you use this trait, you can't use it again until you finish a short or long rest."
+      }
     ],
     "languages": [
       "Common",
       "Goblin"
-    ]
-  },
-  {
-    "id": "goblin-1",
-    "name": "Goblin",
-    "description": "Goblins occupy an uneasy place in a dangerous world, and they react by lashing out at any creatures they believe they can bully. Cunning in battle and cruel in victory, goblins are fawning and servile in defeat.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Small",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Nimble Escape",
-      "Fury of the Small",
-      "Fey Ancestry"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -909,9 +721,18 @@ export const species: Race[] = [
     "size": "Small",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Nimble Escape",
-      "Fury of the Small"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Nimble Escape",
+        description: "You can take the Disengage or Hide action as a bonus action on each of your turns."
+      },
+      {
+        name: "Fury of the Small",
+        description: "When you damage a creature with an attack or a spell and the creature's size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your level. Once you use this trait, you can't use it again until you finish a short or long rest."
+      }
     ],
     "languages": [
       "Common",
@@ -932,34 +753,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Stone's Endurance",
-      "Powerful Build",
-      "Mountain Born",
-      "Natural Athlete"
+      {
+        name: "Stone's Endurance",
+        description: "You can focus yourself to occasionally shrug off injury. When you take damage, you can use your reaction to roll a d12. Add your Constitution modifier to the number rolled, and reduce the damage by that total. After you use this trait, you can't use it again until you finish a short or long rest."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      },
+      {
+        name: "Mountain Born",
+        description: "You have resistance to cold damage. You're also acclimated to high altitude, including elevations above 20,000 feet."
+      },
+      {
+        name: "Natural Athlete",
+        description: "You have proficiency in the Athletics skill."
+      }
     ],
     "languages": [
       "Common",
       "Giant"
-    ]
-  },
-  {
-    "id": "goliath-1",
-    "name": "Goliath",
-    "description": "Goliaths are massive, mountain-dwelling people who are known for their strength and endurance. They are often found in the highest peaks of the world, where they live in tribes and compete in contests of strength and skill.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Stone's Endurance",
-      "Powerful Build",
-      "Mountain Born",
-      "Natural Athlete"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -976,34 +789,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Stone's Endurance",
-      "Powerful Build",
-      "Mountain Born",
-      "Natural Athlete"
+      {
+        name: "Stone's Endurance",
+        description: "You can focus yourself to occasionally shrug off injury. When you take damage, you can use your reaction to roll a d12. Add your Constitution modifier to the number rolled, and reduce the damage by that total. After you use this trait, you can't use it again until you finish a short or long rest."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      },
+      {
+        name: "Mountain Born",
+        description: "You have resistance to cold damage. You're also acclimated to high altitude, including elevations above 20,000 feet."
+      },
+      {
+        name: "Natural Athlete",
+        description: "You have proficiency in the Athletics skill."
+      }
     ],
     "languages": [
       "Common",
       "Giant"
-    ]
-  },
-  {
-    "id": "goliath-3",
-    "name": "Goliath",
-    "description": "Creature Type Humanoid Size Medium (about 7\u20138 feet tall), chosen when you select this species Speed 35 feet Goliaths are distant descendants of giants. They are massive, powerful people who are known for their strength and endurance. They are often found in the highest peaks of the world, where they live in tribes and compete in contests of strength and skill.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 35,
-    "traits": [
-      "Stone's Endurance",
-      "Powerful Build",
-      "Giant Ancestry",
-      "Large Form"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1019,9 +824,18 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Fey Ancestry",
-      "Skill Versatility"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Fey Ancestry",
+        description: "You have advantage on saving throws against being charmed, and magic can't put you to sleep."
+      }
+    ],
+    "subraces": [
+      "half-elf-standard",
+      "half-elf-high-variant"
     ],
     "languages": [
       "Common",
@@ -1042,10 +856,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Savage Attacks",
-      "Menacing",
-      "Relentless Endurance"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Savage Attacks",
+        description: "When you score a critical hit with a melee weapon attack, you can roll one of the weapon's damage dice one additional time and add it to the extra damage of the critical hit."
+      },
+      {
+        name: "Menacing",
+        description: "You gain proficiency in the Intimidation skill."
+      },
+      {
+        name: "Relentless Endurance",
+        description: "When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. You can't use this feature again until you finish a long rest."
+      }
     ],
     "languages": [
       "Common",
@@ -1065,53 +891,26 @@ export const species: Race[] = [
     "size": "Small",
     "speed": 25,
     "traits": [
-      "Lucky",
-      "Brave",
-      "Nimbleness",
-      "Halfling Nimbleness"
+      {
+        name: "Lucky",
+        description: "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
+      },
+      {
+        name: "Brave",
+        description: "You have advantage on saving throws against being frightened."
+      },
+      {
+        name: "Nimbleness",
+        description: "You can move through the space of any creature that is of a size larger than yours."
+      },
+      {
+        name: "Halfling Nimbleness",
+        description: "You can move through the space of any creature that is of a size larger than yours."
+      }
     ],
     "languages": [
       "Common",
       "Halfling"
-    ]
-  },
-  {
-    "id": "halfling-1",
-    "name": "Halfling",
-    "description": "Creature Type Humanoid Size Small (about 2\u20133 feet tall), chosen when you select this species Speed 30 feet Halflings are an affable, cheerful people who cherish the bonds of family and friendship as well as the comforts of hearth and home, harboring few dreams of gold or glory. Even adventurers among them usually venture into the world for reasons of community, friendship, wanderlust, or curiosity.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Small",
-    "speed": 30,
-    "traits": [
-      "Lucky",
-      "Brave",
-      "Nimbleness",
-      "Halfling Nimbleness"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "harengon",
-    "name": "Harengon",
-    "description": "Harengons are rabbit-folk who originated in the Feywild. They are known for their speed, agility, and luck. They are often found in the service of archfey or other powerful fey creatures.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Lucky Footwork",
-      "Rabbit Hop",
-      "Leporine Senses"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1128,33 +927,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Saving Face",
-      "Martial Training"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Saving Face",
+        description: "Hobgoblins are careful not to show weakness in front of their allies, for fear of losing status. If you miss with an attack roll or fail an ability check or a saving throw, you can gain a bonus to the roll equal to the number of allies you can see within 30 feet of you (maximum bonus of +5). Once you use this trait, you can't use it again until you finish a short or long rest."
+      },
+      {
+        name: "Martial Training",
+        description: "You are proficient with two martial weapons of your choice and with light armor."
+      }
     ],
     "languages": [
       "Common",
       "Goblin"
-    ]
-  },
-  {
-    "id": "hobgoblin-1",
-    "name": "Hobgoblin",
-    "description": "Hobgoblins trace their origins to the ancient courts of the Feywild, where they first appeared with their goblin and bugbear kin. Many of them were driven from the Feywild by the conquering god Maglubiyet, who marshaled them as soldiers, but the fey realm has left its mark; wherever they are in the multiverse, they channel an aspect of the Feywild\u2019s rule of reciprocity, which creates a mystical bond between the giver and the receiver of a gift.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Fey Ancestry",
-      "Fey Gift",
-      "Fortune from the Many"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1171,9 +959,18 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Saving Face",
-      "Martial Training"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Saving Face",
+        description: "Hobgoblins are careful not to show weakness in front of their allies, for fear of losing status. If you miss with an attack roll or fail an ability check or a saving throw, you can gain a bonus to the roll equal to the number of allies you can see within 30 feet of you (maximum bonus of +5). Once you use this trait, you can't use it again until you finish a short or long rest."
+      },
+      {
+        name: "Martial Training",
+        description: "You are proficient with two martial weapons of your choice and with light armor."
+      }
     ],
     "languages": [
       "Common",
@@ -1203,25 +1000,6 @@ export const species: Race[] = [
     ]
   },
   {
-    "id": "human-1",
-    "name": "Human",
-    "description": "Creature Type Humanoid Size Medium (about 4\u20137 feet tall) or Small (about 2\u20134 feet tall), chosen when you select this species Speed 30 feet Humans are the most adaptable and ambitious people among the common races. They have widely varying tastes, morals, and customs in the many different lands where they have settled. When they settle, though, they stay: they build cities to last for the ages, and great kingdoms that can persist for long centuries. An individual human might have a relatively short life span, but a human nation or culture preserves traditions with origins far beyond the reach of any single human\u2019s memory. They live fully in the present\u2014making them well suited to the adventuring life\u2014but also plan for the future, striving to leave a lasting legacy. Individually and as a group, humans are adaptable opportunists, and they stay alert to changing political and social dynamics.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Resourceful",
-      "Skillful",
-      "Versatile"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
     "id": "kenku",
     "name": "Kenku",
     "description": "Haunted by an ancient crime that robbed them of their wings, the kenku wander the world as vagabonds and burglars who live at the edge of human society. Kenku suffer from a sinister reputation that is not wholly unearned, but they can prove to be valuable allies.",
@@ -1235,32 +1013,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Expert Forgery",
-      "Kenku Training",
-      "Mimicry"
+      {
+        name: "Expert Forgery",
+        description: "You can duplicate other creatures' handwriting and craftwork. You have advantage on all checks made to produce forgeries or duplicates of existing objects."
+      },
+      {
+        name: "Kenku Training",
+        description: "You are proficient in your choice of two of the following skills: Acrobatics, Deception, Stealth, and Sleight of Hand."
+      },
+      {
+        name: "Mimicry",
+        description: "You can mimic sounds you have heard, including voices. A creature that hears the sounds you make can tell they are imitations with a successful Wisdom (Insight) check opposed by your Charisma (Deception) check."
+      }
     ],
     "languages": [
       "Common",
       "Auran"
-    ]
-  },
-  {
-    "id": "kenku-1",
-    "name": "Kenku",
-    "description": "Feathered folk who resemble ravens, kenku are blessed with keen observation and supernaturally accurate memories. None of them can remember the origin of the first kenku, however, for they have all been cursed to lose their creative spark and their voices. They can speak only by mimicking the sounds they have heard.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Expert Forgery",
-      "Kenku Training",
-      "Mimicry"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1277,56 +1045,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Expert Forgery",
-      "Kenku Training",
-      "Mimicry"
+      {
+        name: "Expert Forgery",
+        description: "You can duplicate other creatures' handwriting and craftwork. You have advantage on all checks made to produce forgeries or duplicates of existing objects."
+      },
+      {
+        name: "Kenku Training",
+        description: "You are proficient in your choice of two of the following skills: Acrobatics, Deception, Stealth, and Sleight of Hand."
+      },
+      {
+        name: "Mimicry",
+        description: "You can mimic sounds you have heard, including voices. A creature that hears the sounds you make can tell they are imitations with a successful Wisdom (Insight) check opposed by your Charisma (Deception) check."
+      }
     ],
     "languages": [
       "Common",
       "Auran"
-    ]
-  },
-  {
-    "id": "kobold",
-    "name": "Kobold",
-    "description": "Kobolds are craven reptilian humanoids that commonly infest dungeons. They make up for their physical ineptitude with a cleverness for trap making.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {
-      "DEX": 2,
-      "STR": 2
-    },
-    "size": "Small",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Grovel, Cower, and Beg",
-      "Pack Tactics",
-      "Sunlight Sensitivity"
-    ],
-    "languages": [
-      "Common",
-      "Draconic"
-    ]
-  },
-  {
-    "id": "kobold-1",
-    "name": "Kobold",
-    "description": "Some of the smallest draconic creatures in the multiverse, kobolds display their draconic ancestry in the glint of their scales and in their roars. Legends tell of the first kobolds emerging from the Underdark near the lairs of the earliest dragons. In some lands, kobolds serve chromatic dragons, worshiping them as demigods and tending their hoards. In other places, they know too well how dangerous those dragons can be and help others defend against draconic destruction.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Small",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Draconic Cry",
-      "Kobold Legacy"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1343,56 +1077,34 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Bite",
-      "Cunning Artisan",
-      "Hold Breath",
-      "Hunter's Lore",
-      "Natural Armor",
-      "Hungry Jaws"
+      {
+        name: "Bite",
+        description: "Your fanged maw is a natural weapon, which you can use to make unarmed strikes. If you hit with it, you deal piercing damage equal to 1d6 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+      },
+      {
+        name: "Cunning Artisan",
+        description: "As part of a short rest, you can harvest bone and hide from a slain beast, construct, dragon, monstrosity, or plant creature of size Small or larger to create one of the following items: a shield, a club, a javelin, or 1d4 darts or blowgun needles. To use this trait, you need a blade, such as a dagger, or appropriate artisan's tools, such as leatherworker's tools."
+      },
+      {
+        name: "Hold Breath",
+        description: "You can hold your breath for up to 15 minutes at a time."
+      },
+      {
+        name: "Hunter's Lore",
+        description: "You gain proficiency with two of the following skills of your choice: Animal Handling, Nature, Perception, Stealth, and Survival."
+      },
+      {
+        name: "Natural Armor",
+        description: "You have tough, scaly skin. When you aren't wearing armor, your AC is 13 + your Dexterity modifier. You can use your natural armor to determine your AC if the armor you wear would leave you with a lower AC. A shield's benefits apply as normal while you use your natural armor."
+      },
+      {
+        name: "Hungry Jaws",
+        description: "In battle, you can throw yourself into a vicious feeding frenzy. As a bonus action, you can make a special attack with your bite. If the attack hits, it deals its normal damage, and you gain temporary hit points (minimum of 1) equal to your Constitution modifier. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
+      }
     ],
     "languages": [
       "Common",
       "Draconic"
-    ]
-  },
-  {
-    "id": "lizardfolk-1",
-    "name": "Lizardfolk",
-    "description": "Many lizardfolk are content to remain in the swamps and marshes of their ancestors, where they can live in harmony with nature. Others, however, are driven by a desire to see the world and test their strength against new challenges.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Bite",
-      "Hold Breath",
-      "Natural Armor",
-      "Hungry Jaws"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "minotaur",
-    "name": "Minotaur",
-    "description": "Minotaurs are barrel-chested humanoids with heads resembling those of bulls. Blessed with a supernaturally strong sense of direction, minotaurs make great navigators. Some sages believe minotaurs were first created by the Lady of Pain to patrol the magical mazes that she uses to trap her foes.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Horns",
-      "Goring Rush",
-      "Hammering Horns",
-      "Labyrinthine Recall"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1409,54 +1121,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Aggressive",
-      "Primal Intuition",
-      "Powerful Build"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Aggressive",
+        description: "As a bonus action, you can move up to your speed toward an enemy of your choice that you can see or hear. You must end this move closer to the enemy than you started."
+      },
+      {
+        name: "Primal Intuition",
+        description: "You have proficiency in two of the following skills of your choice: Animal Handling, Insight, Intimidation, Medicine, Nature, Perception, and Survival."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      }
     ],
     "languages": [
       "Common",
       "Orc"
-    ]
-  },
-  {
-    "id": "orc-1",
-    "name": "Orc",
-    "description": "Orcs trace their creation to the one-eyed god Gruumsh, an unstoppable warrior and powerful leader. The divine qualities of Gruumsh resonate within orcs, granting them a reflection of his toughness and tenacity that can\u2019t be matched, and the god equips his children to be able to sustain themselves in harsh environments.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Adrenaline Rush",
-      "Powerful Build",
-      "Relentless Endurance"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "orc-2",
-    "name": "Orc",
-    "description": "Creature Type Humanoid Size Medium (about 6\u20137 feet tall), chosen when you select this species Speed 30 feet Orcs are born for battle, and their society is built around strength and martial prowess. They are often found in tribes that raid and pillage, but some orcs turn away from their savage nature and seek to live in peace with other races.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Adrenaline Rush",
-      "Powerful Build",
-      "Relentless Endurance"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1473,97 +1157,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Aggressive",
-      "Primal Intuition",
-      "Powerful Build"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Aggressive",
+        description: "As a bonus action, you can move up to your speed toward an enemy of your choice that you can see or hear. You must end this move closer to the enemy than you started."
+      },
+      {
+        name: "Primal Intuition",
+        description: "You have proficiency in two of the following skills of your choice: Animal Handling, Insight, Intimidation, Medicine, Nature, Perception, and Survival."
+      },
+      {
+        name: "Powerful Build",
+        description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      }
     ],
     "languages": [
       "Common",
       "Orc"
-    ]
-  },
-  {
-    "id": "satyr",
-    "name": "Satyr",
-    "description": "Satyrs are fey creatures who resemble humans with the legs and horns of goats. They are known for their love of music, dance, and revelry. They are often found in the company of other fey creatures, such as dryads and nymphs.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 35,
-    "traits": [
-      "Fey Ancestry",
-      "Magic Resistance",
-      "Mirthful Leaps",
-      "Reveler"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "sea-elf",
-    "name": "Sea Elf",
-    "description": "Sea elves fell in love with the wild beauty of the ocean in the earliest days of the multiverse. While other elves traveled from realm to realm, the sea elves navigated the deepest currents and explored the waters across a hundred worlds. Today, they live in small, hidden communities in the ocean shallows and on the Elemental Plane of Water.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Child of the Sea",
-      "Friend of the Sea",
-      "Keen Senses",
-      "Fey Ancestry",
-      "Trance",
-      "Darkvision"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "shadar-kai",
-    "name": "Shadar-kai",
-    "description": "Shadar-kai are the elves of the Shadowfell, originally drawn to that dread realm by the Raven Queen. Over the centuries, some of them have accepted the bleak nature of the Shadowfell, but others struggle against it.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Blessing of the Raven Queen",
-      "Keen Senses",
-      "Fey Ancestry",
-      "Trance",
-      "Necrotic Resistance",
-      "Darkvision"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "shifter",
-    "name": "Shifter",
-    "description": "Shifters are sometimes called the weretouched, as many believe they are the descendants of humans and lycanthropes. They are humanoids with bestial features who can shift into a more beast-like form for a short time.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Shifting",
-      "Bestial Instincts"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1580,30 +1193,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Feline Agility",
-      "Cat's Claws",
-      "Cat's Talent"
-    ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "tabaxi-1",
-    "name": "Tabaxi",
-    "description": "Created by the Cat Lord\u2014a divine being of the Upper Planes\u2014to blend the qualities of humanoids and cats, tabaxi are a varied people in both attitude and appearance. In some lands, tabaxi live like the cats they resemble, naturally curious and at home in playful environments. In other places, tabaxi live as other folk do, not exhibiting the feline behavior the Cat Lord intended.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Feline Agility",
-      "Cat's Claws",
-      "Cat's Talent"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Feline Agility",
+        description: "Your reflexes and agility allow you to move with a burst of speed. When you move on your turn in combat, you can double your speed until the end of the turn. Once you use this trait, you can't use it again until you move 0 feet on one of your turns."
+      },
+      {
+        name: "Cat's Claws",
+        description: "Because of your claws, you have a climbing speed of 20 feet. In addition, your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+      },
+      {
+        name: "Cat's Talent",
+        description: "Because of your claws, you have a climbing speed of 20 feet. In addition, your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+      }
     ],
     "languages": [
       "Common"
@@ -1623,10 +1228,22 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Feline Agility",
-      "Cat's Claws",
-      "Cat's Talent"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Feline Agility",
+        description: "Your reflexes and agility allow you to move with a burst of speed. When you move on your turn in combat, you can double your speed until the end of the turn. Once you use this trait, you can't use it again until you move 0 feet on one of your turns."
+      },
+      {
+        name: "Cat's Claws",
+        description: "Because of your claws, you have a climbing speed of 20 feet. In addition, your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+      },
+      {
+        name: "Cat's Talent",
+        description: "Because of your claws, you have a climbing speed of 20 feet. In addition, your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+      }
     ],
     "languages": [
       "Common"
@@ -1639,60 +1256,33 @@ export const species: Race[] = [
     "source": "Player's Handbook",
     "edition": "Both",
     "version": 1,
-    "abilityScoreIncrease": {
-      "INT": 1,
-      "CHA": 2
-    },
+    "abilityScoreIncrease": {},
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Hellish Resistance",
-      "Infernal Legacy"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Hellish Resistance",
+        description: "You have resistance to fire damage."
+      }
     ],
     "languages": [
       "Common",
       "Infernal"
-    ]
-  },
-  {
-    "id": "tiefling-1",
-    "name": "Tiefling",
-    "description": "Creature Type Humanoid Size Medium (about 4\u20137 feet tall) or Small (about 2\u20134 feet tall), chosen when you select this species Speed 30 feet Tieflings are either born in the Lower Planes or have one or more fiendish ancestors who originated there. A tiefling has horns, a tail, and other fiendish features.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Otherworldly Presence",
-      "Fiendish Legacy"
     ],
-    "languages": [
-      "Common"
-    ]
-  },
-  {
-    "id": "tortle",
-    "name": "Tortle",
-    "description": "Tortles are turtle-like humanoids with a strong sense of wanderlust and a propensity for learning new languages and customs. They carry their homes on their backs, in the form of a heavy shell that provides them with excellent protection.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Hold Breath",
-      "Natural Armor",
-      "Shell Defense",
-      "Claws",
-      "Nature's Intuition"
-    ],
-    "languages": [
-      "Common"
+    "subraces": [
+      "tiefling-asmodeus",
+      "tiefling-baalzebul",
+      "tiefling-dispater",
+      "tiefling-fierna",
+      "tiefling-glasya",
+      "tiefling-levistus",
+      "tiefling-mammon",
+      "tiefling-mephistopheles",
+      "tiefling-zariel"
     ]
   },
   {
@@ -1709,11 +1299,26 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Hold Breath",
-      "Natural Armor",
-      "Shell Defense",
-      "Claws",
-      "Survival Instinct"
+      {
+        name: "Hold Breath",
+        description: "You can hold your breath for up to 1 hour at a time. Tortles aren't natural swimmers, but they can remain underwater for some time before needing to come up for air."
+      },
+      {
+        name: "Natural Armor",
+        description: "Due to your shell and the shape of your body, you are ill-suited to wearing armor. Your shell provides ample protection, however; it gives you a base AC of 17 (your Dexterity modifier doesn't affect this number). You gain no benefit from wearing armor, but if you are using a shield, you can apply the shield's bonus as normal."
+      },
+      {
+        name: "Shell Defense",
+        description: "You can withdraw into your shell as an action. Until you emerge, you gain a +4 bonus to AC, and you have advantage on Strength and Constitution saving throws. While in your shell, you are prone, your speed is 0 and can't increase, you have disadvantage on Dexterity saving throws, you can't take reactions, and the only action you can take is a bonus action to emerge from your shell."
+      },
+      {
+        name: "Claws",
+        description: "Your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+      },
+      {
+        name: "Survival Instinct",
+        description: "You gain proficiency in the Survival skill."
+      }
     ],
     "languages": [
       "Common",
@@ -1735,36 +1340,35 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Control Air and Water",
-      "Amphibious",
-      "Emissary of the Sea",
-      "Guardians of the Depths"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Control Air and Water",
+        description: "A child of the sea, you can call on the magic of air and water. You can cast fog cloud with this trait. Starting at 3rd level, you can cast gust of wind with it, and starting at 5th level, you can also cast wall of water with it. Once you cast a spell with this trait, you can't do so again until you finish a long rest. Charisma is your spellcasting ability for these spells."
+      },
+      {
+        name: "Amphibious",
+        description: "You can breathe air and water."
+      },
+      {
+        name: "Emissary of the Sea",
+        description: "Aquatic beasts have an extraordinary affinity with your people. You can communicate simple ideas with beasts that can breathe water. They can understand the meaning of your words, though you have no special ability to understand them in return."
+      },
+      {
+        name: "Guardians of the Depths",
+        description: "Adapted to even the most extreme ocean depths, you have resistance to cold damage."
+      }
+    ],
+    racialKnownSpells: [
+      { level: 1, spellId: "fog-cloud", abilityScore: "CHA", type: "recharge" },
+      { level: 3, spellId: "gust-of-wind", abilityScore: "CHA", type: "recharge" },
+      { level: 5, spellId: "wall-of-water", abilityScore: "CHA", type: "recharge" }
     ],
     "languages": [
       "Common",
       "Primordial"
-    ]
-  },
-  {
-    "id": "triton-1",
-    "name": "Triton",
-    "description": "Originally from the Elemental Plane of Water, many tritons entered the Material Plane centuries ago in response to the growing threat of evil elementals. Those tritons spread across the worlds\u2019 oceans, protecting the surface from terrors in the deep. Over time, triton have extended their stewardship over the sea floor to the ocean\u2019s surface.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Control Air and Water",
-      "Amphibious",
-      "Emissary of the Sea",
-      "Guardians of the Depths"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1782,34 +1386,30 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Control Air and Water",
-      "Amphibious",
-      "Emissary of the Sea",
-      "Guardians of the Depths"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Control Air and Water",
+        description: "A child of the sea, you can call on the magic of air and water. You can cast fog cloud with this trait. Starting at 3rd level, you can cast gust of wind with it, and starting at 5th level, you can also cast wall of water with it. Once you cast a spell with this trait, you can't do so again until you finish a long rest. Charisma is your spellcasting ability for these spells."
+      },
+      {
+        name: "Amphibious",
+        description: "You can breathe air and water."
+      },
+      {
+        name: "Emissary of the Sea",
+        description: "Aquatic beasts have an extraordinary affinity with your people. You can communicate simple ideas with beasts that can breathe water. They can understand the meaning of your words, though you have no special ability to understand them in return."
+      },
+      {
+        name: "Guardians of the Depths",
+        description: "Adapted to even the most extreme ocean depths, you have resistance to cold damage."
+      }
     ],
     "languages": [
       "Common",
       "Primordial"
-    ]
-  },
-  {
-    "id": "yuan-ti",
-    "name": "Yuan-ti",
-    "description": "Yuan-ti were once humans who transformed themselves into serpent folk through ancient rituals. Most yuan-ti were corrupted into monsters by those rituals, but some yuan-ti instead became a new people who mix characteristics of humans and snakes.",
-    "source": "Official",
-    "edition": "Both",
-    "version": 1,
-    "abilityScoreIncrease": {},
-    "size": "Medium",
-    "speed": 30,
-    "traits": [
-      "Darkvision",
-      "Magic Resistance",
-      "Poison Immunity"
-    ],
-    "languages": [
-      "Common"
     ]
   },
   {
@@ -1826,14 +1426,95 @@ export const species: Race[] = [
     "size": "Medium",
     "speed": 30,
     "traits": [
-      "Darkvision",
-      "Magic Resistance",
-      "Poison Immunity"
+      {
+        name: "Darkvision",
+        description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      },
+      {
+        name: "Magic Resistance",
+        description: "You have advantage on saving throws against spells and other magical effects."
+      },
+      {
+        name: "Poison Immunity",
+        description: "You are immune to poison damage and the poisoned condition."
+      }
     ],
     "languages": [
       "Common",
       "Abyssal",
       "Draconic"
     ]
+  },
+  {
+    id: "lorwyn-elf",
+    name: "Lorwyn-Shadowmoor Elf",
+    description: "In the sun-dappled realm of Lorwyn, elves are superficial, defining worth by physical beauty. In the dusky realm of Shadowmoor, they are humble protectors of the fading light. Lorwyn elves are rulers of the plane, while Shadowmoor elves are beleaguered wardens.",
+    source: "Plane Shift: Lorwyn-Shadowmoor (Unofficial)",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { DEX: 2, CHA: 1 },
+    size: "Medium",
+    speed: 30,
+    traits: [
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Keen Senses", description: "Proficiency in Perception." },
+      { name: "Fey Ancestry", description: "Advantage against charm, no sleep magic." },
+      { name: "Mask of the Wild", description: "You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena." },
+      { name: "Perfect Observation", description: "Proficiency in Investigation." }
+    ],
+    languages: ["Common", "Elvish", "Sylvan"]
+  },
+  {
+    id: "dhampir",
+    name: "Dhampir",
+    description: "Poised between the worlds of the living and the dead, dhampirs retain their grip on life yet are endlessly tested by vicious hungers. Their ties to the undead grant them a taste of a vampire's deathless prowess in the form of increased speed, darkvision, and a life-draining bite.",
+    source: "Van Richten's Guide to Ravenloft",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { CON: 2, DEX: 1 },
+    size: "Medium",
+    speed: 35,
+    traits: [
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Spider Climb", description: "Climb speed equal to walking speed. At 3rd level, move up, down, across vertical surfaces and ceilings hands-free." },
+      { name: "Vampiric Bite", description: "Natural weapon (1d4 piercing). Advantage on attack if under half HP. Empower self on hit." },
+      { name: "Deathless Nature", description: "Don't need to breathe." }
+    ],
+    languages: ["Common", "one other"]
+  },
+  {
+    id: "reborn",
+    name: "Reborn",
+    description: "Death isn't always the end. The reborn exemplify this, having died and returned to life, but with their memories and previous lives faded or lost. They are individuals who have been constructed, resurrected, or otherwise returned to a semblance of life.",
+    source: "Van Richten's Guide to Ravenloft",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { CON: 2, STR: 1 },
+    size: "Medium",
+    speed: 30,
+    traits: [
+      { name: "Deathless Nature", description: "Advantage on saves vs disease/poison, resistance to poison. No sleep, eat, drink, breathe." },
+      { name: "Constructed Resilience", description: "Advantage on death saving throws." },
+      { name: "Knowledge from a Past Life", description: "Add d6 to skill check (proficiency times/long rest)." }
+    ],
+    languages: ["Common", "one other"]
+  },
+  {
+    id: "hexblood",
+    name: "Hexblood",
+    description: "Where wishing wells and old wives\u2019 tales are true, hexbloods are the result of hags' magic or faerie bargains. They are changelings of a sort, imbued with eldritch magic that alters their form and grants them powers of hags.",
+    source: "Van Richten's Guide to Ravenloft",
+    edition: "Both",
+    version: 1,
+    abilityScoreIncrease: { WIS: 2, CHA: 1 },
+    size: "Medium",
+    speed: 30,
+    traits: [
+      { name: "Darkvision", description: "60 ft." },
+      { name: "Eerie Token", description: "Remove a lock of hair or fingernail to create a telepathic token." },
+      { name: "Hex Magic", description: "Cast Disguise Self and Hex with this trait. Intelligence, Wisdom, or Charisma is your spellcasting ability." },
+      { name: "Fey Ancestry", description: "Advantage against charm, no sleep magic." }
+    ],
+    languages: ["Common", "one other"]
   }
 ];

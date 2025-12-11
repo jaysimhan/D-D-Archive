@@ -55,19 +55,16 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
       <p className="text-sm text-gray-700 mb-3">
         {expanded
           ? subclass.description
-          : `${subclass.description.substring(0, 120)}${
-              subclass.description.length > 120 ? "..." : ""
-            }`}
+          : `${subclass.description.substring(0, 120)}${subclass.description.length > 120 ? "..." : ""
+          }`}
       </p>
 
-      {subclass.description.length > 120 && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-sm text-blue-600 hover:text-blue-800 mb-3"
-        >
-          {expanded ? "Show Less" : "Show More"}
-        </button>
-      )}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="text-sm text-blue-600 hover:text-blue-800 mb-3 flex items-center gap-1"
+      >
+        {expanded ? "Show Less" : "Show Details"}
+      </button>
 
       {/* Key Features */}
       {expanded && (
@@ -76,18 +73,16 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
             <BookOpen className="w-4 h-4" />
             Key Features:
           </p>
-          <div className="space-y-1">
-            {subclass.features.slice(0, 4).map((feature, i) => (
-              <div key={i} className="text-sm pl-3 border-l-2 border-purple-500">
-                <span className="text-gray-900">{feature.name}</span>
-                <span className="text-gray-600"> (Level {feature.level})</span>
+          <div className="space-y-3">
+            {subclass.features.map((feature, i) => (
+              <div key={i} className="bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex justify-between items-baseline mb-1">
+                  <span className="font-semibold text-indigo-700">{feature.name}</span>
+                  <span className="text-xs text-gray-500 font-medium bg-white px-2 py-0.5 rounded border border-gray-100">Level {feature.level}</span>
+                </div>
+                <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
               </div>
             ))}
-            {subclass.features.length > 4 && (
-              <p className="text-xs text-gray-500 pl-3">
-                +{subclass.features.length - 4} more features...
-              </p>
-            )}
           </div>
         </div>
       )}

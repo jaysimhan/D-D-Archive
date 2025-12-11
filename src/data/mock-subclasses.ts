@@ -169,8 +169,43 @@ export const mockSubclasses: Subclass[] = [
       },
     ],
   },
-
-  // FIGHTER SUBCLASSES
+  // DRUID SUBCLASSES
+  {
+    id: "circle-of-stars",
+    parentClassId: "druid",
+    name: "Circle of Stars",
+    description: "The Circle of Stars allows druids to draw on the power of starlight, observing the cosmos and harnessing the energy of constellations.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    features: [
+      {
+        level: 2,
+        name: "Star Map",
+        description: "You have created a star chart as part of your heavenly studies. You gain the Guidance cantrip and can cast Guiding Bolt without expending a spell slot a number of times equal to your proficiency bonus."
+      },
+      {
+        level: 2,
+        name: "Starry Form",
+        description: "As a bonus action, you can expend a use of your Wild Shape to take on a starry form, gaining benefits based on the constellation you choose (Archer, Chalice, or Dragon)."
+      },
+      {
+        level: 6,
+        name: "Cosmic Omen",
+        description: "Whenever you finish a long rest, you can consult your Star Map to gain a reaction to aid allies or hinder foes based on the roll of a d6 (Weal or Woe)."
+      },
+      {
+        level: 10,
+        name: "Twinkling Constellations",
+        description: "Your Starry Form improves. The Archer and Chalice constellations deal more damage/healing, and Dragon grants flight speed."
+      },
+      {
+        level: 14,
+        name: "Full of Stars",
+        description: "While in your Starry Form, you become partially incorporeal, gaining resistance to bludgeoning, piercing, and slashing damage."
+      }
+    ]
+  },
   {
     id: "champion",
     parentClassId: "fighter",
@@ -1817,22 +1852,7 @@ export const mockSubclasses: Subclass[] = [
   },
 
   // ADDITIONAL SORCERER SUBCLASSES
-  {
-    id: "divine-soul",
-    parentClassId: "sorcerer",
-    name: "Divine Soul",
-    description: "Sometimes the spark of magic that fuels a sorcerer comes from a divine source that glimmers within the soul.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    features: [
-      { level: 1, name: "Divine Magic", description: "Your link to the divine allows you to learn spells from the cleric spell list." },
-      { level: 1, name: "Favored by the Gods", description: "Divine power guards your destiny." },
-      { level: 6, name: "Empowered Healing", description: "The divine energy coursing through you can empower healing spells." },
-      { level: 14, name: "Otherworldly Wings", description: "You can use a bonus action to manifest a pair of spectral wings from your back." },
-      { level: 18, name: "Unearthly Recovery", description: "You gain the ability to overcome grievous injuries." },
-    ],
-  },
+
   {
     id: "shadow-magic",
     parentClassId: "sorcerer",
@@ -1849,4 +1869,509 @@ export const mockSubclasses: Subclass[] = [
       { level: 18, name: "Umbral Form", description: "You can spend 6 sorcery points as a bonus action to transform yourself into a shadowy form." },
     ],
   },
+  // --- 2024 UPDATED SUBCLASSES ---
+
+  // MONK (2024)
+  {
+    id: "warrior-of-the-elements",
+    parentClassId: "monk",
+    name: "Warrior of the Elements",
+    description: "You follow a monastic tradition that teaches you to harness the elements. When you focus your ki, you can align yourself with the forces of creation.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Elemental Attunement", description: "You can expend Focus Points to imbue yourself with elemental energy, gaining Reach and dealing elemental damage." },
+      { level: 3, name: "Manipulate Elements", description: "You know the Elementalism spell." },
+      { level: 6, name: "Elemental Burst", description: "You can expend Focus Points to cause elemental energy to burst in a sphere." },
+      { level: 11, name: "Stride of the Elements", description: "While Elemental Attunement is active, you have a Fly Speed and Swim Speed." },
+      { level: 17, name: "Elemental Epitome", description: "You gain resistance to damage and destructive benefits while Elemental Attunement is active." },
+    ],
+  },
+  {
+    id: "warrior-of-shadow",
+    parentClassId: "monk",
+    name: "Warrior of Shadow",
+    description: "Monks of the Warrior of Shadow follow a tradition that values stealth and subterfuge.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Shadow Arts", description: "You gain Darkness, Darkvision, and Shadowy Figments." },
+      { level: 6, name: "Shadow Step", description: "You can teleport between patches of darkness or dim light." },
+      { level: 11, name: "Improved Shadow Step", description: "You can suffer no restrictions on where you teleport for a cost." },
+      { level: 17, name: "Cloak of Shadows", description: "You can shroud yourself in shadows to become reduced to a partial incorporeal state." },
+    ],
+  },
+  {
+    id: "warrior-of-mercy",
+    parentClassId: "monk",
+    name: "Warrior of Mercy",
+    description: "Monks of the Warrior of Mercy manipulate the life force of others to bring aid to those in need or an end to those who are suffering.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Hand of Harm", description: "You can use your Focus Points to deal extra necrotic damage." },
+      { level: 3, name: "Hand of Healing", description: "You can use your Focus Points to heal creatures." },
+      { level: 3, name: "Implements of Mercy", description: "You gain proficiency in Insight, Medicine, and the Herbalism Kit." },
+      { level: 6, name: "Physician's Touch", description: "Your healing and harm abilities improve to cure conditions or poison foes." },
+      { level: 11, name: "Flurry of Healing and Harm", description: "You can weave your healing and harming techniques into your Flurry of Blows." },
+      { level: 17, name: "Hand of Ultimate Mercy", description: "You can bring the dead back to life." },
+    ],
+  },
+  {
+    id: "warrior-of-the-open-hand",
+    parentClassId: "monk",
+    name: "Warrior of the Open Hand",
+    description: "Monks of the Warrior of the Open Hand are the ultimate masters of martial arts combat.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Open Hand Technique", description: "You can manipulate your enemy's ki when you hit them with Flurry of Blows." },
+      { level: 6, name: "Wholeness of Body", description: "You can heal yourself as a bonus action." },
+      { level: 11, name: "Fleet Step", description: "You can use Step of the Wind immediately after another Bonus Action." },
+      { level: 17, name: "Quivering Palm", description: "You can set up lethal vibrations in a creature's body." },
+    ],
+  },
+
+  // BARBARIAN (2024)
+  {
+    id: "path-of-the-world-tree",
+    parentClassId: "barbarian",
+    name: "Path of the World Tree",
+    description: "Your Rage taps into the life force of the World Tree.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Vitality of the Tree", description: "Your Rage grants temporary hit points to you and allies." },
+      { level: 6, name: "Branches of the Tree", description: "You can use your reaction to teleport enemies." },
+      { level: 10, name: "Battering Roots", description: "Your reach increases and your weapons gain mastery properties." },
+      { level: 14, name: "Travel along the Tree", description: "You can teleport yourself and allies." },
+    ],
+  },
+
+  // BARD (2024)
+  {
+    id: "college-of-dance",
+    parentClassId: "bard",
+    name: "College of Dance",
+    description: "Bards of the College of Dance know that the world is a stage and that everyone is a dancer.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Dazzling Footwork", description: "You gain benefits while not wearing armor, including Agile Strikes and Unarmored Defense." },
+      { level: 6, name: "Inspiring Movement", description: "You can move allies when enemies approach." },
+      { level: 6, name: "Tandem Footwork", description: "You can boost your party's initiative." },
+      { level: 14, name: "Leading Evasion", description: "You can share Evasion with nearby allies." },
+    ],
+  },
+
+  // DRUID (2024)
+  {
+    id: "circle-of-the-sea",
+    parentClassId: "druid",
+    name: "Circle of the Sea",
+    description: "Druids of the Circle of the Sea draw on the tempestuous power of the oceans.",
+    source: "Official",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Circle of the Sea Spells", description: "You always have certain spells prepared." },
+      { level: 3, name: "Wrath of the Sea", description: "You can manifest an aura of ocean spray that damages enemies." },
+      { level: 6, name: "Aquatic Affinity", description: "Your aura grows and you gain a swim speed." },
+      { level: 10, name: "Stormborn", description: "You gain a fly speed and resistances." },
+      { level: 14, name: "Oceanic Gift", description: "You can share your aura with a willing creature." },
+    ],
+  },
+  // FIGHTER SUBCLASSES (2024 / Expanded)
+  {
+    id: "banneret",
+    parentClassId: "fighter",
+    name: "Banneret (Purple Dragon Knight)",
+    description: "A Banneret inspires greatness in others by committing deeds of glory on the battlefield, serving as a beacon for their allies.",
+    source: "Sword Coast Adventurer's Guide",
+    edition: "2024",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Rallying Cry",
+        description: "When you use your Second Wind feature, you can choose up to three creatures within 60 feet. They regain hit points equal to your fighter level."
+      },
+      {
+        level: 7,
+        name: "Royal Envoy",
+        description: "You gain proficiency in Persuasion. If you are already proficient, you gain double proficiency bonus."
+      },
+      {
+        level: 10,
+        name: "Inspiring Surge",
+        description: "When you use your Action Surge feature, you can choose one creature within 60 feet. That creature can make one melee or ranged weapon attack as a reaction."
+      },
+      {
+        level: 15,
+        name: "Bulwark",
+        description: "When you use Indomitable to reroll a saving throw, you can choose one ally within 60 feet who also failed the save against the same effect to reroll theirs."
+      }
+    ]
+  },
+  {
+    id: "psi-warrior",
+    parentClassId: "fighter",
+    name: "Psi Warrior",
+    description: "Psi Warriors harness the power of their mind to augment their physical prowess, infusing their weapons with psionic energy and moving objects with thought.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Psionic Power",
+        description: "You harbor a wellspring of psionic energy represented by Psionic Energy dice. You can use these dice to fuel various psionic powers like Protective Field, Psionic Strike, and Telekinetic Movement."
+      },
+      {
+        level: 7,
+        name: "Telekinetic Adept",
+        description: "You master new ways to use your telekinesis, gaining the Psi-Powered Leap and Telekinetic Thrust features."
+      },
+      {
+        level: 10,
+        name: "Guarded Mind",
+        description: "The psionic energy flowing through you bolsters your mind. You have resistance to psychic damage and if you start your turn charmed or frightened, you can end the effect."
+      },
+      {
+        level: 15,
+        name: "Bulwark of Force",
+        description: "You can shield yourself and others with telekinetic force, granting half cover to yourself and allies within 30 feet."
+      },
+      {
+        level: 18,
+        name: "Telekinetic Master",
+        description: "You can cast the Telekinesis spell. While concentrating on it, you can make a weapon attack as a bonus action."
+      }
+    ]
+  },
+  {
+    id: "tranquility",
+    parentClassId: "monk",
+    name: "Way of Tranquility",
+    description: "Monks who seek to end conflict through peace and diplomacy.",
+    source: "Unearthed Arcana",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 3, name: "Path of Tranquility", description: "You can cast Sanctuary on yourself and have advantage on charisma checks to calm emotions." },
+      { level: 6, name: "Healing Hands", description: "You have a pool of healing power to restore hit points." },
+      { level: 11, name: "Emissary of Peace", description: "You gain +2 to Charisma checks and proficient in Peace." },
+      { level: 17, name: "Anger of a Gentle Soul", description: "You gain a massive damage boost against creatures that hurt your allies." }
+    ]
+  },
+  // ADDITIONAL PALADIN SUBCLASSES (New Batch)
+  {
+    id: "crown",
+    parentClassId: "paladin",
+    name: "Oath of the Crown",
+    description: "The Oath of the Crown is sworn to the ideals of civilization, be it the spirit of a nation, fealty to a sovereign, or service to a deity of law and ruling.",
+    source: "Sword Coast Adventurer's Guide",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 3, name: "Champion Challenge", description: "You compel creatures to do battle with you." },
+      { level: 3, name: "Turn the Tide", description: "You can bolster injured creatures with your Channel Divinity." },
+      { level: 7, name: "Divine Allegiance", description: "You can use your reaction to take damage intended for another creature." },
+      { level: 15, name: "Unyielding Saint", description: "You have advantage on saving throws to avoid being paralyzed or stunned." },
+      { level: 20, name: "Exalted Champion", description: "You become an avatar of war, resistant to damage." }
+    ]
+  },
+  {
+    id: "glory",
+    parentClassId: "paladin",
+    name: "Oath of Glory",
+    description: "Paladins who swear the Oath of Glory believe they and their companions are destined to achieve glory through deeds of heroism.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Peerless Athlete", description: "You can use Channel Divinity to augment your athleticism." },
+      { level: 3, name: "Inspiring Smite", description: "You can distribute temporary hit points after a Divine Smite." },
+      { level: 7, name: "Aura of Alacrity", description: "You and your allies gain increased movement speed." },
+      { level: 15, name: "Glorious Defense", description: "You can turn a miss into a hit or grant AC to an ally." },
+      { level: 20, name: "Living Legend", description: "You can gain advantage on charisma checks and reroll saving throws." }
+    ]
+  },
+  {
+    id: "redemption",
+    parentClassId: "paladin",
+    name: "Oath of Redemption",
+    description: "The Oath of Redemption sets a paladin on a difficult path, one that requires a holy warrior to use violence only as a last resort.",
+    source: "Xanathar's Guide to Everything",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 3, name: "Emissary of Peace", description: "You gain a bonus to Persuasion checks." },
+      { level: 3, name: "Rebuke the Violent", description: "You can damage attackers who hurt your allies using Channel Divinity." },
+      { level: 7, name: "Aura of the Guardian", description: "You can take damage intended for your allies." },
+      { level: 15, name: "Protective Spirit", description: "You regain hit points at the end of your turn if you are below half health." },
+      { level: 20, name: "Emissary of Redemption", description: "You have resistance to all damage dealt by other creatures." }
+    ]
+  },
+  {
+    id: "watchers",
+    parentClassId: "paladin",
+    name: "Oath of the Watchers",
+    description: "The Oath of the Watchers binds paladins to protect mortal realms from the predations of extraplanar creatures.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    features: [
+      { level: 3, name: "Watcher's Will", description: "You can grant advantage on mental saving throws." },
+      { level: 3, name: "Abjure the Extraplanar", description: "You can turn elementals, fey, fiends, and aberrations." },
+      { level: 7, name: "Aura of the Sentinel", description: "You and your allies gain a bonus to initiative." },
+      { level: 15, name: "Vigilant Rebuke", description: "You can deal damage to creatures that succeed on saving throws against your allies." },
+      { level: 20, name: "Mortal Bulwark", description: "You gain truesight and advantage on attacks against extraplanar creatures." }
+    ]
+  },
+  {
+    id: "oathbreaker",
+    parentClassId: "paladin",
+    name: "Oathbreaker",
+    description: "An Oathbreaker is a paladin who breaks their sacred oaths to pursue some dark ambition or serve an evil power.",
+    source: "Dungeon Master's Guide",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 3, name: "Control Undead", description: "You can use Channel Divinity to control an undead creature." },
+      { level: 3, name: "Dreadful Aspect", description: "You can frighten nearby creatures." },
+      { level: 7, name: "Aura of Hate", description: "You and fiends/undead gain a bonus to melee damage rolls." },
+      { level: 15, name: "Supernatural Resistance", description: "You have resistance to bludgeoning, piercing, and slashing damage from nonmagical weapons." },
+      { level: 20, name: "Dread Lord", description: "You can surround yourself with an aura of gloom that damages foes." }
+    ]
+  },
+  {
+    id: "circle-of-the-shepherd",
+    parentClassId: "druid",
+    name: "Circle of the Shepherd",
+    description: "Druids of the Circle of the Shepherd commune with the spirits of nature, especially the spirits of beasts and the fey, and call to those spirits for aid.",
+    source: "Xanathar's Guide to Everything",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 2, name: "Speech of the Woods", description: "You learn Sylvan and can speak with animals." },
+      { level: 2, name: "Spirit Totem", description: "You can call forth nature spirits to influence the world around you." },
+      { level: 6, name: "Mighty Summoner", description: "Beasts and fey that you conjure are more resilient." },
+      { level: 10, name: "Guardian Spirit", description: "Your Spirit Totem protects you and your allies." },
+      { level: 14, name: "Faithful Summons", description: "If you are incapacitated, nature spirits appear to protect you." }
+    ]
+  },
+  {
+    id: "bladesinging",
+    parentClassId: "wizard",
+    name: "Bladesinging",
+    description: "Bladesingers master a tradition of wizardry that incorporates swordplay and dance.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 2, name: "Training in War and Song", description: "You gain proficiency with light armor, and you gain proficiency with one type of one-handed melee weapon." },
+      { level: 2, name: "Bladesong", description: "You can invoke a secret elven magic called the Bladesong, provided that you aren't wearing medium or heavy armor or using a shield." },
+      { level: 6, name: "Extra Attack", description: "You can attack twice, instead of once, whenever you take the Attack action on your turn." },
+      { level: 10, name: "Song of Defense", description: "You can direct your magic to absorb damage while your Bladesong is active." },
+      { level: 14, name: "Song of Victory", description: "You add your Intelligence modifier to the damage of your melee weapon attacks while your Bladesong is active." }
+    ]
+  },
+  {
+    id: "rune-knight",
+    parentClassId: "fighter",
+    name: "Rune Knight",
+    description: "Rune Knights enhance their martial prowess using the supernatural power of runes, an ancient practice of giants.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 3, name: "Bonus Proficiencies", description: "You gain proficiency with smith's tools, and you learn to speak, read, and write Giant." },
+      { level: 3, name: "Rune Carver", description: "You can use magic runes to enhance your gear." },
+      { level: 3, name: "Giant's Might", description: "You can imbue yourself with the might of giants." },
+      { level: 7, name: "Runic Shield", description: "You can force an attacker to reroll an attack roll against an ally." },
+      { level: 10, name: "Great Stature", description: "You grow in height and your Giant's Might damage increases." },
+      { level: 15, name: "Master of Runes", description: "You can invoke each rune you know twice, rather than once, before you finish a short or long rest." },
+      { level: 18, name: "Runic Juggernaut", description: "Your Giant's Might damage increases and your size can become Huge." }
+    ]
+  },
+  {
+    id: "twilight-domain",
+    parentClassId: "cleric",
+    name: "Twilight Domain",
+    description: "The Twilight Domain governs the transition and blending of light into darkness. It is a time of rest and comfort, but also a threshold between safety and the unknown.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 1, name: "Bonus Proficiencies", description: "You gain proficiency with heavy armor and martial weapons." },
+      { level: 1, name: "Eyes of Night", description: "You can see through the deepest gloom. You have darkvision with no limit on its range." },
+      { level: 1, name: "Vigilant Blessing", description: "You can give a creature advantage on initiative rolls." },
+      { level: 2, name: "Channel Divinity: Twilight Sanctuary", description: "You can use your Channel Divinity to refresh your allies with soothing twilight." },
+      { level: 6, name: "Steps of Night", description: "You can draw on the mystical power of night to rise into the air." },
+      { level: 8, name: "Divine Strike", description: "You gain the ability to infuse your weapon strikes with radiant damage." },
+      { level: 17, name: "Twilight Shroud", description: "The twilight that you summon offers half cover to you and your allies." }
+    ]
+  },
+  {
+    id: "soulknife",
+    parentClassId: "rogue",
+    name: "Soulknife",
+    description: "Soulknives strike with the speed of thought, infiltrating the minds of their enemies and cutting them down with psychic energy.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "Both",
+    version: 1,
+    features: [
+      { level: 3, name: "Psionic Power", description: "You harbor a wellspring of psionic energy represented by Psionic Energy dice." },
+      { level: 3, name: "Psychic Blades", description: "You can manifest shimmering blades of psychic energy." },
+      { level: 9, name: "Soul Blades", description: "You can use your Psychic Blades to teleport or find your target." },
+      { level: 13, name: "Psychic Veil", description: "You can weave a veil of psychic static to mask yourself." },
+      { level: 17, name: "Rend Mind", description: "You can sweep your Psychic Blades through a creature's mind." }
+    ]
+  },
+  {
+    id: "astral-self",
+    parentClassId: "monk",
+    name: "Way of the Astral Self",
+    description: "A monk of the Way of the Astral Self believes their body is an illusion. They see their ki as a representation of their true form: an astral self. This true form has the capacity to be a force of order or disorder, with some monasteries training students to use their power to protect the weak and others instructing aspirants in how to manifest their true selves in service to the mighty.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Arms of the Astral Self",
+        description: "As a bonus action, you can spend 1 ki point to summon the arms of your astral self. You can use your Wisdom modifier in place of your Strength modifier when making Strength checks and saving throws. You can use the spectral arms to make unarmed strikes."
+      },
+      {
+        level: 6,
+        name: "Visage of the Astral Self",
+        description: "You can summon the visage of your astral self. You gain advantage on Insight and Intimidation checks, and can see in magical and nonmagical darkness to a distance of 120 feet."
+      },
+      {
+        level: 11,
+        name: "Body of the Astral Self",
+        description: "You can summon the body of your astral self. You can deflect energy using your reaction to reduce acid, cold, fire, force, lightning, or thunder damage."
+      },
+      {
+        level: 17,
+        name: "Awakened Astral Self",
+        description: "Your connection to your astral self is complete, allowing you to unleash its full potential. You gain +2 AC while your astral self is present, and you can make extra attacks."
+      }
+    ]
+  },
+  {
+    id: "chronurgy",
+    parentClassId: "wizard",
+    name: "Chronurgy Magic",
+    description: "Focusing on the manipulation of time, those who follow the Chronurgy tradition learn to alter the pace of reality to their liking. Using the rampaging energy of time, they can step around instantaneous effects, or momentarily halt the flow of time for others.",
+    source: "Explorer's Guide to Wildemount",
+    edition: "2024",
+    version: 1,
+    features: [
+      {
+        level: 2,
+        name: "Chronal Shift",
+        description: "You can magically exert limited control over the flow of time around a creature. As a reaction, you can force a creature to reroll an attack roll, ability check, or saving throw."
+      },
+      {
+        level: 2,
+        name: "Temporal Awareness",
+        description: "You can add your Intelligence modifier to your initiative rolls."
+      },
+      {
+        level: 6,
+        name: "Momentary Stasis",
+        description: "As an action, you can magically force a Large or smaller creature to make a Constitution saving throw. On a failure, the creature is incapacitated and has a speed of 0 until the end of your next turn."
+      },
+      {
+        level: 10,
+        name: "Arcane Abeyance",
+        description: "When you cast a spell using a spell slot of 4th level or lower, you can condense the spell's magic into a mote. The spell is frozen in time at the moment of casting and held within a gray bead for 1 hour."
+      },
+      {
+        level: 14,
+        name: "Convergent Future",
+        description: "You can peer through possible futures and magically pull one of them into events around you, ensuring a particular outcome. You can use your reaction to ignore a die roll and decide whether the number rolled is the minimum needed to succeed or one less than that number."
+      }
+    ]
+  },
+  {
+    id: "phantom",
+    parentClassId: "rogue",
+    name: "Phantom",
+    description: "Many rogues walk a fine line between life and death, but a Phantom walks that line daily. When taking a life, a Phantom can capture a sliver of the soul to fuel their magic, becoming like a ghost themselves.",
+    source: "Tasha's Cauldron of Everything",
+    edition: "2024",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Whispers of the Dead",
+        description: "Echoes of those who have died cling to you. Whenever you finish a short or long rest, you can choose one skill or tool proficiency that you lack and gain it until you choose another."
+      },
+      {
+        level: 3,
+        name: "Wails from the Grave",
+        description: "As you nudge someone closer to the grave, you can channel the power of death to harm someone else as well. Immediately after you deal Sneak Attack damage to a creature on your turn, you can target a second creature that you can see to take necrotic damage equal to half your Sneak Attack dice."
+      },
+      {
+        level: 9,
+        name: "Tokens of the Departed",
+        description: "When a life ends in your presence, you're able to snatch a token from the departing soul, a sliver of its life essence that takes physical form."
+      },
+      {
+        level: 13,
+        name: "Ghost Walk",
+        description: "You can phase partially into the realm of the dead, becoming like a ghost. As a bonus action, you assume a spectral form."
+      },
+      {
+        level: 17,
+        name: "Death's Friend",
+        description: "Your association with death has become so close that you gain special benefits, including increased Wails from the Grave damage."
+      }
+    ]
+  },
+  {
+    id: "divine-soul",
+    parentClassId: "sorcerer",
+    name: "Divine Soul",
+    description: "Sometimes the spark of magic that fuels a sorcerer comes from a divine source that glimmers within the soul. Having such a blessed soul is a sign that your innate magic might come from a distant but powerful familial connection to a divine being.",
+    source: "Xanathar's Guide to Everything",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 1,
+        name: "Divine Magic",
+        description: "Your link to the divine allows you to learn spells from the cleric class. When your Spellcasting feature lets you learn or replace a sorcerer cantrip or a sorcerer spell of 1st level or higher, you can choose the new spell from the cleric spell list or the sorcerer spell list."
+      },
+      {
+        level: 1,
+        name: "Favored by the Gods",
+        description: "If you fail a saving throw or miss with an attack roll, you can use each die to add 2d4 to the total, possibly changing the outcome."
+      },
+      {
+        level: 6,
+        name: "Empowered Healing",
+        description: "Whenever you or an ally within 5 feet of you rolls dice to determine the number of hit points a spell restores, you can spend 1 sorcery point to reroll any number of those dice once."
+      },
+      {
+        level: 14,
+        name: "Otherworldly Wings",
+        description: "You can use a bonus action to manifest a pair of spectral wings from your back. While the wings are present, you have a flying speed of 30 feet."
+      },
+      {
+        level: 18,
+        name: "Unearthly Recovery",
+        description: "You gain the ability to overcome grievous injuries. As a bonus action when you have fewer than half of your hit points remaining, you can regain a number of hit points equal to half your hit point maximum."
+      }
+    ]
+  }
 ];
