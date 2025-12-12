@@ -1,6 +1,6 @@
 import { Class } from "../types/dnd-types";
 
-export const combinedClasses: Class[] = [
+export const CLASSES: Class[] = [
   // --- OFFICIAL 5E CLASSES (Updated with 2024 data where applicable) ---
   {
     id: "barbarian",

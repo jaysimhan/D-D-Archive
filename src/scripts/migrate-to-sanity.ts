@@ -17,16 +17,13 @@ import 'dotenv/config';
 import { createClient } from '@sanity/client';
 
 // Import all the data
-import { combinedClasses } from '../data/mock-classes';
-import { species } from '../data/mock-races';
-import { extraRaces } from '../data/extra-races';
-import { mockBackgrounds } from '../data/mock-backgrounds';
-import { expandedSpells } from '../data/expanded-spells';
-import { MOCK_FEATS } from '../data/mock-feats';
-import { expandedFeats } from '../data/expanded-feats';
-import { mockItems } from '../data/mock-items';
-import { expandedItems } from '../data/expanded-items';
-import { mockSubclasses } from '../data/mock-subclasses';
+import { CLASSES } from '../data/classes';
+import { RACES } from '../data/races';
+import { BACKGROUNDS } from '../data/backgrounds';
+import { SPELLS } from '../data/spells';
+import { FEATS } from '../data/feats';
+import { ITEMS } from '../data/items';
+import { SUBCLASSES } from '../data/subclasses';
 
 // Setup Sanity client
 const token = process.env.SANITY_API_WRITE_TOKEN || process.env.SANITY_TOKEN || process.env.SANITY_AUTH_TOKEN;
@@ -78,7 +75,7 @@ async function batchCreate(documents: unknown[], batchSize = 50) {
 async function migrateClasses() {
     console.log('\n📚 Migrating Classes...');
 
-    const documents = combinedClasses.map((cls) => ({
+    const documents = CLASSES.map((cls) => ({
         _id: `class-${toSanityId(cls.id)}`,
         _type: 'class',
         name: cls.name,
@@ -109,7 +106,7 @@ async function migrateClasses() {
 async function migrateSubclasses() {
     console.log('\n📖 Migrating Subclasses...');
 
-    const documents = mockSubclasses.map((sub, idx) => ({
+    const documents = SUBCLASSES.map((sub, idx) => ({
         _id: `subclass-${toSanityId(sub.id)}-${idx}`,
         _type: 'subclass',
         name: sub.name,
@@ -136,7 +133,7 @@ async function migrateRaces() {
     console.log('\n🧝 Migrating Races...');
 
     // Combine and deduplicate races
-    const allRaces = [...species, ...extraRaces];
+    const allRaces = RACES;
     const seenIds = new Set<string>();
     const uniqueRaces = allRaces.filter((race) => {
         if (seenIds.has(race.id)) return false;
@@ -189,7 +186,7 @@ async function migrateRaces() {
 async function migrateBackgrounds() {
     console.log('\n🎭 Migrating Backgrounds...');
 
-    const documents = mockBackgrounds.map((bg) => ({
+    const documents = BACKGROUNDS.map((bg) => ({
         _id: `background-${toSanityId(bg.id)}`,
         _type: 'background',
         name: bg.name,
@@ -214,7 +211,7 @@ async function migrateSpells() {
     console.log('\n✨ Migrating Spells...');
 
     // Use expanded spells which includes most spells
-    const documents = expandedSpells.map((spell, idx) => ({
+    const documents = SPELLS.map((spell, idx) => ({
         _id: `spell-${toSanityId(spell.id)}-${idx}`,
         _type: 'spell',
         name: spell.name,
@@ -244,7 +241,7 @@ async function migrateFeats() {
     console.log('\n⚔️ Migrating Feats...');
 
     // Combine and deduplicate feats
-    const allFeats = [...MOCK_FEATS, ...expandedFeats];
+    const allFeats = FEATS;
     const seenIds = new Set<string>();
     const uniqueFeats = allFeats.filter((feat) => {
         if (seenIds.has(feat.id)) return false;
@@ -274,7 +271,7 @@ async function migrateItems() {
     console.log('\n🗡️ Migrating Items...');
 
     // Combine and deduplicate items
-    const allItems = [...mockItems, ...expandedItems];
+    const allItems = ITEMS;
     const seenIds = new Set<string>();
     const uniqueItems = allItems.filter((item) => {
         if (seenIds.has(item.id)) return false;

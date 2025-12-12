@@ -1,4 +1,4 @@
-import { Spell, Class, Race, Item, Background, SearchFilters, Feat } from "../types/dnd-types";
+import { Spell, Class, Race, Item, Background, SearchFilters, Feat, Subclass } from "../types/dnd-types";
 
 export function searchSpells(spells: Spell[], filters: SearchFilters): Spell[] {
   return spells.filter((spell) => {
@@ -241,8 +241,47 @@ export function searchFeats(feats: Feat[], filters: SearchFilters): Feat[] {
     }
 
     // Source filter
+    // Search function for subclasses
     if (filters.source && feat.source !== filters.source) {
       return false;
+    }
+
+    return true;
+  });
+}
+
+export function searchSubclasses(subclasses: Subclass[], filters: SearchFilters): Subclass[] {
+  return subclasses.filter((subclass) => {
+    // Text search
+    if (
+      filters.query &&
+      !subclass.name.toLowerCase().includes(filters.query.toLowerCase()) &&
+      !subclass.description.toLowerCase().includes(filters.query.toLowerCase()) &&
+      !subclass.parentClassId.toLowerCase().replace(/-/g, ' ').includes(filters.query.toLowerCase())
+    ) {
+      return false;
+    }
+
+    // Edition filter
+    if (filters.edition && filters.edition !== "Both") {
+      if (subclass.edition !== filters.edition && subclass.edition !== "Both") {
+        return false;
+      }
+    }
+
+    // Source filter
+    if (filters.source) {
+      if (filters.source === "Unofficial") {
+        // Unofficial matches anything that isn't Official or Homebrew
+        if (subclass.source === "Official" || subclass.source === "Homebrew") {
+          return false;
+        }
+      } else {
+        // Exact match for Official and Homebrew
+        if (subclass.source !== filters.source) {
+          return false;
+        }
+      }
     }
 
     return true;

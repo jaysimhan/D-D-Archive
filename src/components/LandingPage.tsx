@@ -1,159 +1,293 @@
-import { BookOpen, Wand2, Dices, FileText, Sparkles, Shield } from "lucide-react";
-
 import { Link } from "react-router-dom";
+import { Swords, BookOpen, Flame, Crown } from "lucide-react";
 
 export function LandingPage() {
-  const features = [
-    {
-      icon: BookOpen,
-      title: "Universal Library",
-      description:
-        "Browse comprehensive archives of spells, classes, races, items, and backgrounds from both 2014 and 2024 editions.",
-      to: "/library",
-      buttonText: "Explore Library",
-      color: "from-red-600 to-red-800",
-    },
-    {
-      icon: Wand2,
-      title: "Character Creator",
-      description:
-        "Build your perfect character with our intelligent step-by-step wizard featuring automatic rules validation.",
-      to: "/creator",
-      buttonText: "Create Character",
-      color: "from-purple-600 to-indigo-800",
-    },
-  ];
-
-  const additionalFeatures = [
-    {
-      icon: Sparkles,
-      title: "Edition Support",
-      description: "Full support for both 2014 Legacy and 2024 Revised rulesets",
-    },
-    {
-      icon: Dices,
-      title: "Dice Roller",
-      description: "Built-in physics-based dice roller with roll history",
-    },
-    {
-      icon: FileText,
-      title: "PDF Export",
-      description: "Generate professional character sheets in PDF format",
-    },
-    {
-      icon: Shield,
-      title: "Rules Engine",
-      description: "Intelligent validation ensures legal character builds",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }} />
+    <div className="min-h-screen bg-black text-white overflow-hidden relative">
+      {/* Dark Fantasy Background */}
+      <div className="absolute inset-0">
+        {/* Deep gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-amber-950/20 to-zinc-950"></div>
+
+        {/* Ornate pattern overlay */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(180, 83, 9, 0.3) 1px, transparent 0)`,
+          backgroundSize: '32px 32px'
+        }}></div>
+
+        {/* Vignette effect */}
+        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black"></div>
+
+        {/* Animated ambient glows */}
+        <div className="absolute top-20 left-20 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-40 right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+
+        {/* Fire spark particles (smaller) */}
+        <div className="absolute top-1/4 left-1/4 w-0.5 h-0.5 bg-amber-400/80 rounded-full animate-spark-float blur-[0.5px]"></div>
+        <div className="absolute top-1/3 right-1/3 w-0.5 h-0.5 bg-orange-400/70 rounded-full animate-spark-float blur-[0.5px]" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute bottom-1/3 left-1/2 w-px h-px bg-amber-300/60 rounded-full animate-spark-float blur-[0.5px]" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-2/3 right-1/4 w-0.5 h-0.5 bg-orange-300/80 rounded-full animate-spark-float blur-[0.5px]" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute top-1/2 left-1/3 w-px h-px bg-amber-500/70 rounded-full animate-spark-float blur-[0.5px]" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/5 right-1/2 w-0.5 h-0.5 bg-amber-400/60 rounded-full animate-spark-float blur-[0.5px]" style={{ animationDelay: '2.5s' }}></div>
+        <div className="absolute bottom-1/4 left-2/3 w-px h-px bg-orange-400/70 rounded-full animate-spark-float blur-[0.5px]" style={{ animationDelay: '3s' }}></div>
+
+        {/* Dust particles (very small, subtle) */}
+        <div className="absolute top-1/6 left-1/5 w-px h-px bg-amber-200/20 rounded-full animate-dust-drift"></div>
+        <div className="absolute top-2/5 right-1/6 w-px h-px bg-amber-300/15 rounded-full animate-dust-drift" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-2/5 left-3/4 w-px h-px bg-orange-200/20 rounded-full animate-dust-drift" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-3/4 right-2/5 w-px h-px bg-amber-100/15 rounded-full animate-dust-drift" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute top-1/2 left-1/6 w-px h-px bg-amber-200/20 rounded-full animate-dust-drift" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute bottom-1/5 right-1/3 w-px h-px bg-orange-200/15 rounded-full animate-dust-drift" style={{ animationDelay: '5s' }}></div>
+        <div className="absolute top-3/5 left-2/5 w-px h-px bg-amber-300/20 rounded-full animate-dust-drift" style={{ animationDelay: '6s' }}></div>
+        <div className="absolute bottom-2/6 right-1/5 w-px h-px bg-amber-100/15 rounded-full animate-dust-drift" style={{ animationDelay: '7s' }}></div>
+        <div className="absolute top-4/5 left-3/5 w-px h-px bg-orange-200/20 rounded-full animate-dust-drift" style={{ animationDelay: '8s' }}></div>
+        <div className="absolute top-1/3 right-3/5 w-px h-px bg-amber-200/15 rounded-full animate-dust-drift" style={{ animationDelay: '9s' }}></div>
+
+        {/* Moving gradient orbs */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl animate-drift"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl animate-drift-reverse"></div>
         </div>
+      </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 py-24 text-center">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <Dices className="w-16 h-16 text-purple-400" />
-            <h1 className="text-white text-6xl">The D&D Omni-Archive</h1>
+      {/* Content Container */}
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Header */}
+        <header className="px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-center">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
+              <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-500 to-orange-700 rounded-lg flex items-center justify-center border-2 border-amber-400/50 shadow-lg">
+                <Crown className="w-5 h-5 sm:w-7 sm:h-7 text-amber-100" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-2xl font-serif tracking-wide">
+                <span className="text-amber-200">THE D&D</span>{" "}
+                <span className="text-amber-500">OMNI-ARCHIVE</span>
+              </h1>
+              <p className="text-[10px] sm:text-xs text-amber-600/80 tracking-widest">MASTER YOUR DESTINY</p>
+            </div>
           </div>
+        </header>
 
-          <p className="text-2xl text-purple-200 mb-4 max-w-3xl mx-auto">
-            Your Complete Library & Character Builder for Dungeons & Dragons 5th Edition
-          </p>
+        {/* Main Content - Centered */}
+        <main className="flex-1 px-4 sm:px-8 py-8 sm:py-12 flex items-center justify-center">
+          <div className="max-w-4xl w-full flex flex-col items-center text-center space-y-6 sm:space-y-10">
+            {/* Decorative Line */}
+            <div className="flex items-center gap-3 sm:gap-4 w-full max-w-2xl">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent"></div>
+              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 animate-pulse" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent"></div>
+            </div>
 
-          <p className="text-lg text-purple-300 mb-12 max-w-2xl mx-auto">
-            Supporting both Legacy (2014) and Revised (2024) rulesets with intelligent
-            rules validation and comprehensive content archives
-          </p>
+            {/* Title */}
+            <div className="space-y-3 sm:space-y-4">
+              <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-serif leading-none">
+                <span className="block text-amber-100 drop-shadow-[0_0_30px_rgba(251,191,36,0.3)] animate-glow">
+                  Forge Your
+                </span>
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-orange-600 drop-shadow-[0_0_50px_rgba(251,191,36,0.5)] animate-glow-intense">
+                  Legend
+                </span>
+              </h2>
+              <p className="text-base sm:text-xl md:text-2xl text-amber-200/60 max-w-3xl mx-auto leading-relaxed font-light tracking-wide px-4">
+                Enter the archives of power. Build legendary heroes. Master the ancient arts of Dungeons & Dragons.
+              </p>
+            </div>
 
-          {/* Main Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={index}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all"
-                >
-                  <div
-                    className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-6 mx-auto`}
-                  >
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-white text-2xl mb-4">{feature.title}</h2>
-                  <p className="text-purple-200 mb-6">{feature.description}</p>
-                  <Link
-                    to={feature.to}
-                    className={`inline-block px-8 py-3 bg-gradient-to-r ${feature.color} text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all w-full md:w-auto text-center`}
-                  >
-                    {feature.buttonText}
-                  </Link>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center w-full sm:w-auto">
+              <Link to="/creator" className="group relative px-6 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-amber-600 to-orange-700 rounded overflow-hidden border-2 border-amber-500/50 shadow-lg shadow-amber-900/50 hover:shadow-amber-900/80 transition-all hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+                <div className="relative flex items-center justify-center gap-2 sm:gap-3">
+                  <Swords className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="font-serif tracking-wider text-base sm:text-lg">Create Character</span>
                 </div>
-              );
-            })}
-          </div>
+              </Link>
 
-          {/* Additional Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {additionalFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={index}
-                  className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
-                >
-                  <Icon className="w-10 h-10 text-purple-400 mb-4 mx-auto" />
-                  <h3 className="text-white mb-2">{feature.title}</h3>
-                  <p className="text-sm text-purple-300">{feature.description}</p>
+              <Link to="/library" className="group relative px-6 sm:px-10 py-4 sm:py-5 bg-black/40 backdrop-blur-sm rounded overflow-hidden border-2 border-amber-700/30 hover:border-amber-600/50 transition-all hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+                <div className="relative flex items-center justify-center gap-2 sm:gap-3">
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
+                  <span className="text-amber-200 font-serif tracking-wider text-base sm:text-lg">Explore Library</span>
                 </div>
-              );
-            })}
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 pt-4 sm:pt-8 w-full max-w-3xl px-4">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 to-transparent rounded-lg blur-sm group-hover:blur-md transition-all"></div>
+                <div className="relative p-3 sm:p-6 bg-black/40 backdrop-blur-sm border border-red-900/30 rounded-lg hover:border-red-800/50 transition-all">
+                  <div className="text-2xl sm:text-4xl md:text-5xl font-serif text-red-300 mb-1 sm:mb-2 drop-shadow-lg">30+</div>
+                  <div className="text-[10px] sm:text-sm text-red-400/60 uppercase tracking-widest">Classes</div>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-transparent rounded-lg blur-sm group-hover:blur-md transition-all"></div>
+                <div className="relative p-3 sm:p-6 bg-black/40 backdrop-blur-sm border border-blue-900/30 rounded-lg hover:border-blue-800/50 transition-all">
+                  <div className="text-2xl sm:text-4xl md:text-5xl font-serif text-blue-300 mb-1 sm:mb-2 drop-shadow-lg">50+</div>
+                  <div className="text-[10px] sm:text-sm text-blue-400/60 uppercase tracking-widest">Races</div>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-transparent rounded-lg blur-sm group-hover:blur-md transition-all"></div>
+                <div className="relative p-3 sm:p-6 bg-black/40 backdrop-blur-sm border border-purple-900/30 rounded-lg hover:border-purple-800/50 transition-all">
+                  <div className="text-2xl sm:text-4xl md:text-5xl font-serif text-purple-300 mb-1 sm:mb-2 drop-shadow-lg">300+</div>
+                  <div className="text-[10px] sm:text-sm text-purple-400/60 uppercase tracking-widest">Spells</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Decorative Bottom Line */}
+            <div className="flex items-center gap-3 sm:gap-4 w-full max-w-2xl">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent"></div>
+              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 animate-pulse" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent"></div>
+            </div>
           </div>
-        </div>
-      </div>
+        </main>
 
-      {/* Features Section */}
-      <div className="bg-black/30 py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-white text-3xl text-center mb-12">
-            Everything You Need for Your D&D Adventures
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl text-purple-400 mb-2">1000+</div>
-              <div className="text-purple-200">Spells & Items</div>
-            </div>
-            <div>
-              <div className="text-4xl text-purple-400 mb-2">73+</div>
-              <div className="text-purple-200">Classes & Subclasses</div>
-            </div>
-            <div>
-              <div className="text-4xl text-purple-400 mb-2">84+</div>
-              <div className="text-purple-200">Races & Subraces</div>
-            </div>
+        {/* Footer */}
+        <footer className="px-4 sm:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs">
+            <span className="text-amber-600/60 tracking-wider">Educational Demo</span>
+            <span className="text-amber-900/50">•</span>
+            <span className="text-amber-700/40">Not affiliated with Wizards of the Coast</span>
+            <span className="text-amber-900/50">•</span>
+            <span className="text-amber-700/40 font-serif">Powered by React & Tailwind</span>
           </div>
-        </div>
+        </footer>
       </div>
 
-      {/* Footer */}
-      <div className="bg-black/50 py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-purple-300 text-sm">
-            Built with React & Tailwind CSS • Mock data for demonstration purposes
-          </p>
-          <p className="text-purple-400 text-xs mt-2">
-            Not affiliated with Wizards of the Coast • For educational purposes
-          </p>
-        </div>
-      </div>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap');
+        
+        .font-serif {
+          font-family: 'Cinzel', serif;
+        }
+        
+        .bg-gradient-radial {
+          background: radial-gradient(circle, var(--tw-gradient-stops));
+        }
+        
+        @keyframes spark-float {
+          0%, 100% {
+            transform: translateY(0px) translateX(0px);
+            opacity: 0.4;
+          }
+          25% {
+            transform: translateY(-15px) translateX(5px);
+            opacity: 0.8;
+          }
+          50% {
+            transform: translateY(-8px) translateX(-3px);
+            opacity: 0.6;
+          }
+          75% {
+            transform: translateY(-20px) translateX(2px);
+            opacity: 0.9;
+          }
+        }
+        
+        @keyframes dust-drift {
+          0%, 100% {
+            transform: translate(0, 0);
+            opacity: 0.05;
+          }
+          20% {
+            opacity: 0.25;
+          }
+          40% {
+            transform: translate(-15px, -30px);
+            opacity: 0.15;
+          }
+          60% {
+            transform: translate(10px, -50px);
+            opacity: 0.3;
+          }
+          80% {
+            opacity: 0.1;
+          }
+        }
+        
+        @keyframes drift {
+          0%, 100% {
+            transform: translate(0, 0);
+          }
+          25% {
+            transform: translate(30px, -30px);
+          }
+          50% {
+            transform: translate(-20px, -60px);
+          }
+          75% {
+            transform: translate(-40px, -30px);
+          }
+        }
+        
+        @keyframes drift-reverse {
+          0%, 100% {
+            transform: translate(0, 0);
+          }
+          25% {
+            transform: translate(-30px, 30px);
+          }
+          50% {
+            transform: translate(20px, 60px);
+          }
+          75% {
+            transform: translate(40px, 30px);
+          }
+        }
+        
+        @keyframes glow {
+          0%, 100% {
+            filter: drop-shadow(0 0 30px rgba(251, 191, 36, 0.3));
+          }
+          50% {
+            filter: drop-shadow(0 0 40px rgba(251, 191, 36, 0.5));
+          }
+        }
+        
+        @keyframes glow-intense {
+          0%, 100% {
+            filter: drop-shadow(0 0 50px rgba(251, 191, 36, 0.5));
+          }
+          50% {
+            filter: drop-shadow(0 0 70px rgba(251, 191, 36, 0.7));
+          }
+        }
+        
+        .animate-spark-float {
+          animation: spark-float 3s ease-in-out infinite;
+        }
+        
+        .animate-dust-drift {
+          animation: dust-drift 15s ease-in-out infinite;
+        }
+        
+        .animate-drift {
+          animation: drift 20s ease-in-out infinite;
+        }
+        
+        .animate-drift-reverse {
+          animation: drift-reverse 25s ease-in-out infinite;
+        }
+        
+        .animate-glow {
+          animation: glow 3s ease-in-out infinite;
+        }
+        
+        .animate-glow-intense {
+          animation: glow-intense 3s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }

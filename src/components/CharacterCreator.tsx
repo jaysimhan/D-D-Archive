@@ -5,12 +5,11 @@ import {
   RACES,
   SUBRACES,
   BACKGROUNDS,
+  CLASSES as combinedClasses,
+  SUBCLASSES as mockSubclasses,
+  SPELLS as expandedSpells,
+  ITEMS as mockItems,
 } from "../data/comprehensive-library";
-import { combinedClasses } from "../data/mock-classes";
-import { mockSubclasses } from "../data/mock-subclasses";
-import { mockBackgrounds } from "../data/mock-backgrounds";
-import { expandedSpells } from "../data/expanded-spells"; // Using expanded spells
-import { mockItems } from "../data/mock-items";
 import { CharacterSheet } from "./CharacterSheet";
 
 type CreationStep =

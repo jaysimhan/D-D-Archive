@@ -1,13 +1,16 @@
 import { useState, useMemo, memo } from "react";
 import { ArrowRight, ArrowLeft, Check, User, Search, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subclass, Feat, Subrace } from "../types/dnd-types";
-import { RACES } from "../data/comprehensive-library";
-import { SUBRACES, BACKGROUNDS, FEATS } from "../data/comprehensive-library";
-import { combinedClasses } from "../data/mock-classes";
-import { mockSubclasses } from "../data/mock-subclasses";
-import { mockBackgrounds } from "../data/mock-backgrounds";
-import { expandedSpells } from "../data/expanded-spells";
-import { mockItems } from "../data/mock-items";
+import {
+  RACES,
+  SUBRACES,
+  BACKGROUNDS as mockBackgrounds,
+  FEATS,
+  CLASSES as combinedClasses,
+  SUBCLASSES as mockSubclasses,
+  SPELLS as expandedSpells,
+  ITEMS as mockItems
+} from "../data/comprehensive-library";
 import { CharacterSheet } from "./CharacterSheet";
 import { urlFor } from "../lib/sanity";
 import { useClasses, useRaces, useSubclasses, useBackgrounds } from "../hooks/useSanityData";
@@ -182,7 +185,7 @@ function _ClassStep({
                     className={`
                     px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
                     ${isActive
-                        ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600'
+                        ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600 border border-indigo-600'
                         : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300'
                       }
                   `}
@@ -593,7 +596,7 @@ function _RaceStep({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
             {displayRaces.map(r => {
               // Check if active (selected)
               let isActive = false;
@@ -610,7 +613,7 @@ function _RaceStep({
                   className={`
                             px-2 py-2 md:px-4 md:py-3 rounded text-[10px] md:text-xs font-bold transition-all h-full min-h-[40px] md:min-h-[50px] flex items-center justify-center text-center leading-tight
                             ${isActive
-                      ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600'
+                      ? 'bg-indigo-600 text-white shadow-md ring-1 ring-offset-1 ring-indigo-600 border border-indigo-600'
                       : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300'
                     }
                         `}
@@ -917,19 +920,21 @@ function _SpellSelectionStep({
     let level2 = 0;
 
     // Class Logic (Beginner: Level 1-3)
-    if (["bard", "druid", "warlock"].includes(classData.id)) cantrips = 2;
-    if (["cleric", "wizard", "sorcerer"].includes(classData.id)) cantrips = 3;
-    if (level >= 4 && ["bard", "druid", "sorcerer", "warlock", "wizard"].includes(classData.id)) cantrips += 1;
+    // Class Logic (Beginner: Level 1-3)
+    if (["bard", "druid", "warlock", "martyr", "apothecary"].includes(classData.id)) cantrips = 2;
+    if (["cleric", "wizard", "sorcerer", "witch", "necromancer", "warmage", "blood-mage", "illrigger"].includes(classData.id)) cantrips = 3;
+    if (classData.id === "warmage") cantrips = 4; // Warmages get more cantrips
+    if (level >= 4 && ["bard", "druid", "sorcerer", "warlock", "wizard", "witch", "necromancer"].includes(classData.id)) cantrips += 1;
 
     // Spells Known / Prepared
     if (classData.id === "bard") level1 = level + 3;
     if (classData.id === "sorcerer") level1 = level + 1;
     if (classData.id === "warlock") level1 = level + 1;
     if (classData.id === "ranger" && level >= 2) level1 = level;
-    if (["cleric", "druid", "wizard"].includes(classData.id)) level1 = Math.max(1, level + 3);
+    if (["cleric", "druid", "wizard", "witch", "necromancer", "apothecary", "warmage", "blood-mage", "martyr", "illrigger"].includes(classData.id)) level1 = Math.max(1, level + 3);
 
     // Level 2 Spells
-    if (["bard", "cleric", "druid", "sorcerer", "wizard"].includes(classData.id) && level >= 3) {
+    if (["bard", "cleric", "druid", "sorcerer", "wizard", "witch", "necromancer", "apothecary", "blood-mage"].includes(classData.id) && level >= 3) {
       level2 = 2;
       level1 -= 1;
     }

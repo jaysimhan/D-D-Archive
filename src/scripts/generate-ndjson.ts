@@ -10,16 +10,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Import all the data
-import { combinedClasses } from '../data/mock-classes';
-import { species } from '../data/mock-races';
-import { extraRaces } from '../data/extra-races';
-import { mockBackgrounds } from '../data/mock-backgrounds';
-import { expandedSpells } from '../data/expanded-spells';
-import { MOCK_FEATS } from '../data/mock-feats';
-import { expandedFeats } from '../data/expanded-feats';
-import { mockItems } from '../data/mock-items';
-import { expandedItems } from '../data/expanded-items';
-import { mockSubclasses } from '../data/mock-subclasses';
+import {
+    CLASSES as combinedClasses,
+    RACES as species,
+    RACES as extraRaces,
+    BACKGROUNDS as mockBackgrounds,
+    SPELLS as expandedSpells,
+    FEATS as MOCK_FEATS,
+    FEATS as expandedFeats,
+    ITEMS as mockItems,
+    ITEMS as expandedItems,
+    SUBCLASSES as mockSubclasses
+} from '../data/comprehensive-library';
 
 // Helper to create a valid Sanity ID from a string
 function toSanityId(str: string): string {

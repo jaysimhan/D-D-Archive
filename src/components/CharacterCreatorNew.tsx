@@ -1,13 +1,15 @@
 import { useState, useMemo } from "react";
 import { ArrowRight, ArrowLeft, Check, User, Search, ScrollText, Dices, Sparkles } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subclass } from "../types/dnd-types";
-import { species as RACES } from "../data/mock-races";
-import { SUBRACES, BACKGROUNDS } from "../data/comprehensive-library";
-import { combinedClasses } from "../data/mock-classes";
-import { mockSubclasses } from "../data/mock-subclasses";
-import { mockBackgrounds } from "../data/mock-backgrounds";
-import { comprehensiveSpells as mockSpells } from "../data/comprehensive-spells";
-import { mockItems } from "../data/mock-items";
+import {
+  RACES,
+  SUBRACES,
+  BACKGROUNDS as mockBackgrounds,
+  CLASSES as combinedClasses,
+  SUBCLASSES as mockSubclasses,
+  SPELLS as mockSpells,
+  ITEMS as mockItems
+} from "../data/comprehensive-library";
 import { CharacterSheet } from "./CharacterSheet";
 
 type CreationStep =
@@ -182,10 +184,10 @@ export function CharacterCreator() {
               <div key={step} className="flex items-center">
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${index < currentStepIndex
-                      ? "bg-green-600 border-green-600 text-white"
-                      : index === currentStepIndex
-                        ? "bg-amber-600 border-amber-600 text-white scale-110 shadow-lg"
-                        : "bg-white border-amber-300 text-gray-400"
+                    ? "bg-green-600 border-green-600 text-white"
+                    : index === currentStepIndex
+                      ? "bg-amber-600 border-amber-600 text-white scale-110 shadow-lg"
+                      : "bg-white border-amber-300 text-gray-400"
                     }`}
                 >
                   {index < currentStepIndex ? (
@@ -399,8 +401,8 @@ function RaceStep({
             key={race.id}
             onClick={() => onSelectRace(race)}
             className={`text-left p-4 border-2 rounded-lg transition-all ${selectedRace?.id === race.id
-                ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
-                : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
+              ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
+              : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
               }`}
           >
             <h3 className="text-amber-900 font-serif text-lg mb-1">{race.name}</h3>
@@ -480,8 +482,8 @@ function ClassStep({
             key={classData.id}
             onClick={() => onSelect(classData)}
             className={`text-left p-4 border-2 rounded-lg transition-all ${selected?.id === classData.id
-                ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
-                : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
+              ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
+              : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
               }`}
           >
             <h3 className="text-amber-900 font-serif text-lg mb-1">{classData.name}</h3>
@@ -568,8 +570,8 @@ function SubclassStep({
             key={subclass.id}
             onClick={() => onSelect(subclass)}
             className={`text-left p-4 border-2 rounded-lg transition-all ${selectedSubclass?.id === subclass.id
-                ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
-                : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
+              ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
+              : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
               }`}
           >
             <h3 className="text-amber-900 font-serif text-lg mb-2">{subclass.name}</h3>
@@ -680,8 +682,8 @@ function BackgroundStep({
             key={background.id}
             onClick={() => onSelect(background)}
             className={`text-left p-4 border-2 rounded-lg transition-all ${selected?.id === background.id
-                ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
-                : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
+              ? "border-amber-600 bg-amber-50 shadow-lg ring-2 ring-amber-400"
+              : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
               }`}
           >
             <h3 className="text-amber-900 font-serif text-lg mb-1">{background.name}</h3>
@@ -754,8 +756,8 @@ function SpellSelectionStep({
               key={spell.id}
               onClick={() => toggleSpell(spell)}
               className={`text-left p-3 border-2 rounded-lg transition-all ${isSelected
-                  ? "border-purple-600 bg-purple-50 shadow-md"
-                  : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
+                ? "border-purple-600 bg-purple-50 shadow-md"
+                : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
                 }`}
             >
               <div className="flex justify-between items-start mb-1">
@@ -831,8 +833,8 @@ function EquipmentStep({
               key={item.id}
               onClick={() => toggleItem(item)}
               className={`text-left p-3 border-2 rounded-lg transition-all ${isSelected
-                  ? "border-amber-600 bg-amber-50 shadow-md"
-                  : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
+                ? "border-amber-600 bg-amber-50 shadow-md"
+                : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
                 }`}
             >
               <div className="flex justify-between items-start mb-1">

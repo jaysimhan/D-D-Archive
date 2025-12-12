@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { User, Shield, Heart, Package, BookOpen, Sparkles, Download, Edit, FileText, Wand2 } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subrace, Subclass } from "../types/dnd-types";
-import { expandedSpells as mockSpells } from "../data/expanded-spells";
+import { SPELLS as mockSpells } from "../data/comprehensive-library";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { PDFDocument } from './pdf/PDFDocument';
 

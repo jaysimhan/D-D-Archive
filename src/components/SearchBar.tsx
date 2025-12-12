@@ -145,6 +145,14 @@ export function SearchBar({
                 <option value="sorcerer">Sorcerer</option>
                 <option value="warlock">Warlock</option>
                 <option value="wizard">Wizard</option>
+                <option disabled>--- Unofficial ---</option>
+                <option value="blood-mage">Blood Mage</option>
+                <option value="illrigger">Illrigger</option>
+                <option value="martyr">Martyr</option>
+                <option value="necromancer">Necromancer</option>
+                <option value="warmage">Warmage</option>
+                <option value="witch">Witch</option>
+                <option value="apothecary">Apothecary</option>
               </select>
             </div>
 

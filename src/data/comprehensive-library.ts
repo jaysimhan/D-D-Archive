@@ -13,12 +13,18 @@ import type {
   Edition,
   Source
 } from "../types/dnd-types";
-import { species } from "./mock-races";
-import { extraRaces } from "./extra-races";
-import { MOCK_FEATS } from "./mock-feats";
 
-// ===== EXPANDED RACES =====
-export const RACES: Race[] = [...species, ...extraRaces];
+import { RACES } from "./races";
+import { CLASSES } from "./classes";
+import { SUBCLASSES } from "./subclasses";
+import { BACKGROUNDS } from "./backgrounds";
+import { FEATS } from "./feats";
+import { ITEMS } from "./items";
+import { SPELLS } from "./spells";
+
+// Re-exporting from unified files
+export { RACES, CLASSES, SUBCLASSES, BACKGROUNDS, FEATS, ITEMS, SPELLS };
+
 
 // ===== SUBRACES =====
 export const SUBRACES: Subrace[] = [
@@ -154,141 +160,10 @@ export const SUBRACES: Subrace[] = [
   }
 ];
 
-// ===== EXPANDED BACKGROUNDS =====
-export const BACKGROUNDS: Background[] = [
-  {
-    id: "acolyte",
-    name: "Acolyte",
-    description: "You have spent your life in the service of a temple to a specific god or pantheon of gods.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["Insight", "Religion"],
-    toolProficiencies: [],
-    languages: 2,
-    equipment: ["Holy symbol", "Prayer book", "5 sticks of incense", "Vestments", "Common clothes", "15 gp"],
-    feature: {
-      name: "Shelter of the Faithful",
-      description: "As an acolyte, you command the respect of those who share your faith, and you can perform religious ceremonies. You and your companions can expect free healing and care at temples, shrines, and other establishments."
-    }
-  },
-  {
-    id: "criminal",
-    name: "Criminal",
-    description: "You are an experienced criminal with a history of breaking the law.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["Deception", "Stealth"],
-    toolProficiencies: ["Thieves' tools", "One type of gaming set"],
-    languages: 0,
-    equipment: ["Crowbar", "Dark common clothes with hood", "15 gp"],
-    feature: {
-      name: "Criminal Contact",
-      description: "You have a reliable and trustworthy contact who acts as your liaison to a network of other criminals. You know how to get messages to and from your contact."
-    }
-  },
-  {
-    id: "folk-hero",
-    name: "Folk Hero",
-    description: "You come from a humble social rank, but you are destined for so much more.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["Animal Handling", "Survival"],
-    toolProficiencies: ["One type of artisan's tools", "Vehicles (land)"],
-    languages: 0,
-    equipment: ["Artisan's tools", "Shovel", "Iron pot", "Common clothes", "10 gp"],
-    feature: {
-      name: "Rustic Hospitality",
-      description: "Since you come from the ranks of the common folk, you fit in among them with ease. You can find a place to hide, rest, or recuperate among other commoners."
-    }
-  },
-  {
-    id: "noble",
-    name: "Noble",
-    description: "You understand wealth, power, and privilege. You carry a noble title, and your family owns land, collects taxes, and wields significant political influence.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["History", "Persuasion"],
-    toolProficiencies: ["One type of gaming set"],
-    languages: 1,
-    equipment: ["Fine clothes", "Signet ring", "Scroll of pedigree", "25 gp"],
-    feature: {
-      name: "Position of Privilege",
-      description: "Thanks to your noble birth, people are inclined to think the best of you. You are welcome in high society, and people assume you have the right to be wherever you are."
-    }
-  },
-  {
-    id: "sage",
-    name: "Sage",
-    description: "You spent years learning the lore of the multiverse. You scoured manuscripts, studied scrolls, and listened to the greatest experts.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["Arcana", "History"],
-    toolProficiencies: [],
-    languages: 2,
-    equipment: ["Bottle of ink", "Quill", "Small knife", "Letter from dead colleague", "Common clothes", "10 gp"],
-    feature: {
-      name: "Researcher",
-      description: "When you attempt to learn or recall a piece of lore, if you do not know that information, you often know where and from whom you can obtain it."
-    }
-  },
-  {
-    id: "soldier",
-    name: "Soldier",
-    description: "War has been your life for as long as you care to remember. You trained as a youth, studied the use of weapons and armor, and learned basic survival techniques.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["Athletics", "Intimidation"],
-    toolProficiencies: ["One type of gaming set", "Vehicles (land)"],
-    languages: 0,
-    equipment: ["Insignia of rank", "Trophy from fallen enemy", "Gaming set", "Common clothes", "10 gp"],
-    feature: {
-      name: "Military Rank",
-      description: "You have a military rank from your career as a soldier. Soldiers loyal to your former military organization still recognize your authority and influence."
-    }
-  },
-  {
-    id: "charlatan",
-    name: "Charlatan",
-    description: "You have always had a way with people. You know what makes them tick, you can tease out their hearts' desires after a few minutes of conversation.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["Deception", "Sleight of Hand"],
-    toolProficiencies: ["Disguise kit", "Forgery kit"],
-    languages: 0,
-    equipment: ["Fine clothes", "Disguise kit", "Tools of con", "15 gp"],
-    feature: {
-      name: "False Identity",
-      description: "You have created a second identity that includes documentation, established acquaintances, and disguises."
-    }
-  },
-  {
-    id: "entertainer",
-    name: "Entertainer",
-    description: "You thrive in front of an audience. You know how to entrance them, entertain them, and even inspire them.",
-    source: "Official",
-    edition: "Both",
-    version: 1,
-    skillProficiencies: ["Acrobatics", "Performance"],
-    toolProficiencies: ["Disguise kit", "One type of musical instrument"],
-    languages: 0,
-    equipment: ["Musical instrument", "Favor of admirer", "Costume", "15 gp"],
-    feature: {
-      name: "By Popular Demand",
-      description: "You can always find a place to perform. You receive free lodging and food as long as you perform each night."
-    }
-  }
-];
+
 
 // ===== EXPANDED FEATS =====
-// ===== EXPANDED FEATS =====
-export const FEATS: Feat[] = MOCK_FEATS;
+
 
 // Export all data
 export const LIBRARY_DATA = {

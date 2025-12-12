@@ -13,6 +13,7 @@ import {
   searchItems,
   searchBackgrounds,
   searchFeats,
+  searchSubclasses,
 } from "../utils/search-utils";
 import { FeatCard } from "./FeatCard";
 import { SearchFilters } from "../types/dnd-types";
@@ -43,16 +44,8 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
   const filteredBackgrounds = searchBackgrounds(backgrounds, filters);
   const filteredFeats = searchFeats(feats, filters);
 
-  // Filter subclasses by search query
-  const filteredSubclasses = subclasses.filter((subclass) => {
-    if (!filters.query) return true;
-    const query = filters.query.toLowerCase();
-    return (
-      subclass.name.toLowerCase().includes(query) ||
-      subclass.description.toLowerCase().includes(query) ||
-      subclass.parentClassId.toLowerCase().includes(query)
-    );
-  });
+  // Filter subclasses
+  const filteredSubclasses = searchSubclasses(subclasses, filters);
 
   // Ensure unique IDs by adding index if needed
   const getUniqueKey = (id: string, index: number) => `${id}-${index}`;
