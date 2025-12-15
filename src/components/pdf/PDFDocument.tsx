@@ -13,15 +13,21 @@ interface CharacterData {
     abilityScores: AbilityScores;
     selectedSpells: Spell[];
     equipment: Item[];
-    personality: {
+    personality?: {
         traits?: string;
+        ideals?: string;
+        bonds?: string;
+        flaws?: string;
+    };
+    // Support the details object from CharacterSheet as well
+    details?: {
+        personalityTraits?: string;
         ideals?: string;
         bonds?: string;
         flaws?: string;
     };
     appearance?: string;
     backstory?: string;
-    // alignment?: string; // Add if avail in data
 }
 
 // -----------------------------------------------------------------------------
@@ -371,19 +377,19 @@ export const PDFDocument = ({ character }: { character: CharacterData }) => {
                     <View style={styles.col3}>
                         <View style={styles.box}>
                             <Text style={styles.boxTitle}>Personality Traits</Text>
-                            <Text style={{ fontSize: 8, minHeight: 30 }}>{character.personality.traits}</Text>
+                            <Text style={{ fontSize: 8, minHeight: 30 }}>{character.personality?.traits || character.details?.personalityTraits || ''}</Text>
                         </View>
                         <View style={styles.box}>
                             <Text style={styles.boxTitle}>Ideals</Text>
-                            <Text style={{ fontSize: 8, minHeight: 20 }}>{character.personality.ideals}</Text>
+                            <Text style={{ fontSize: 8, minHeight: 20 }}>{character.personality?.ideals || character.details?.ideals || ''}</Text>
                         </View>
                         <View style={styles.box}>
                             <Text style={styles.boxTitle}>Bonds</Text>
-                            <Text style={{ fontSize: 8, minHeight: 20 }}>{character.personality.bonds}</Text>
+                            <Text style={{ fontSize: 8, minHeight: 20 }}>{character.personality?.bonds || character.details?.bonds || ''}</Text>
                         </View>
                         <View style={styles.box}>
                             <Text style={styles.boxTitle}>Flaws</Text>
-                            <Text style={{ fontSize: 8, minHeight: 20 }}>{character.personality.flaws}</Text>
+                            <Text style={{ fontSize: 8, minHeight: 20 }}>{character.personality?.flaws || character.details?.flaws || ''}</Text>
                         </View>
 
                         <View style={[styles.box, { flex: 1 }]}>
