@@ -159,5 +159,12 @@ export default {
             of: [{ type: 'string' }],
             description: 'IDs of subclasses',
         },
+        {
+            name: 'traits',
+            title: 'Traits',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'trait' }] }],
+            description: 'Reference traits from the centralized Trait library',
+        },
     ],
 }

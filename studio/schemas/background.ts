@@ -81,5 +81,12 @@ export default {
         sourceField,
         editionField,
         versionField,
+        {
+            name: 'traits',
+            title: 'Traits',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'trait' }] }],
+            description: 'Reference traits from the centralized Trait library',
+        },
     ],
 }

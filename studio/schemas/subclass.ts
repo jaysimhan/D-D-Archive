@@ -102,6 +102,13 @@ export default {
                 },
             ],
         },
+        {
+            name: 'traits',
+            title: 'Traits',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'trait' }] }],
+            description: 'Reference traits from the centralized Trait library',
+        },
     ],
     preview: {
         select: {
