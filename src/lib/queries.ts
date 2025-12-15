@@ -15,6 +15,7 @@ export const ALL_CLASSES_QUERY = `*[_type == "class"] | order(name asc) {
   spellcaster,
   spellcastingAbility,
   features,
+  traits[]->{name, description},
   subclasses
 }`;
 
@@ -32,6 +33,7 @@ export const CLASS_BY_ID_QUERY = `*[_type == "class" && slug.current == $id][0] 
   spellcaster,
   spellcastingAbility,
   features,
+  traits[]->{name, description},
   subclasses
 }`;
 
@@ -45,7 +47,8 @@ export const ALL_SUBCLASSES_QUERY = `*[_type == "subclass"] | order(name asc) {
   source,
   edition,
   version,
-  features
+  features,
+  traits[]->{name, description}
 }`;
 
 export const SUBCLASSES_BY_CLASS_QUERY = `*[_type == "subclass" && parentClassId == $classId] | order(name asc) {
@@ -57,7 +60,8 @@ export const SUBCLASSES_BY_CLASS_QUERY = `*[_type == "subclass" && parentClassId
   source,
   edition,
   version,
-  features
+  features,
+  traits[]->{name, description}
 }`;
 
 // ===== RACES =====
@@ -72,7 +76,7 @@ export const ALL_RACES_QUERY = `*[_type == "race"] | order(name asc) {
   abilityScoreIncrease,
   size,
   speed,
-  traits,
+  traits[]->{name, description},
   languages,
   subraces,
   racialSpellChoices,
@@ -90,7 +94,7 @@ export const RACE_BY_ID_QUERY = `*[_type == "race" && slug.current == $id][0] {
   abilityScoreIncrease,
   size,
   speed,
-  traits,
+  traits[]->{name, description},
   languages,
   subraces,
   racialSpellChoices,
@@ -108,6 +112,7 @@ export const ALL_BACKGROUNDS_QUERY = `*[_type == "background"] | order(name asc)
   version,
   skillProficiencies,
   toolProficiencies,
+  traits[]->{name, description},
   languages,
   equipment,
   feature

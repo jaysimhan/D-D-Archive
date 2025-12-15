@@ -54,6 +54,7 @@ export function useClasses() {
         spellcaster,
         spellcastingAbility,
         features,
+        traits[]->{name, description},
         source,
         edition
     } | order(name asc)`);
@@ -68,6 +69,7 @@ export function useSubclasses() {
         image,
         parentClassId,
         features,
+        traits[]->{name, description},
         source,
         edition
     } | order(name asc)`);
@@ -82,6 +84,7 @@ export function useSubclassesByClass(classId: string) {
             image,
             parentClassId,
             features,
+            traits[]->{name, description},
             source,
             edition
         } | order(name asc)`,
@@ -99,7 +102,7 @@ export function useRaces() {
         abilityScoreIncrease,
         size,
         speed,
-        traits,
+        traits[]->{name, description},
         languages,
         subraces,
         source,
@@ -116,6 +119,7 @@ export function useBackgrounds() {
         image,
         skillProficiencies,
         toolProficiencies,
+        traits[]->{name, description},
         languages,
         equipment,
         feature,
