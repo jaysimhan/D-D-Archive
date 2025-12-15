@@ -36,7 +36,13 @@ export interface ProficiencyRule {
   type: 'skill' | 'tool' | 'language' | 'armor' | 'weapon' | 'savingThrow';
   mode: 'fixed' | 'choice';
   count?: number;
-  options?: string[]; // For fixed: the specific opts. For choice: the list to pick from.
+  // Options now split by type in schema, but we can unify types here or list them all
+  options?: string[]; // Legacy/Generic
+  skillOptions?: string[];
+  toolOptions?: string[];
+  languageOptions?: string[];
+  armorOptions?: string[];
+  weaponOptions?: string[];
   description?: string;
 }
 

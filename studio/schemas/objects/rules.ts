@@ -1,3 +1,38 @@
+// Standard D&D 5e Lists
+const SKILLS = [
+    'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
+    'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
+    'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
+    'Sleight of Hand', 'Stealth', 'Survival'
+];
+
+const LANGUAGES = [
+    'Common', 'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc',
+    'Abyssal', 'Celestial', 'Draconic', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon'
+];
+
+const TOOLS = [
+    // Artisan's Tools
+    "Alchemist's supplies", "Brewer's supplies", "Calligrapher's supplies", "Carpenter's tools",
+    "Cartographer's tools", "Cobbler's tools", "Cook's utensils", "Glassblower's tools",
+    "Jeweler's tools", "Leatherworker's tools", "Mason's tools", "Painter's supplies",
+    "Potter's tools", "Smith's tools", "Tinker's tools", "Weaver's tools", "Woodcarver's tools",
+    // Gaming Sets
+    "Dice set", "Dragonchess set", "Playing card set", "Three-Dragon Ante set",
+    // Musical Instruments
+    "Bagpipes", "Drum", "Dulcimer", "Flute", "Lute", "Lyre", "Horn", "Pan flute", "Shawm", "Viol",
+    // Other
+    "Disguise kit", "Forgery kit", "Herbalism kit", "Navigator's tools", "Poisoner's kit", "Thieves' tools"
+];
+
+const ARMOR = ['Light Armor', 'Medium Armor', 'Heavy Armor', 'Shields'];
+
+const WEAPONS = ['Simple Weapons', 'Martial Weapons', 'Club', 'Dagger', 'Greatclub', 'Handaxe', 'Javelin', 'Light Hammer', 'Mace', 'Quarterstaff', 'Sickle', 'Spear', 'Light Crossbow', 'Dart', 'Shortbow', 'Sling', 'Battleaxe', 'Flail', 'Glaive', 'Greataxe', 'Greatsword', 'Halberd', 'Lance', 'Longsword', 'Maul', 'Morningstar', 'Pike', 'Rapier', 'Scimitar', 'Shortsword', 'Trident', 'War Pick', 'Warhammer', 'Whip', 'Blowgun', 'Hand Crossbow', 'Heavy Crossbow', 'Longbow', 'Net'];
+
+const CLASS_SPELL_LISTS = [
+    'Artificer', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Sorcerer', 'Warlock', 'Wizard'
+];
+
 export const proficiencyRule = {
     name: 'proficiencyRule',
     title: 'Proficiency Rule',
@@ -40,12 +75,55 @@ export const proficiencyRule = {
             initialValue: 1,
             validation: (Rule: any) => Rule.min(1),
         },
+        // Conditional Lists
         {
-            name: 'options',
-            title: 'Options / Fixed Values',
+            name: 'skillOptions',
+            title: 'Skills',
             type: 'array',
             of: [{ type: 'string' }],
-            description: 'List of specific valid options (e.g. "Acrobatics", "Light Armor"). Leave empty for "Any".',
+            options: { list: SKILLS },
+            hidden: ({ parent }: any) => parent?.type !== 'skill',
+        },
+        {
+            name: 'toolOptions',
+            title: 'Tools',
+            type: 'array',
+            of: [{ type: 'string' }],
+            options: { list: TOOLS },
+            hidden: ({ parent }: any) => parent?.type !== 'tool',
+        },
+        {
+            name: 'languageOptions',
+            title: 'Languages',
+            type: 'array',
+            of: [{ type: 'string' }],
+            options: { list: LANGUAGES },
+            hidden: ({ parent }: any) => parent?.type !== 'language',
+        },
+        {
+            name: 'armorOptions',
+            title: 'Armor',
+            type: 'array',
+            of: [{ type: 'string' }],
+            options: { list: ARMOR },
+            hidden: ({ parent }: any) => parent?.type !== 'armor',
+        },
+        {
+            name: 'weaponOptions',
+            title: 'Weapons',
+            type: 'array',
+            of: [{ type: 'string' }],
+            options: { list: WEAPONS },
+            hidden: ({ parent }: any) => parent?.type !== 'weapon',
+        },
+        // Fallback for custom/other
+        {
+            name: 'options',
+            title: 'Custom Options',
+            type: 'array',
+            of: [{ type: 'string' }],
+            description: 'Use valid IDs/Names. Only use if the dropdowns above are insufficient.',
+            hidden: ({ parent }: any) => ['skill', 'tool', 'language', 'armor', 'weapon'].includes(parent?.type),
         },
         {
             name: 'description',
@@ -59,11 +137,18 @@ export const proficiencyRule = {
             type: 'type',
             mode: 'mode',
             count: 'count',
-            options: 'options',
+            skill: 'skillOptions',
+            tool: 'toolOptions',
+            lang: 'languageOptions',
+            armor: 'armorOptions',
+            weapon: 'weaponOptions',
+            other: 'options',
         },
         prepare(selection: any) {
-            const { type, mode, count, options } = selection;
-            const subtype = options && options.length > 0
+            const { type, mode, count, skill, tool, lang, armor, weapon, other } = selection;
+            const options = skill || tool || lang || armor || weapon || other || [];
+
+            const subtype = options.length > 0
                 ? (options.length > 3 ? `${options.slice(0, 3).join(', ')}...` : options.join(', '))
                 : 'Any';
 
@@ -117,7 +202,10 @@ export const spellGrant = {
             name: 'spellList',
             title: 'Source List / Class',
             type: 'string',
-            description: 'e.g. "wizard", "cleric", "druid". Required for "Access" mode or "Choice" from class list.',
+            options: {
+                list: CLASS_SPELL_LISTS,
+            },
+            description: 'Required for "Access" mode or "Choice" from class list.',
         },
         {
             name: 'specificSpells',

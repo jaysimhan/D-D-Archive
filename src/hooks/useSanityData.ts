@@ -1,86 +1,152 @@
-import { RACES } from '../data/races';
-import { BACKGROUNDS } from '../data/backgrounds';
-import { FEATS } from '../data/feats';
-import { CLASSES } from '../data/classes';
-import { SUBCLASSES } from '../data/subclasses';
-import { SPELLS } from '../data/spells';
-import { ITEMS } from '../data/items';
+import { useState, useEffect } from 'react';
+import { sanityClient } from '../lib/sanity';
 import type { Class, Subclass, Race, Background, Spell, Feat, Item } from '../types/dnd-types';
 
-// Helper to wrap local data in the hook format
-function useLocalData<T>(data: T) {
-    return {
-        data,
-        loading: false,
-        error: null,
-        refetch: () => { }
-    };
+// Helper hook for Sanity queries
+function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
+    const [data, setData] = useState<T[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function fetchData() {
+            setLoading(true);
+            try {
+                const result = await sanityClient.fetch<T[]>(query, params);
+                if (isMounted) {
+                    setData(result);
+                    setError(null);
+                }
+            } catch (err) {
+                console.error("Sanity fetch error:", err);
+                if (isMounted) {
+                    setError(err instanceof Error ? err : new Error('Unknown Sanity error'));
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        fetchData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [query, JSON.stringify(params)]);
+
+    return { data, loading, error, refetch: () => { /* Logic to trigger re-fetch could be added here */ } };
 }
 
 // ===== CLASSES =====
 export function useClasses() {
-    return useLocalData<Class[]>(CLASSES);
+    return useSanityQuery<Class>(`*[_type == "class"] {
+        "id": slug.current,
+        name,
+        description,
+        image,
+        hitDie,
+        primaryAbility,
+        savingThrows,
+        spellcaster,
+        spellcastingAbility,
+        features,
+        source,
+        edition
+    } | order(name asc)`);
 }
 
 // ===== SUBCLASSES =====
 export function useSubclasses() {
-    return useLocalData<Subclass[]>(SUBCLASSES);
+    return useSanityQuery<Subclass>(`*[_type == "subclass"] {
+        "id": slug.current,
+        name,
+        description,
+        image,
+        parentClassId,
+        features,
+        source,
+        edition
+    } | order(name asc)`);
 }
 
 export function useSubclassesByClass(classId: string) {
-    const filtered = SUBCLASSES.filter(s => s.parentClassId === classId);
-    return useLocalData<Subclass[]>(filtered);
+    return useSanityQuery<Subclass>(
+        `*[_type == "subclass" && parentClassId == $classId] {
+            "id": slug.current,
+            name,
+            description,
+            image,
+            parentClassId,
+            features,
+            source,
+            edition
+        } | order(name asc)`,
+        { classId }
+    );
 }
 
 // ===== RACES =====
 export function useRaces() {
-    return useLocalData<Race[]>(RACES);
+    return useSanityQuery<Race>(`*[_type == "race"] {
+        "id": slug.current,
+        name,
+        description,
+        image,
+        abilityScoreIncrease,
+        size,
+        speed,
+        traits,
+        languages,
+        subraces,
+        source,
+        edition
+    } | order(name asc)`);
 }
 
 // ===== BACKGROUNDS =====
 export function useBackgrounds() {
-    return useLocalData<Background[]>(BACKGROUNDS);
+    return useSanityQuery<Background>(`*[_type == "background"] {
+        "id": slug.current,
+        name,
+        description,
+        image,
+        skillProficiencies,
+        toolProficiencies,
+        languages,
+        equipment,
+        feature,
+        source,
+        edition
+    } | order(name asc)`);
 }
 
 // ===== SPELLS =====
 export function useSpells() {
-    return useLocalData<Spell[]>(SPELLS);
+    return useSanityQuery<Spell>('*[_type == "spell"] | order(name asc)');
 }
 
 export function useSpellsByClass(classId: string) {
-    // Note: This matches the rough logic of "available spells"
-    // For a simple list, we return all spells that *can* be cast by the class
-    const filtered = SPELLS.filter(s => s.classes.includes(classId));
-    return useLocalData<Spell[]>(filtered);
+    return useSanityQuery<Spell>(
+        '*[_type == "spell" && $classId in classes] | order(level asc, name asc)',
+        { classId }
+    );
 }
 
 // ===== FEATS =====
 export function useFeats() {
-    return useLocalData<Feat[]>(FEATS);
+    return useSanityQuery<Feat>('*[_type == "feat"] | order(name asc)');
 }
 
 // ===== ITEMS =====
 export function useItems() {
-    return useLocalData<Item[]>(ITEMS);
+    return useSanityQuery<Item>('*[_type == "item"] | order(name asc)');
 }
 
 // ===== MONSTERS =====
 export function useMonsters() {
-    // No local monster data yet, returning empty
-    return useLocalData<unknown[]>([]);
-}
-
-// ===== COMBINED DATA HOOK =====
-export function useAllDndData() {
-    return {
-        classes: CLASSES,
-        subclasses: SUBCLASSES,
-        races: RACES,
-        backgrounds: BACKGROUNDS,
-        spells: SPELLS,
-        feats: FEATS,
-        items: ITEMS,
-        loading: false,
-        error: null
-    };
+    return useSanityQuery<any>('*[_type == "monster"] | order(name asc)');
 }

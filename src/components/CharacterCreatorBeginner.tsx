@@ -220,7 +220,7 @@ function _ClassStep({
               <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
                 {displayedClass?.image || displayedClass?.imageUrl ? (
                   <img
-                    src={displayedClass.imageUrl || (displayedClass.image ? urlFor(displayedClass.image)?.width(400).height(300).url() : '') || ''}
+                    src={displayedClass.imageUrl || (displayedClass.image ? urlFor(displayedClass.image)?.url() : '') || ''}
                     alt={displayedClass.name}
                     className="w-full h-full object-cover"
                   />
@@ -393,7 +393,7 @@ function _SubclassStep({
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
               {displayedSubclass?.image || displayedSubclass?.imageUrl ? (
                 <img
-                  src={displayedSubclass.imageUrl || (displayedSubclass.image ? urlFor(displayedSubclass.image)?.width(400).height(300).url() : '') || ''}
+                  src={displayedSubclass.imageUrl || (displayedSubclass.image ? urlFor(displayedSubclass.image)?.url() : '') || ''}
                   alt={displayedSubclass.name}
                   className="w-full h-full object-cover"
                 />
@@ -456,6 +456,14 @@ function _RaceStep({
   // Fetch races from Sanity
   const { data: sanityRaces, loading: racesLoading } = useRaces();
   const useSanityData = sanityRaces && sanityRaces.length > 0;
+
+  // DEBUG: Log Sanity data
+  console.log('[DEBUG] useSanityData:', useSanityData);
+  console.log('[DEBUG] sanityRaces count:', sanityRaces?.length);
+  if (sanityRaces && sanityRaces.length > 0) {
+    console.log('[DEBUG] Sample Sanity race (first):', sanityRaces[0]);
+    console.log('[DEBUG] Sample Sanity race image:', sanityRaces[0].image);
+  }
 
   // Flatten races and subraces logic (for local data only)
   const displayRaces = useMemo(() => {
@@ -641,26 +649,42 @@ function _RaceStep({
           <div className="animate-in fade-in duration-200">
             {/* Image Section */}
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
-              {displayedRace.image || displayedRace.imageUrl ? (
-                <img
-                  src={displayedRace.imageUrl || (displayedRace.image ? urlFor(displayedRace.image)?.width(400).height(300).url() : '') || ''}
-                  alt={displayedRace.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <>
-                  <div className="text-center p-4">
-                    <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                    <span className="text-xs text-gray-400">Race Appearance</span>
-                  </div>
-                  <img
-                    src={`/images/races/${displayedRace.id}.jpg`}
-                    alt={displayedRace.name}
-                    className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
-                    onError={(e) => (e.currentTarget.style.display = 'none')}
-                  />
-                </>
-              )}
+              {(() => {
+                // DEBUG: Log image data
+                console.log('[DEBUG] displayedRace.image:', displayedRace.image);
+                console.log('[DEBUG] displayedRace.imageUrl:', displayedRace.imageUrl);
+
+                const sanityUrl = displayedRace.image ? urlFor(displayedRace.image)?.url() : null;
+                console.log('[DEBUG] Computed sanityUrl:', sanityUrl);
+
+                const finalSrc = sanityUrl || displayedRace.imageUrl || "https://placehold.co/600x400";
+                console.log('[DEBUG] Final image src:', finalSrc);
+
+                return (
+                  <>
+                    <img
+                      src={finalSrc}
+                      alt={displayedRace.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        // Show fallback icon if image fails
+                        const iconContainer = e.currentTarget.nextElementSibling;
+                        if (iconContainer) {
+                          (iconContainer as HTMLElement).style.display = 'flex';
+                        }
+                      }}
+                    />
+                    {/* Fallback Icon - hidden by default unless image is missing/broken */}
+                    <div
+                      className="absolute inset-0 flex items-center justify-center -z-10"
+                      style={{ display: 'none' }} // Controlled by onError above
+                    >
+                      <User className="w-12 h-12 text-gray-300" />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             <h3 className="text-2xl font-bold text-gray-900 mb-4 text-indigo-700">{displayedRace.name}</h3>
@@ -865,7 +889,7 @@ function _BackgroundStep({
             <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
               {displayedBackground?.image || displayedBackground?.imageUrl ? (
                 <img
-                  src={displayedBackground.imageUrl || (displayedBackground.image ? urlFor(displayedBackground.image)?.width(400).height(300).url() : '') || ''}
+                  src={displayedBackground.imageUrl || (displayedBackground.image ? urlFor(displayedBackground.image)?.url() : '') || ''}
                   alt={displayedBackground.name}
                   className="w-full h-full object-cover"
                 />
