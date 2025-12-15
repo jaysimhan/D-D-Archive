@@ -217,7 +217,7 @@ function _ClassStep({
           {selected ? (
             <div className="animate-in fade-in duration-200">
               {/* Image Section */}
-              <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
+              <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative">
                 {displayedClass?.image || displayedClass?.imageUrl ? (
                   <img
                     src={displayedClass.imageUrl || (displayedClass.image ? urlFor(displayedClass.image)?.url() : '') || ''}
@@ -390,7 +390,7 @@ function _SubclassStep({
         {selectedSubclass ? (
           <div className="animate-in fade-in duration-200">
             {/* Image Section */}
-            <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
+            <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative">
               {displayedSubclass?.image || displayedSubclass?.imageUrl ? (
                 <img
                   src={displayedSubclass.imageUrl || (displayedSubclass.image ? urlFor(displayedSubclass.image)?.url() : '') || ''}
@@ -648,7 +648,7 @@ function _RaceStep({
         {displayedRace ? (
           <div className="animate-in fade-in duration-200">
             {/* Image Section */}
-            <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
+            <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative">
               {(() => {
                 // DEBUG: Log image data
                 console.log('[DEBUG] displayedRace.image:', displayedRace.image);
@@ -886,7 +886,7 @@ function _BackgroundStep({
         {selected ? (
           <div className="animate-in fade-in duration-200">
             {/* Image Section */}
-            <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden relative">
+            <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative">
               {displayedBackground?.image || displayedBackground?.imageUrl ? (
                 <img
                   src={displayedBackground.imageUrl || (displayedBackground.image ? urlFor(displayedBackground.image)?.url() : '') || ''}
