@@ -100,6 +100,18 @@ export default {
                 },
             ],
         },
+        {
+            name: 'proficiencies',
+            title: 'Proficiencies Granted',
+            type: 'array',
+            of: [{ type: 'proficiencyRule' }],
+        },
+        {
+            name: 'spells',
+            title: 'Spells Granted',
+            type: 'array',
+            of: [{ type: 'spellGrant' }],
+        },
         sourceField,
         editionField,
         versionField,

@@ -6,6 +6,8 @@ import item from './item'
 import feat from './feat'
 import background from './background'
 import monster from './monster'
+import { proficiencyRule, spellGrant } from './objects/rules'
+
 
 export const schemaTypes = [
     race,
@@ -13,6 +15,9 @@ export const schemaTypes = [
     subclass,
     spell,
     item,
+    // Objects
+    proficiencyRule,
+    spellGrant,
     feat,
     background,
     monster,

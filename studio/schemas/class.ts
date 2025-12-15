@@ -82,6 +82,13 @@ export default {
             },
         },
         {
+            name: 'proficiencies',
+            title: 'Proficiencies (Armor, Weapons, Skills)',
+            type: 'array',
+            of: [{ type: 'proficiencyRule' }],
+            description: 'Define initial proficiencies and choices (e.g. "Choose 2 from...")',
+        },
+        {
             name: 'spellcaster',
             title: 'Spellcaster Type',
             type: 'string',
@@ -108,6 +115,13 @@ export default {
                     { title: 'Charisma', value: 'CHA' },
                 ],
             },
+        },
+        {
+            name: 'spells',
+            title: 'Spells (New)',
+            type: 'array',
+            of: [{ type: 'spellGrant' }],
+            description: 'Spells specifically granted by class features (not general spellcasting).',
         },
         {
             name: 'features',

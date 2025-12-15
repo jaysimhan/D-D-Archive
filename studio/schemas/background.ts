@@ -56,6 +56,13 @@ export default {
             initialValue: 0,
         },
         {
+            name: 'proficiencies',
+            title: 'Proficiencies (New)',
+            type: 'array',
+            of: [{ type: 'proficiencyRule' }],
+            description: 'Replaces legacy skill/tool arrays.',
+        },
+        {
             name: 'equipment',
             title: 'Equipment',
             type: 'array',

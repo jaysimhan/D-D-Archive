@@ -24,6 +24,7 @@ type CreationStep =
   | "background"
   | "spells"
   | "feats"
+  | "proficiencies"
   | "equipment"
   | "personality";
 
@@ -46,6 +47,13 @@ interface CharacterData {
     bonds?: string;
     flaws?: string;
   };
+  proficiencies?: {
+    skills: { name: string; proficient: boolean; expertise: boolean }[];
+    languages: string[];
+    tools: string[];
+    armor: string[];
+    weapons: string[];
+  };
 }
 
 
@@ -61,6 +69,7 @@ const SpellSelectionModal = memo(_SpellSelectionModal);
 const EquipmentStep = memo(_EquipmentStep);
 const PersonalityStep = memo(_PersonalityStep);
 const FeatSelectionStep = memo(_FeatSelectionStep);
+const ProficiencyStep = memo(_ProficiencyStep);
 
 
 // Name Step Component
@@ -710,44 +719,63 @@ function _RaceStep({
 function _AbilityScoreStep({
   scores,
   race,
+  feats,
   onScoresChange,
 }: {
   scores: AbilityScores;
   race?: Race;
+  feats?: Feat[];
   onScoresChange: (scores: AbilityScores) => void;
 }) {
   return (
     <div>
       <div className="text-center mb-6">
         <h2 className="text-gray-900 text-2xl font-bold mb-2">Assign Ability Scores</h2>
-        <p className="text-gray-600">Distribute points between 8-15 for each ability</p>
+        <p className="text-gray-600">Enter ability scores (0-20)</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {(["STR", "DEX", "CON", "INT", "WIS", "CHA"] as (keyof AbilityScores)[]).map((ability) => {
           const racialBonus = race?.abilityScoreIncrease[ability] || 0;
-          const totalScore = scores[ability] + racialBonus;
+
+          // Calculate Feat Bonus
+          let featBonus = 0;
+          feats?.forEach(feat => {
+            if (feat.benefits?.abilityScoreIncrease?.[ability]) {
+              featBonus += feat.benefits.abilityScoreIncrease[ability] || 0;
+            }
+          });
+
+          const totalScore = scores[ability] + racialBonus + featBonus;
           return (
             <div key={ability} className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
               <label className="block text-gray-700 font-semibold mb-2">{ability}</label>
               <input
                 type="number"
-                min="8"
-                max="15"
+                min="0"
+                max="20"
                 value={scores[ability]}
                 onChange={(e) =>
                   onScoresChange({
                     ...scores,
-                    [ability]: Math.max(8, Math.min(15, parseInt(e.target.value) || 10)),
+                    [ability]: Math.max(0, Math.min(20, parseInt(e.target.value) || 10)),
                   })
                 }
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center font-semibold"
               />
               {racialBonus > 0 && (
                 <p className="text-xs text-green-600 mt-1 font-medium">
-                  +{racialBonus} racial bonus = {totalScore} total
+                  +{racialBonus} racial
                 </p>
               )}
+              {featBonus > 0 && (
+                <p className="text-xs text-amber-600 mt-0.5 font-medium">
+                  +{featBonus} feat
+                </p>
+              )}
+              <div className="mt-1 pt-1 border-t border-gray-200 text-center">
+                <span className="font-bold text-gray-900">= {totalScore}</span>
+              </div>
             </div>
           );
         })}
@@ -1593,6 +1621,248 @@ function _PersonalityStep({
   );
 }
 
+
+// Proficiency Step
+function _ProficiencyStep({
+  proficiencies,
+  onProficienciesChange,
+}: {
+  proficiencies: {
+    skills: { name: string; proficient: boolean; expertise: boolean }[];
+    languages: string[];
+    tools: string[];
+    armor: string[];
+    weapons: string[];
+  };
+  onProficienciesChange: (proficiencies: any) => void;
+}) {
+  const SKILLS = [
+    "Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History",
+    "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception",
+    "Performance", "Persuasion", "Religion", "Sleight of Hand", "Stealth", "Survival"
+  ];
+
+  // Initialize skills if empty
+  useMemo(() => {
+    if (!proficiencies.skills || proficiencies.skills.length === 0) {
+      const initSkills = SKILLS.map(s => ({ name: s, proficient: false, expertise: false }));
+      // We can't call onChange directly in render/memo, but we can assume parent initializes or we handle it on toggle
+    }
+  }, []);
+
+  const toggleSkill = (skillName: string, type: 'proficient' | 'expertise') => {
+    let currentSkills = proficiencies.skills || SKILLS.map(s => ({ name: s, proficient: false, expertise: false }));
+    // If fully empty array passed
+    if (currentSkills.length === 0) currentSkills = SKILLS.map(s => ({ name: s, proficient: false, expertise: false }));
+
+    const updated = currentSkills.map(s => {
+      if (s.name === skillName) {
+        if (type === 'proficient') {
+          // Toggle proficient. If turning off, auto-turn off expertise
+          const newVal = !s.proficient;
+          return { ...s, proficient: newVal, expertise: newVal ? s.expertise : false };
+        } else {
+          // Toggle expertise. Only allow if proficient
+          if (!s.proficient) return s;
+          return { ...s, expertise: !s.expertise };
+        }
+      }
+      return s;
+    });
+    onProficienciesChange({ ...proficiencies, skills: updated });
+  };
+
+  const [newLang, setNewLang] = useState("");
+  const addLanguage = () => {
+    if (newLang && !proficiencies.languages?.includes(newLang)) {
+      onProficienciesChange({
+        ...proficiencies,
+        languages: [...(proficiencies.languages || []), newLang]
+      });
+      setNewLang("");
+    }
+  };
+  const removeLanguage = (lang: string) => {
+    onProficienciesChange({
+      ...proficiencies,
+      languages: (proficiencies.languages || []).filter(l => l !== lang)
+    });
+  };
+
+  const [newItem, setNewItem] = useState("");
+  const [itemType, setItemType] = useState<"tools" | "armor" | "weapons">("tools");
+  const addItem = () => {
+    if (newItem) {
+      const list = proficiencies[itemType] || [];
+      if (!list.includes(newItem)) {
+        onProficienciesChange({
+          ...proficiencies,
+          [itemType]: [...list, newItem]
+        });
+      }
+      setNewItem("");
+    }
+  };
+  const removeItem = (type: "tools" | "armor" | "weapons", item: string) => {
+    onProficienciesChange({
+      ...proficiencies,
+      [type]: (proficiencies[type] || []).filter(i => i !== item)
+    });
+  };
+
+  // Ensure we have a renderable list even if props are undefined
+  const skillList = (proficiencies.skills?.length ? proficiencies.skills : SKILLS.map(s => ({ name: s, proficient: false, expertise: false })));
+
+  return (
+    <div>
+      <div className="text-center mb-6">
+        <h2 className="text-gray-900 text-2xl font-bold mb-2">Proficiencies & Languages</h2>
+        <p className="text-gray-600">Manage your skills, languages, and tool proficiencies.</p>
+      </div>
+
+      <div className="space-y-8 max-w-4xl mx-auto">
+        {/* Skills Section */}
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Skills</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-6">
+            {skillList.map(skill => (
+              <div key={skill.name} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                <span className="font-medium text-gray-700 w-32">{skill.name}</span>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1 cursor-pointer" title="Proficiency">
+                    <input
+                      type="checkbox"
+                      checked={skill.proficient}
+                      onChange={() => toggleSkill(skill.name, 'proficient')}
+                      className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                    />
+                    <span className="text-xs text-gray-500">Prof.</span>
+                  </label>
+                  <label className={`flex items-center gap-1 cursor-pointer ${!skill.proficient ? 'opacity-50 cursor-not-allowed' : ''}`} title="Expertise">
+                    <input
+                      type="checkbox"
+                      checked={skill.expertise}
+                      onChange={() => toggleSkill(skill.name, 'expertise')}
+                      disabled={!skill.proficient}
+                      className="w-4 h-4 text-amber-500 rounded focus:ring-amber-500"
+                    />
+                    <span className="text-xs text-gray-500">Exp.</span>
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Languages Section */}
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Languages</h3>
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={newLang}
+              onChange={(e) => setNewLang(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addLanguage()}
+              placeholder="Add a language..."
+              list="languages-list"
+              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+            />
+            <datalist id="languages-list">
+              <option value="Common" />
+              <option value="Dwarvish" />
+              <option value="Elvish" />
+              <option value="Giant" />
+              <option value="Gnomish" />
+              <option value="Goblin" />
+              <option value="Halfling" />
+              <option value="Orc" />
+              <option value="Abyssal" />
+              <option value="Celestial" />
+              <option value="Draconic" />
+              <option value="Deep Speech" />
+              <option value="Infernal" />
+              <option value="Primordial" />
+              <option value="Sylvan" />
+              <option value="Undercommon" />
+            </datalist>
+            <button onClick={addLanguage} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Add</button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(proficiencies.languages || []).map(lang => (
+              <span key={lang} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                {lang}
+                <button onClick={() => removeLanguage(lang)} className="hover:text-blue-900 font-bold">&times;</button>
+              </span>
+            ))}
+            {(!proficiencies.languages || proficiencies.languages.length === 0) && <span className="text-gray-500 text-sm italic">No languages added.</span>}
+          </div>
+        </div>
+
+        {/* Tools & Others */}
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Tools, Armor & Weapons</h3>
+          <div className="flex gap-2 mb-4">
+            <select
+              value={itemType}
+              onChange={(e) => setItemType(e.target.value as any)}
+              className="px-3 py-2 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="tools">Tool</option>
+              <option value="armor">Armor</option>
+              <option value="weapons">Weapon</option>
+            </select>
+            <input
+              type="text"
+              value={newItem}
+              onChange={(e) => setNewItem(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addItem()}
+              placeholder={`Add ${itemType}...`}
+              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+            />
+            <button onClick={addItem} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Add</button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-2 text-sm uppercase">Tools</h4>
+              <div className="flex flex-wrap gap-2">
+                {(proficiencies.tools || []).map(item => (
+                  <span key={item} className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm flex items-center gap-1">
+                    {item}
+                    <button onClick={() => removeItem("tools", item)}>&times;</button>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-2 text-sm uppercase">Armor</h4>
+              <div className="flex flex-wrap gap-2">
+                {(proficiencies.armor || []).map(item => (
+                  <span key={item} className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm flex items-center gap-1">
+                    {item}
+                    <button onClick={() => removeItem("armor", item)}>&times;</button>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-2 text-sm uppercase">Weapons</h4>
+              <div className="flex flex-wrap gap-2">
+                {(proficiencies.weapons || []).map(item => (
+                  <span key={item} className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm flex items-center gap-1">
+                    {item}
+                    <button onClick={() => removeItem("weapons", item)}>&times;</button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Feat Selection Step
 function _FeatSelectionStep({
   selectedFeats,
@@ -1686,6 +1956,13 @@ export function CharacterCreator() {
     equipment: [],
     magicInitiateClass: undefined,
     personality: {},
+    proficiencies: {
+      skills: [],
+      languages: ["Common"],
+      tools: [],
+      armor: [],
+      weapons: []
+    }
   });
 
   // All races including subraces as individual options
@@ -1758,7 +2035,10 @@ export function CharacterCreator() {
       }
     }
 
-    baseSteps.push("abilities", "background");
+    baseSteps.push("feats"); // Feats Moved BEFORE abilities
+    baseSteps.push("abilities");
+    baseSteps.push("proficiencies"); // Added Proficiencies
+    baseSteps.push("background");
 
     // Check for spell-granting feats
     const spellFeats = ["Magic Initiate", "Aberrant Dragonmark", "Fey Touched", "Shadow Touched", "Telekinetic"];
@@ -1770,7 +2050,7 @@ export function CharacterCreator() {
       (characterData.race?.racialKnownSpells && characterData.race.racialKnownSpells.length > 0) ||
       (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0);
 
-    baseSteps.push("feats");
+    // CHECK REMOVED: baseSteps.push("feats"); // Already added above
 
     if (characterData.class?.spellcaster || characterData.subclass?.spellcaster || hasSpellFeat || hasRacialSpells) {
       baseSteps.push("spells");
@@ -1813,6 +2093,8 @@ export function CharacterCreator() {
         return characterData.selectedSpells.length > 0;
       case "feats":
         return true; // Feats are optional or determined by race/level, allowing skip if none selected is usually fine? Or enforcement? User just said "add a section". I'll default to allowing progress.
+      case "proficiencies":
+        return true;
       case "equipment":
         return true; // Skippable as requested
       case "personality":
@@ -1831,8 +2113,44 @@ export function CharacterCreator() {
     setCurrentStep("name");
   };
 
+  // Transform data for CharacterSheet compatibility
+  const getSheetData = (): any => {
+    // Map skills from object array to string array
+    const skillNames = characterData.proficiencies?.skills
+      .filter(s => s.proficient)
+      .map(s => s.name) || [];
+
+    const expertiseNames = characterData.proficiencies?.skills
+      .filter(s => s.expertise)
+      .map(s => s.name) || [];
+
+    // Map personality to details
+    const details = {
+      personalityTraits: characterData.personality?.traits,
+      ideals: characterData.personality?.ideals,
+      bonds: characterData.personality?.bonds,
+      flaws: characterData.personality?.flaws,
+    };
+
+    return {
+      ...characterData,
+      proficiencies: {
+        skills: skillNames,
+        tools: characterData.proficiencies?.tools || [],
+        languages: characterData.proficiencies?.languages || [],
+      },
+      expertise: expertiseNames,
+      details: details,
+    };
+  };
+
   if (isComplete) {
-    return <CharacterSheet character={characterData} onEdit={editCharacter} />;
+    return (
+      <CharacterSheet
+        character={getSheetData()}
+        onEdit={() => setIsComplete(false)}
+      />
+    );
   }
 
   return (
@@ -1919,12 +2237,27 @@ export function CharacterCreator() {
                 onSelect={(subclass) => setCharacterData({ ...characterData, subclass })}
               />
             )}
+            {currentStep === "feats" && (
+              <FeatSelectionStep
+                selectedFeats={characterData.feats}
+                onFeatsChange={(feats) => setCharacterData({ ...characterData, feats })}
+              />
+            )}
             {currentStep === "abilities" && (
               <AbilityScoreStep
                 scores={characterData.abilityScores}
                 race={characterData.race}
+                feats={characterData.feats}
                 onScoresChange={(abilityScores) =>
                   setCharacterData({ ...characterData, abilityScores })
+                }
+              />
+            )}
+            {currentStep === "proficiencies" && (
+              <ProficiencyStep
+                proficiencies={characterData.proficiencies || { skills: [], languages: ["Common"], tools: [], armor: [], weapons: [] }}
+                onProficienciesChange={(proficiencies: any) =>
+                  setCharacterData({ ...characterData, proficiencies })
                 }
               />
             )}
@@ -1958,12 +2291,6 @@ export function CharacterCreator() {
                   onMagicInitiateClassChange={(cls) => setCharacterData({ ...characterData, magicInitiateClass: cls })}
                 />
               )}
-            {currentStep === "feats" && (
-              <FeatSelectionStep
-                selectedFeats={characterData.feats}
-                onFeatsChange={(feats) => setCharacterData({ ...characterData, feats })}
-              />
-            )}
             {currentStep === "equipment" && (
               <EquipmentStep
                 equipment={characterData.equipment}

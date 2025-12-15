@@ -47,6 +47,33 @@ export default {
         editionField,
         versionField,
         {
+            name: 'proficiencies',
+            title: 'Additional Proficiencies',
+            type: 'array',
+            of: [{ type: 'proficiencyRule' }],
+            description: 'Proficiencies granted by this subclass (e.g. Hexblade armor).',
+        },
+        {
+            name: 'spells',
+            title: 'Additional Spells',
+            type: 'array',
+            of: [{ type: 'spellGrant' }],
+            description: 'Spells granted by this subclass (e.g. Domain spells).',
+        },
+        {
+            name: 'extraLanguages',
+            title: 'Number of extra languages',
+            type: 'number',
+            initialValue: 0,
+        },
+        {
+            name: 'additionalProficiencies',
+            title: 'Proficiencies (New)',
+            type: 'array',
+            of: [{ type: 'proficiencyRule' }],
+            description: 'Replaces legacy skill/tool arrays.',
+        },
+        {
             name: 'features',
             title: 'Features',
             type: 'array',

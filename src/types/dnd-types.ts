@@ -32,6 +32,25 @@ export interface AbilityScores {
 }
 
 // ===== Race System =====
+export interface ProficiencyRule {
+  type: 'skill' | 'tool' | 'language' | 'armor' | 'weapon' | 'savingThrow';
+  mode: 'fixed' | 'choice';
+  count?: number;
+  options?: string[]; // For fixed: the specific opts. For choice: the list to pick from.
+  description?: string;
+}
+
+export interface SpellGrant {
+  name?: string;
+  level: number;
+  mode: 'fixed' | 'choice' | 'access';
+  count?: number;
+  spellList?: string; // e.g. "wizard"
+  specificSpells?: string[]; // IDs or refs
+  ability?: 'INT' | 'WIS' | 'CHA' | 'CON';
+  recharge?: 'at-will' | 'short-rest' | 'long-rest' | 'day';
+}
+
 export interface Race {
   id: string;
   name: string;
@@ -47,6 +66,8 @@ export interface Race {
   traits: { name: string; description: string }[];
   languages: string[];
   subraces?: string[]; // IDs of subraces
+  proficiencies?: ProficiencyRule[];
+  spells?: SpellGrant[];
   racialSpellChoices?: {
     choose: number;
     list: string[]; // List of Spell IDs or "any:classId" or "cantrip:classId"
@@ -74,6 +95,8 @@ export interface Subrace {
   version: number;
   abilityScoreIncrease: Partial<AbilityScores>;
   traits: { name: string; description: string }[];
+  proficiencies?: ProficiencyRule[];
+  spells?: SpellGrant[];
   racialSpellChoices?: {
     choose: number;
     list: string[]; // List of Spell IDs or "any:classId" or "cantrip:classId"
@@ -103,6 +126,8 @@ export interface Class {
   hitDie: number;
   primaryAbility: AbilityScore[];
   savingThrows: AbilityScore[];
+  proficiencies?: ProficiencyRule[];
+  spells?: SpellGrant[];
   spellcaster?: "full" | "half" | "third" | "pact" | "special";
   spellcastingAbility?: AbilityScore;
   features: Feature[];
@@ -128,6 +153,8 @@ export interface Subclass {
   edition: Edition;
   version: number;
   features: Feature[];
+  proficiencies?: ProficiencyRule[];
+  spells?: SpellGrant[];
   spellcaster?: boolean;
   spellcastingAbility?: string;
 }
@@ -144,7 +171,8 @@ export interface Background {
   version: number;
   skillProficiencies: string[];
   toolProficiencies: string[];
-  languages: number;
+  proficiencies?: ProficiencyRule[]; // New unified field
+  languages: number; // Count of extra languages
   equipment: string[];
   feature: {
     name: string;
@@ -205,6 +233,8 @@ export interface Feat {
     class?: string[];
     features?: string[];
   };
+  proficiencies?: ProficiencyRule[];
+  spells?: SpellGrant[];
   benefits: {
     abilityScoreIncrease?: Partial<AbilityScores>;
     spells?: string[]; // Spell IDs granted by this feat
@@ -286,6 +316,11 @@ export interface Character {
   skills: { [key: string]: boolean };
   languages: string[];
   tools: string[];
+  proficiencies?: ProficiencyRule[];
+  spells?: SpellGrant[];
+  racialTraits: string[]; // This was `traits` in the diff, but `racialTraits` is more specific for Character
+  classFeatures: string[];
+  feats: Feat[];
 
   // Combat Stats
   armorClass: number;
@@ -303,9 +338,7 @@ export interface Character {
   };
 
   // Features & Traits
-  racialTraits: string[];
-  classFeatures: string[];
-  feats: Feat[];
+
 
   // Spellcasting
   spellcasting?: {

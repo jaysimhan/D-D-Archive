@@ -19,7 +19,8 @@ type CreationStep =
   | "background"
   | "spells"
   | "equipment"
-  | "personality";
+  | "equipment"
+  | "details";
 
 interface CharacterData {
   name: string;
@@ -32,11 +33,27 @@ interface CharacterData {
   abilityScores: AbilityScores;
   selectedSpells: Spell[];
   equipment: Item[];
-  personality: {
-    traits?: string;
+  feats: any[]; // Placeholder
+  proficiencies: {
+    skills: string[];
+    tools: string[];
+    languages: string[];
+  };
+  expertise: string[];
+  details: {
+    personalityTraits?: string;
     ideals?: string;
     bonds?: string;
     flaws?: string;
+    gender?: string;
+    age?: number;
+    height?: string;
+    weight?: string;
+    appearance?: string;
+    backstory?: string;
+    allies?: string;
+    additionalFeatures?: string;
+    alignment?: string;
   };
 }
 
@@ -49,7 +66,10 @@ export function CharacterCreator() {
     abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
     selectedSpells: [],
     equipment: [],
-    personality: {},
+    feats: [],
+    proficiencies: { skills: [], tools: [], languages: [] },
+    expertise: [],
+    details: {},
   });
 
   const steps: {
@@ -63,7 +83,7 @@ export function CharacterCreator() {
       { id: "background", label: "Background", icon: BookOpen },
       { id: "spells", label: "Spells", icon: Sparkles },
       { id: "equipment", label: "Equipment", icon: Package },
-      { id: "personality", label: "Personality", icon: User },
+      { id: "details", label: "Details", icon: User },
     ];
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
@@ -82,7 +102,7 @@ export function CharacterCreator() {
         return true; // Always allow if step is accessible
       case "equipment":
         return true;
-      case "personality":
+      case "details":
         return true;
       default:
         return false;
@@ -401,17 +421,17 @@ export function CharacterCreator() {
                 />
               )}
 
-              {currentStep === "personality" && (
+              {currentStep === "details" && (
                 <PersonalityStep
-                  personality={characterData.personality}
-                  onPersonalityChange={(personality) =>
-                    setCharacterData({ ...characterData, personality })
+                  personality={characterData.details as any} // Temporary cast or update step
+                  onPersonalityChange={(details) =>
+                    setCharacterData({ ...characterData, details: { ...characterData.details, ...details } as any })
                   }
                 />
               )}
 
               {/* Completion Button for Final Step */}
-              {currentStep === "personality" && (
+              {currentStep === "details" && (
                 <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
                   <button
                     onClick={completeCharacter}

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { ArrowRight, ArrowLeft, Check, User, Search, ScrollText, Dices, Sparkles } from "lucide-react";
-import { Race, Class, Background, Spell, Item, AbilityScores, Subclass } from "../types/dnd-types";
+import { Race, Class, Background, Spell, Item, AbilityScores, Subclass, Feat } from "../types/dnd-types";
 import {
   RACES,
   SUBRACES,
@@ -8,20 +8,24 @@ import {
   CLASSES as combinedClasses,
   SUBCLASSES as mockSubclasses,
   SPELLS as mockSpells,
-  ITEMS as mockItems
+  ITEMS as mockItems,
+  FEATS as mockFeats
 } from "../data/comprehensive-library";
 import { CharacterSheet } from "./CharacterSheet";
 
 type CreationStep =
-  | "name"
   | "race"
   | "class"
   | "subclass"
-  | "abilities"
   | "background"
+  | "feats"
+  | "abilities"
+  | "proficiencies"
+  | "expertise"
   | "spells"
+  | "hp"
   | "equipment"
-  | "personality";
+  | "details";
 
 interface CharacterData {
   name: string;
@@ -30,27 +34,52 @@ interface CharacterData {
   subclass?: Subclass;
   level: number;
   background?: Background;
+  feats: Feat[];
   abilityScores: AbilityScores;
+  proficiencies: {
+    skills: string[];
+    tools: string[];
+    languages: string[];
+  };
+  expertise: string[];
   selectedSpells: Spell[];
+  hp: {
+    max: number;
+    current: number;
+    hitDice: number;
+  };
   equipment: Item[];
-  personality: {
-    traits?: string;
+  details: {
+    gender?: string;
+    age?: number;
+    height?: string;
+    weight?: string;
+    appearance?: string;
+    backstory?: string;
+    personalityTraits?: string;
     ideals?: string;
     bonds?: string;
     flaws?: string;
+    allies?: string;
+    additionalFeatures?: string;
+    alignment?: string;
   };
 }
 
 export function CharacterCreator() {
-  const [currentStep, setCurrentStep] = useState<CreationStep>("name");
+  const [currentStep, setCurrentStep] = useState<CreationStep>("race");
   const [isComplete, setIsComplete] = useState(false);
   const [characterData, setCharacterData] = useState<CharacterData>({
     name: "",
     level: 1,
     abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+    feats: [],
+    proficiencies: { skills: [], tools: [], languages: [] },
+    expertise: [],
     selectedSpells: [],
+    hp: { max: 10, current: 10, hitDice: 1 },
     equipment: [],
-    personality: {},
+    details: {},
   });
 
   // All races including subraces as individual options
@@ -84,9 +113,9 @@ export function CharacterCreator() {
   }, []);
 
   const steps: CreationStep[] = useMemo(() => {
-    const baseSteps: CreationStep[] = ["name", "race", "class"];
+    const baseSteps: CreationStep[] = ["race", "class"];
 
-    // Add subclass step if character level requires it
+    // 3. Subclass (depending on class and level)
     if (characterData.class) {
       const subclassLevel = characterData.class.id === "cleric" ||
         characterData.class.id === "sorcerer" ||
@@ -98,16 +127,41 @@ export function CharacterCreator() {
       }
     }
 
-    baseSteps.push("abilities", "background");
+    // 4. Background
+    baseSteps.push("background");
 
-    if (characterData.class?.spellcaster) {
+    // 5. Feat Selection
+    // TODO: conditional on level or variant human, but keeping it general for now
+    baseSteps.push("feats");
+
+    // 6. Ability Score
+    baseSteps.push("abilities");
+
+    // 7. Proficiencies
+    baseSteps.push("proficiencies");
+
+    // 8. Expertise (depending on class/race/subclass/background)
+    // Primarily Rogue/Bard for now
+    if (characterData.class?.id === "rogue" || characterData.class?.id === "bard") {
+      baseSteps.push("expertise");
+    }
+
+    // 9. Spell Selection
+    if (characterData.class?.spellcaster || characterData.race?.racialKnownSpells) {
       baseSteps.push("spells");
     }
 
-    baseSteps.push("equipment", "personality");
+    // 10. Hit Points
+    baseSteps.push("hp");
+
+    // 11. Equipments
+    baseSteps.push("equipment");
+
+    // 12. Character Details
+    baseSteps.push("details");
 
     return baseSteps;
-  }, [characterData.class, characterData.level]);
+  }, [characterData.class, characterData.level, characterData.race]);
 
   const currentStepIndex = steps.indexOf(currentStep);
 
@@ -125,24 +179,33 @@ export function CharacterCreator() {
 
   const canProgress = (): boolean => {
     switch (currentStep) {
-      case "name":
-        return characterData.name.trim().length > 0;
       case "race":
         return !!characterData.race;
       case "class":
         return !!characterData.class;
       case "subclass":
         return !!characterData.subclass;
-      case "abilities":
-        return true; // Can always progress
       case "background":
         return !!characterData.background;
+      case "feats":
+        return true; // Optional for now
+      case "abilities":
+        return true;
+      case "proficiencies":
+        // TODO: Enforce selection counts
+        return true;
+      case "expertise":
+        // TODO: Enforce selection counts
+        return true;
       case "spells":
-        return characterData.selectedSpells.length > 0;
+        // Should require at least some spells if caster, but racial might be pre-picked
+        return true;
+      case "hp":
+        return true;
       case "equipment":
         return characterData.equipment.length > 0;
-      case "personality":
-        return true;
+      case "details":
+        return characterData.name.trim().length > 0;
       default:
         return false;
     }
@@ -154,7 +217,7 @@ export function CharacterCreator() {
 
   const editCharacter = () => {
     setIsComplete(false);
-    setCurrentStep("name");
+    setCurrentStep("race");
   };
 
   if (isComplete) {
@@ -219,7 +282,6 @@ export function CharacterCreator() {
 
           <div className="p-8">
             {/* Step Content */}
-            {currentStep === "name" && <NameStep characterData={characterData} setCharacterData={setCharacterData} />}
             {currentStep === "race" && (
               <RaceStep
                 allRaces={allRaces}
@@ -245,6 +307,19 @@ export function CharacterCreator() {
                 onSelect={(subclass) => setCharacterData({ ...characterData, subclass })}
               />
             )}
+            {currentStep === "background" && (
+              <BackgroundStep
+                selected={characterData.background}
+                onSelect={(background) => setCharacterData({ ...characterData, background })}
+              />
+            )}
+            {currentStep === "feats" && (
+              <FeatSelectionStep
+                selectedFeats={characterData.feats}
+                level={characterData.level}
+                onFeatsChange={(feats) => setCharacterData({ ...characterData, feats })}
+              />
+            )}
             {currentStep === "abilities" && (
               <AbilityScoreStep
                 scores={characterData.abilityScores}
@@ -254,20 +329,39 @@ export function CharacterCreator() {
                 }
               />
             )}
-            {currentStep === "background" && (
-              <BackgroundStep
-                selected={characterData.background}
-                onSelect={(background) => setCharacterData({ ...characterData, background })}
+            {currentStep === "proficiencies" && (
+              <ProficiencyStep
+                characterData={characterData}
+                onProficienciesChange={(proficiencies) =>
+                  setCharacterData({ ...characterData, proficiencies })
+                }
               />
             )}
-            {currentStep === "spells" && characterData.class?.spellcaster && (
+            {currentStep === "expertise" && (
+              <ExpertiseStep
+                characterData={characterData}
+                onExpertiseChange={(expertise) =>
+                  setCharacterData({ ...characterData, expertise })
+                }
+              />
+            )}
+            {currentStep === "spells" && (
               <SpellSelectionStep
-                classData={characterData.class}
+                classData={characterData.class!}
                 level={characterData.level}
                 selectedSpells={characterData.selectedSpells}
                 onSpellsChange={(selectedSpells) =>
                   setCharacterData({ ...characterData, selectedSpells })
                 }
+              />
+            )}
+            {currentStep === "hp" && (
+              <HPStep
+                hp={characterData.hp}
+                conModifier={Math.floor((characterData.abilityScores.CON - 10) / 2)}
+                hitDie={characterData.class?.hitDie || 8}
+                level={characterData.level}
+                onHPChange={(hp) => setCharacterData({ ...characterData, hp })}
               />
             )}
             {currentStep === "equipment" && (
@@ -277,11 +371,11 @@ export function CharacterCreator() {
                 onEquipmentChange={(equipment) => setCharacterData({ ...characterData, equipment })}
               />
             )}
-            {currentStep === "personality" && (
-              <PersonalityStep
-                personality={characterData.personality}
-                onPersonalityChange={(personality) =>
-                  setCharacterData({ ...characterData, personality })
+            {currentStep === "details" && (
+              <CharacterDetailsStep
+                characterData={characterData}
+                onChange={(updates) =>
+                  setCharacterData({ ...characterData, ...updates })
                 }
               />
             )}
@@ -595,6 +689,430 @@ function SubclassStep({
 
 // Continue with other step components below...
 // (I'll add the rest in the next parts due to length)
+
+// Feat Selection Step
+function FeatSelectionStep({
+  selectedFeats,
+  onFeatsChange,
+  level,
+}: {
+  selectedFeats: Feat[];
+  onFeatsChange: (feats: Feat[]) => void;
+  level: number;
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredFeats = useMemo(() => {
+    return mockFeats.filter((feat) =>
+      feat.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const toggleFeat = (feat: Feat) => {
+    if (selectedFeats.find((f) => f.id === feat.id)) {
+      onFeatsChange(selectedFeats.filter((f) => f.id !== feat.id));
+    } else {
+      onFeatsChange([...selectedFeats, feat]);
+    }
+  };
+
+  return (
+    <div>
+      <div className="text-center mb-6">
+        <Sparkles className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+        <h2 className="text-amber-900 text-2xl font-serif mb-2">Select Feats</h2>
+        <p className="text-gray-600">Special talents and trainings</p>
+        <p className="text-sm text-amber-700 mt-2">Selected: {selectedFeats.length}</p>
+      </div>
+
+      <div className="mb-6 relative">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-amber-600 w-5 h-5" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search feats..."
+          className="w-full pl-12 pr-4 py-3 border-2 border-amber-600 rounded-lg focus:ring-2 focus:ring-amber-500 bg-amber-50/50 font-serif"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-2">
+        {filteredFeats.map((feat) => {
+          const isSelected = selectedFeats.find((f) => f.id === feat.id);
+          return (
+            <button
+              key={feat.id}
+              onClick={() => toggleFeat(feat)}
+              className={`text-left p-3 border-2 rounded-lg transition-all ${isSelected
+                ? "border-amber-600 bg-amber-100 shadow-md"
+                : "border-amber-300 hover:border-amber-500 hover:bg-amber-50/50"
+                }`}
+            >
+              <h4 className="text-amber-900 font-serif mb-1">{feat.name}</h4>
+              <p className="text-xs text-gray-600 line-clamp-3">{feat.description}</p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+
+function ProficiencyStep({
+  characterData,
+  onProficienciesChange,
+}: {
+  characterData: CharacterData;
+  onProficienciesChange: (proficiencies: { skills: string[]; tools: string[]; languages: string[] }) => void;
+}) {
+  // Simplified skill list for demo - in thorough app would come from library
+  const SKILLS = [
+    "Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History",
+    "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception",
+    "Performance", "Persuasion", "Religion", "Sleight of Hand", "Stealth", "Survival"
+  ];
+
+  // Basic language list
+  const LANGUAGES = ["Common", "Dwarvish", "Elvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Abyssal", "Celestial", "Draconic", "Deep Speech", "Infernal", "Primordial", "Sylvan", "Undercommon"];
+
+  // Logic to determine allowances would go here
+  // For now, allow picking 4 skills and 2 languages freely
+
+  const toggleSkill = (skill: string) => {
+    const skills = characterData.proficiencies.skills;
+    if (skills.includes(skill)) {
+      onProficienciesChange({ ...characterData.proficiencies, skills: skills.filter(s => s !== skill) });
+    } else {
+      onProficienciesChange({ ...characterData.proficiencies, skills: [...skills, skill] });
+    }
+  };
+
+  const toggleLanguage = (lang: string) => {
+    const langs = characterData.proficiencies.languages;
+    if (langs.includes(lang)) {
+      onProficienciesChange({ ...characterData.proficiencies, languages: langs.filter(l => l !== lang) });
+    } else {
+      onProficienciesChange({ ...characterData.proficiencies, languages: [...langs, lang] });
+    }
+  };
+
+  return (
+    <div>
+      <div className="text-center mb-6">
+        <h2 className="text-amber-900 text-2xl font-serif mb-2">Proficiencies</h2>
+        <p className="text-gray-600">Select your skills and languages</p>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-amber-900 font-serif text-lg mb-3">Skills</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {SKILLS.map(skill => (
+            <button
+              key={skill}
+              onClick={() => toggleSkill(skill)}
+              className={`p-2 text-sm border rounded hover:bg-amber-50 ${characterData.proficiencies.skills.includes(skill) ? "bg-amber-600 text-white border-amber-600" : "bg-white border-amber-300 text-amber-900"}`}
+            >
+              {skill}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-amber-900 font-serif text-lg mb-3">Languages</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {LANGUAGES.map(lang => (
+            <button
+              key={lang}
+              onClick={() => toggleLanguage(lang)}
+              className={`p-2 text-sm border rounded hover:bg-amber-50 ${characterData.proficiencies.languages.includes(lang) ? "bg-amber-600 text-white border-amber-600" : "bg-white border-amber-300 text-amber-900"}`}
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExpertiseStep({
+  characterData,
+  onExpertiseChange,
+}: {
+  characterData: CharacterData;
+  onExpertiseChange: (expertise: string[]) => void;
+}) {
+  // Only show skills they are proficient in
+  const proficientSkills = characterData.proficiencies.skills;
+
+  const toggleExpertise = (skill: string) => {
+    const expertise = characterData.expertise;
+    if (expertise.includes(skill)) {
+      onExpertiseChange(expertise.filter(s => s !== skill));
+    } else {
+      onExpertiseChange([...expertise, skill]);
+    }
+  };
+
+  return (
+    <div>
+      <div className="text-center mb-6">
+        <h2 className="text-amber-900 text-2xl font-serif mb-2">Expertise</h2>
+        <p className="text-gray-600">Double your proficiency bonus for selected skills</p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {proficientSkills.map(skill => (
+          <button
+            key={skill}
+            onClick={() => toggleExpertise(skill)}
+            className={`p-3 border-2 rounded-lg transition-all ${characterData.expertise.includes(skill)
+              ? "border-purple-600 bg-purple-50 text-purple-900 font-bold"
+              : "border-amber-300 text-amber-900 hover:border-amber-500"
+              }`}
+          >
+            {skill}
+          </button>
+        ))}
+        {proficientSkills.length === 0 && (
+          <p className="col-span-3 text-center text-gray-500 italic">No skills selected in previous step.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HPStep({
+  hp,
+  hitDie,
+  conModifier,
+  level,
+  onHPChange,
+}: {
+  hp: { max: number; current: number; hitDice: number };
+  hitDie: number;
+  conModifier: number;
+  level: number;
+  onHPChange: (hp: { max: number; current: number; hitDice: number }) => void;
+}) {
+  const calculatedMax = hitDie + conModifier + ((hitDie / 2 + 1) + conModifier) * (level - 1);
+
+  // Update parent if local calc differs from state (auto-calc for now)
+  // Real app might let user switch between average and rolled
+
+  return (
+    <div>
+      <div className="text-center mb-6">
+        <h2 className="text-amber-900 text-2xl font-serif mb-2">Hit Points</h2>
+        <p className="text-gray-600">Your capacity to endure damage</p>
+      </div>
+
+      <div className="max-w-md mx-auto bg-amber-50 p-6 rounded-lg border-2 border-amber-300">
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-amber-900 font-bold">Hit Die:</span>
+          <span className="text-amber-900">d{hitDie}</span>
+        </div>
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-amber-900 font-bold">Constitution Modifier:</span>
+          <span className="text-green-700">{conModifier >= 0 ? "+" + conModifier : conModifier}</span>
+        </div>
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-amber-900 font-bold">Level:</span>
+          <span className="text-amber-900">{level}</span>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-amber-200">
+          <label className="block text-amber-900 font-serif mb-2">Max Hit Points</label>
+          <input
+            type="number"
+            value={hp.max}
+            onChange={(e) => onHPChange({ ...hp, max: parseInt(e.target.value) || 0, current: parseInt(e.target.value) || 0 })}
+            className="w-full text-center text-3xl font-bold bg-white border-2 border-amber-600 rounded-lg py-2 text-amber-900"
+          />
+          <p className="text-center text-sm text-gray-500 mt-2">
+            Standard Average: <span className="font-bold">{Math.floor(calculatedMax)}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CharacterDetailsStep({
+  characterData,
+  onChange
+}: {
+  characterData: CharacterData;
+  onChange: (updates: Partial<CharacterData> & { details?: any, name?: string }) => void;
+}) {
+  const { details } = characterData;
+  const updateDetails = (key: string, value: any) => {
+    onChange({ details: { ...details, [key]: value } });
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-amber-900 text-2xl font-serif mb-2">Character Details</h2>
+        <p className="text-gray-600">Flesh out your character's identity</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Basic Info */}
+        <div className="col-span-1 md:col-span-2 space-y-4">
+          <h3 className="text-lg font-serif text-amber-800 border-b border-amber-200 pb-1">Core Identity</h3>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Character Name</label>
+            <input
+              type="text"
+              value={characterData.name}
+              onChange={(e) => onChange({ name: e.target.value })}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              placeholder="Enter character name"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-serif text-amber-800 border-b border-amber-200 pb-1">Physical Details</h3>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Gender</label>
+            <input
+              type="text"
+              value={details.gender || ""}
+              onChange={(e) => updateDetails("gender", e.target.value)}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Age</label>
+            <input
+              type="number"
+              value={details.age || ""}
+              onChange={(e) => updateDetails("age", parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-semibold text-amber-900 mb-1">Height</label>
+              <input
+                type="text"
+                value={details.height || ""}
+                onChange={(e) => updateDetails("height", e.target.value)}
+                className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-amber-900 mb-1">Weight</label>
+              <input
+                type="text"
+                value={details.weight || ""}
+                onChange={(e) => updateDetails("weight", e.target.value)}
+                className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Alignment</label>
+            <input
+              type="text"
+              value={details.alignment || ""}
+              onChange={(e) => updateDetails("alignment", e.target.value)}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              placeholder="e.g. Chaotic Good"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-serif text-amber-800 border-b border-amber-200 pb-1">Appearance</h3>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Description</label>
+            <textarea
+              value={details.appearance || ""}
+              onChange={(e) => updateDetails("appearance", e.target.value)}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              rows={4}
+            />
+          </div>
+        </div>
+
+        <div className="col-span-1 md:col-span-2 space-y-4">
+          <h3 className="text-lg font-serif text-amber-800 border-b border-amber-200 pb-1">Personality & Backstory</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-amber-900 mb-1">Personality Traits</label>
+              <textarea
+                value={details.personalityTraits || ""}
+                onChange={(e) => updateDetails("personalityTraits", e.target.value)}
+                className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-amber-900 mb-1">Ideals</label>
+              <textarea
+                value={details.ideals || ""}
+                onChange={(e) => updateDetails("ideals", e.target.value)}
+                className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-amber-900 mb-1">Bonds</label>
+              <textarea
+                value={details.bonds || ""}
+                onChange={(e) => updateDetails("bonds", e.target.value)}
+                className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-amber-900 mb-1">Flaws</label>
+              <textarea
+                value={details.flaws || ""}
+                onChange={(e) => updateDetails("flaws", e.target.value)}
+                className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+                rows={2}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Backstory</label>
+            <textarea
+              value={details.backstory || ""}
+              onChange={(e) => updateDetails("backstory", e.target.value)}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              rows={4}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Allies & Organizations</label>
+            <textarea
+              value={details.allies || ""}
+              onChange={(e) => updateDetails("allies", e.target.value)}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              rows={3}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-amber-900 mb-1">Additional Features</label>
+            <textarea
+              value={details.additionalFeatures || ""}
+              onChange={(e) => updateDetails("additionalFeatures", e.target.value)}
+              className="w-full px-3 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 bg-white"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Placeholder for remaining steps (will complete these)
 function AbilityScoreStep({

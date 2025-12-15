@@ -95,10 +95,11 @@ export default {
             ],
         },
         {
-            name: 'languages',
-            title: 'Languages',
+            name: 'proficiencies',
+            title: 'Proficiencies & Languages',
             type: 'array',
-            of: [{ type: 'string' }],
+            of: [{ type: 'proficiencyRule' }],
+            description: 'Skills, Tools, Languages, Armor, Weapons granted by this race.',
         },
         {
             name: 'subraces',
@@ -134,7 +135,8 @@ export default {
         },
         {
             name: 'racialKnownSpells',
-            title: 'Racial Known Spells',
+            title: 'Racial Spell Choices (Legacy)',
+            hidden: true,
             type: 'array',
             of: [
                 {
@@ -181,6 +183,13 @@ export default {
                     },
                 },
             ],
+        },
+        {
+            name: 'spells',
+            title: 'Spells (New)',
+            type: 'array',
+            of: [{ type: 'spellGrant' }],
+            description: 'Spells known or choices granted by this race.',
         },
     ],
     preview: {

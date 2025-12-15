@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { User, Shield, Heart, Package, BookOpen, Sparkles, Download, Edit, FileText, Wand2 } from "lucide-react";
-import { Race, Class, Background, Spell, Item, AbilityScores, Subrace, Subclass } from "../types/dnd-types";
+import { Race, Class, Background, Spell, Item, AbilityScores, Subrace, Subclass, Feat } from "../types/dnd-types";
 import { SPELLS as mockSpells } from "../data/comprehensive-library";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { PDFDocument } from './pdf/PDFDocument';
@@ -16,11 +16,27 @@ interface CharacterData {
   abilityScores: AbilityScores;
   selectedSpells: Spell[];
   equipment: Item[];
-  personality: {
-    traits?: string;
+  feats: Feat[];
+  proficiencies: {
+    skills: string[];
+    tools: string[];
+    languages: string[];
+  };
+  expertise: string[];
+  details: {
+    gender?: string;
+    age?: number;
+    height?: string;
+    weight?: string;
+    appearance?: string;
+    backstory?: string;
+    personalityTraits?: string;
     ideals?: string;
     bonds?: string;
     flaws?: string;
+    allies?: string;
+    additionalFeatures?: string;
+    alignment?: string;
   };
 }
 
@@ -156,6 +172,38 @@ export function CharacterSheet({
               <div>
                 <span className="text-xs text-gray-500 uppercase tracking-wide">Background</span>
                 <p className="text-gray-900">{character.background?.name || 'Unknown'}</p>
+              </div>
+              {character.details.alignment && (
+                <div>
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">Alignment</span>
+                  <p className="text-gray-900">{character.details.alignment}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-100">
+                {character.details.gender && (
+                  <div>
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">Gender</span>
+                    <p className="text-gray-900 text-sm">{character.details.gender}</p>
+                  </div>
+                )}
+                {character.details.age && (
+                  <div>
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">Age</span>
+                    <p className="text-gray-900 text-sm">{character.details.age}</p>
+                  </div>
+                )}
+                {character.details.height && (
+                  <div>
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">Height</span>
+                    <p className="text-gray-900 text-sm">{character.details.height}</p>
+                  </div>
+                )}
+                {character.details.weight && (
+                  <div>
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">Weight</span>
+                    <p className="text-gray-900 text-sm">{character.details.weight}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -388,42 +436,66 @@ export function CharacterSheet({
           </div>
         )}
 
-        {/* Personality */}
-        {(character.personality.traits || character.personality.ideals ||
-          character.personality.bonds || character.personality.flaws) && (
+        {/* Details & Personality */}
+        {(character.details.personalityTraits || character.details.ideals ||
+          character.details.bonds || character.details.flaws) && (
             <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
               <h3 className="text-gray-900 mb-4 flex items-center gap-2">
                 <BookOpen className="w-5 h-5" />
-                Personality
+                Personality & Traits
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {character.personality.traits && (
+                {character.details.personalityTraits && (
                   <div>
                     <h4 className="text-sm text-gray-700 mb-2">Personality Traits</h4>
-                    <p className="text-gray-600">{character.personality.traits}</p>
+                    <p className="text-gray-600">{character.details.personalityTraits}</p>
                   </div>
                 )}
-                {character.personality.ideals && (
+                {character.details.ideals && (
                   <div>
                     <h4 className="text-sm text-gray-700 mb-2">Ideals</h4>
-                    <p className="text-gray-600">{character.personality.ideals}</p>
+                    <p className="text-gray-600">{character.details.ideals}</p>
                   </div>
                 )}
-                {character.personality.bonds && (
+                {character.details.bonds && (
                   <div>
                     <h4 className="text-sm text-gray-700 mb-2">Bonds</h4>
-                    <p className="text-gray-600">{character.personality.bonds}</p>
+                    <p className="text-gray-600">{character.details.bonds}</p>
                   </div>
                 )}
-                {character.personality.flaws && (
+                {character.details.flaws && (
                   <div>
                     <h4 className="text-sm text-gray-700 mb-2">Flaws</h4>
-                    <p className="text-gray-600">{character.personality.flaws}</p>
+                    <p className="text-gray-600">{character.details.flaws}</p>
+                  </div>
+                )}
+                {character.details.backstory && (
+                  <div className="col-span-1 md:col-span-2 mt-4">
+                    <h4 className="text-sm text-gray-700 mb-2">Backstory</h4>
+                    <p className="text-gray-600 whitespace-pre-wrap">{character.details.backstory}</p>
                   </div>
                 )}
               </div>
             </div>
           )}
+
+        {/* Feats */}
+        {character.feats && character.feats.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h3 className="text-gray-900 mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Feats
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {character.feats.map((feat, idx) => (
+                <div key={idx} className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="text-gray-900 font-medium">{feat.name}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{feat.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Background Details */}
         {character.background && (
