@@ -70,6 +70,10 @@ export function useSubclasses() {
         parentClassId,
         features,
         traits[]->{name, description},
+        magicType,
+        magicAbility,
+        magicDescription,
+        spellcaster,
         source,
         edition
     } | order(name asc)`);
@@ -85,6 +89,10 @@ export function useSubclassesByClass(classId: string) {
             parentClassId,
             features,
             traits[]->{name, description},
+            magicType,
+            magicAbility,
+            magicDescription,
+            spellcaster,
             source,
             edition
         } | order(name asc)`,
@@ -103,6 +111,29 @@ export function useRaces() {
         size,
         speed,
         traits[]->{name, description},
+        proficiencies,
+        spells[]{
+            name,
+            level,
+            mode,
+            count,
+            spellList,
+            specificSpells[]->{
+                name,
+                "id": slug.current,
+                level,
+                school,
+                castingTime,
+                range,
+                duration,
+                description,
+                image
+            },
+            ability,
+            recharge,
+            spellLevel,
+            notes
+        },
         languages,
         subraces,
         source,
@@ -153,4 +184,15 @@ export function useItems() {
 // ===== MONSTERS =====
 export function useMonsters() {
     return useSanityQuery<any>('*[_type == "monster"] | order(name asc)');
+}
+
+// ===== HOMEPAGE =====
+export function useHomepage() {
+    return useSanityQuery<any>(`*[_type == "homepage"] {
+        title,
+        subtitle,
+        heroImage,
+        features,
+        footer
+    }`);
 }

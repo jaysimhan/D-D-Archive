@@ -4,6 +4,8 @@ import { visionTool } from '@sanity/vision'
 import { schemaTypes } from './schemas'
 import { media } from 'sanity-plugin-media'
 
+import { defaultDocumentNode } from './defaultDocumentNode'
+
 export default defineConfig({
   name: 'default',
   title: 'D&D Omni-Archive',
@@ -11,7 +13,7 @@ export default defineConfig({
   projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'ylk0tk34',
   dataset: process.env.SANITY_STUDIO_DATASET || 'production',
 
-  plugins: [structureTool(), visionTool(), media()],
+  plugins: [structureTool({ defaultDocumentNode }), visionTool(), media()],
 
   schema: {
     types: schemaTypes,

@@ -108,23 +108,36 @@ function LoadingSpinner() {
   );
 }
 
+function ContentWrapper({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  return (
+    <div style={{ zoom: isHome ? "100%" : "75%" }}>
+      {children}
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50">
         <Navigation />
 
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/library" element={<LibraryPage />} />
-            <Route path="/creator" element={<CharacterCreatorPage />} />
-          </Routes>
-        </Suspense>
+        <ContentWrapper>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/library" element={<LibraryPage />} />
+              <Route path="/creator" element={<CharacterCreatorPage />} />
+            </Routes>
+          </Suspense>
 
-        {/* Floating Dice Roller (always available) */}
-        <DiceRoller />
-        <Toaster />
+          {/* Floating Dice Roller (always available) */}
+          <DiceRoller />
+          <Toaster />
+        </ContentWrapper>
       </div>
     </BrowserRouter>
   );

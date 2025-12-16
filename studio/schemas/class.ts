@@ -166,5 +166,13 @@ export default {
             of: [{ type: 'reference', to: [{ type: 'trait' }] }],
             description: 'Reference traits from the centralized Trait library',
         },
+        {
+            name: 'subclassLevel',
+            title: 'Subclass Activation Level',
+            type: 'number',
+            description: 'Level at which subclass is selected (1-3)',
+            initialValue: 3,
+            validation: (Rule: any) => Rule.min(1).max(3),
+        },
     ],
 }

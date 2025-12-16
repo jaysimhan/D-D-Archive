@@ -241,6 +241,20 @@ export const spellGrant = {
                 ],
             },
         },
+        {
+            name: 'spellLevel',
+            title: 'Spell Level (for Choices)',
+            type: 'number',
+            description: '0 for Cantrip, 1-9 for leveled spells. Used when "spellList" is set.',
+            initialValue: 0,
+        },
+        {
+            name: 'notes',
+            title: 'Notes / Description',
+            type: 'text',
+            rows: 3,
+            description: 'Specific details (e.g. "Healing Hands variant", "No components required").',
+        },
     ],
     preview: {
         select: {

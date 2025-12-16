@@ -1,13 +1,25 @@
 import { Link } from "react-router-dom";
 import { Swords, BookOpen, Flame, Crown } from "lucide-react";
+import { useHomepage } from "../hooks/useSanityData";
+import { urlFor } from "../lib/sanity";
 
 export function LandingPage() {
+  const { data: homepageData } = useHomepage();
+  const content = homepageData?.[0];
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
       {/* Dark Fantasy Background */}
       <div className="absolute inset-0">
         {/* Deep gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-amber-950/20 to-zinc-950"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-amber-950/20 to-zinc-950">
+          {content && content.heroImage && (
+            <img
+              src={urlFor(content.heroImage!)?.url()}
+              alt="Hero Background"
+              className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
+            />
+          )}
+        </div>
 
         {/* Ornate pattern overlay */}
         <div className="absolute inset-0 opacity-5" style={{
@@ -86,14 +98,14 @@ export function LandingPage() {
             <div className="space-y-3 sm:space-y-4">
               <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-serif leading-none">
                 <span className="block text-amber-100 drop-shadow-[0_0_30px_rgba(251,191,36,0.3)] animate-glow">
-                  Forge Your
+                  {content?.title ? content.title.split(' ')[0] : "Forge Your"}
                 </span>
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-orange-600 drop-shadow-[0_0_50px_rgba(251,191,36,0.5)] animate-glow-intense">
-                  Legend
+                  {content?.title ? content.title.split(' ').slice(1).join(' ') : "Legend"}
                 </span>
               </h2>
               <p className="text-base sm:text-xl md:text-2xl text-amber-200/60 max-w-3xl mx-auto leading-relaxed font-light tracking-wide px-4">
-                Enter the archives of power. Build legendary heroes. Master the ancient arts of Dungeons & Dragons.
+                {content?.subtitle || "Enter the archives of power. Build legendary heroes. Master the ancient arts of Dungeons & Dragons."}
               </p>
             </div>
 
@@ -156,11 +168,17 @@ export function LandingPage() {
         {/* Footer */}
         <footer className="px-4 sm:px-8 py-3 sm:py-4">
           <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs">
-            <span className="text-amber-600/60 tracking-wider">Educational Demo</span>
+            <span className="text-amber-600/60 tracking-wider">
+              {content?.footer?.text || "Educational Demo"}
+            </span>
             <span className="text-amber-900/50">•</span>
-            <span className="text-amber-700/40">Not affiliated with Wizards of the Coast</span>
+            <span className="text-amber-700/40">
+              {content?.footer?.disclaimer || "Not affiliated with Wizards of the Coast"}
+            </span>
             <span className="text-amber-900/50">•</span>
-            <span className="text-amber-700/40 font-serif">Powered by React & Tailwind</span>
+            <span className="text-amber-700/40 font-serif uppercase">
+              {content?.footer?.credits || "Powered by React & Tailwind"}
+            </span>
           </div>
         </footer>
       </div>

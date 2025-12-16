@@ -21,6 +21,8 @@
         "noEmit": true
     },
     "include": [
+        "./**/*.ts",
+        "./**/*.tsx",
         "./sanity.config.ts",
         "./sanity.cli.ts",
         "./schemas/**/*.ts"

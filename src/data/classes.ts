@@ -42,6 +42,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Berserker", "Wild Heart", "path-of-the-world-tree", "Zealot"],
+    subclassLevel: 3,
   },
   {
     id: "bard",
@@ -85,6 +86,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["college-of-dance", "Glamour", "Lore", "Valor"],
+    subclassLevel: 3,
   },
   {
     id: "cleric",
@@ -123,6 +125,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Life", "Light", "Trickery", "War"],
+    subclassLevel: 3,
   },
   {
     id: "druid",
@@ -161,6 +164,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Land", "Moon", "circle-of-the-sea", "Stars"],
+    subclassLevel: 3,
   },
   {
     id: "fighter",
@@ -202,6 +206,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Champion", "Battle Master", "Eldritch Knight", "Psi Warrior"],
+    subclassLevel: 3,
   },
   {
     id: "monk",
@@ -259,6 +264,7 @@ export const CLASSES: Class[] = [
       "sun-soul",
       "tranquility"
     ],
+    subclassLevel: 3,
   },
   {
     id: "paladin",
@@ -312,6 +318,7 @@ export const CLASSES: Class[] = [
       "watchers",
       "oathbreaker"
     ],
+    subclassLevel: 3,
   },
   {
     id: "ranger",
@@ -350,6 +357,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Beast Master", "Fey Wanderer", "Gloom Stalker", "Hunter"],
+    subclassLevel: 3,
   },
   {
     id: "rogue",
@@ -391,6 +399,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Arcane Trickster", "Assassin", "Soulknife", "Thief"],
+    subclassLevel: 3,
   },
   {
     id: "sorcerer",
@@ -434,6 +443,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Aberrant Sorcery", "Clockwork Sorcery", "Draconic Sorcery", "Wild Magic Sorcery"],
+    subclassLevel: 3,
   },
   {
     id: "warlock",
@@ -472,6 +482,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Archfey", "Celestial", "Fiend", "Great Old One"],
+    subclassLevel: 3,
   },
   {
     id: "wizard",
@@ -515,6 +526,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Abjurer", "Diviner", "Evoker", "Illusionist"],
+    subclassLevel: 3,
   },
 
   // --- THIRD PARTY / EXPANSION CLASSES ---
@@ -556,6 +568,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Alchemist", "Armorer", "Artillerist", "Battle Smith"],
+    subclassLevel: 3,
   },
   {
     id: "blood-hunter",
@@ -574,26 +587,117 @@ export const CLASSES: Class[] = [
     features: [
       {
         level: 1,
-        name: "HunterBS Bane",
-        description: "You have advantage on tracking fey, fiends, and undead.",
+        name: "Hunter's Bane",
+        description: "Advantage on Survival checks to track Fey, Fiends, or Undead. You cannot be surprised by them.",
       },
       {
         level: 1,
         name: "Blood Maledict",
-        description: "You can unleash blood curses to debilitate your enemies.",
+        description: "You gain Blood Curses. You can use a curse a number of times equal to your proficiency bonus per rest.",
+      },
+      {
+        level: 2,
+        name: "Fighting Style",
+        description: "Choose: Archery, Dueling, Great Weapon Fighting, or Two-Weapon Fighting.",
       },
       {
         level: 2,
         name: "Crimson Rite",
-        description: "You can ignite your weapon with elemental energy at the cost of hit points.",
+        description: "As a bonus action, reduce your HP (roll 1 Hemocraft Die) to ignite your weapon with elemental energy.",
       },
       {
         level: 3,
         name: "Blood Hunter Order",
         description: "You commit to an order of blood hunters.",
       },
+      {
+        level: 4,
+        name: "Ability Score Improvement",
+        description: "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1.",
+      },
+      {
+        level: 5,
+        name: "Extra Attack",
+        description: "You can attack twice instead of once whenever you take the Attack action.",
+      },
+      {
+        level: 6,
+        name: "Brand of Castigation",
+        description: "When you damage a creature with your Rite, you can Brand them. You always know their direction.",
+      },
+      {
+        level: 7,
+        name: "Primal Rite",
+        description: "You learn a new Crimson Rite, gaining access to: Necrotic, Psychic, or Thunder damage.",
+      },
+      {
+        level: 8,
+        name: "Ability Score Improvement",
+        description: "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1.",
+      },
+      {
+        level: 9,
+        name: "Grim Psychometry",
+        description: "You have Advantage on History checks to recall information about dark pasts, evil magic, or cursed objects.",
+      },
+      {
+        level: 10,
+        name: "Dark Velocity",
+        description: "+10 ft movement speed. Attacks of Opportunity against you have Disadvantage while you move.",
+      },
+      {
+        level: 11,
+        name: "Brand of Tethering",
+        description: "Branded creature takes double dash damage, and cannot use teleportation spells to escape.",
+      },
+      {
+        level: 12,
+        name: "Ability Score Improvement",
+        description: "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1.",
+      },
+      {
+        level: 13,
+        name: "Brand of Castigation (2)",
+        description: "You can now brand two creatures at once.",
+      },
+      {
+        level: 14,
+        name: "Hardened Soul",
+        description: "You have Advantage on Saving Throws against being Charmed or Frightened.",
+      },
+      {
+        level: 15,
+        name: "Order Feature",
+        description: "You gain a feature from your Blood Hunter Order.",
+      },
+      {
+        level: 16,
+        name: "Ability Score Improvement",
+        description: "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1.",
+      },
+      {
+        level: 17,
+        name: "Blood Maledict (4)",
+        description: "You gain a 4th use of your Blood Curses.",
+      },
+      {
+        level: 18,
+        name: "Order Feature",
+        description: "You gain a feature from your Blood Hunter Order.",
+      },
+      {
+        level: 19,
+        name: "Ability Score Improvement",
+        description: "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1.",
+      },
+      {
+        level: 20,
+        name: "Sanguine Mastery",
+        description: "When you roll a Hemocraft die, you can reroll it. Crits regain a use of Blood Maledict.",
+      },
     ],
     subclasses: ["Order of the Ghostslayer", "Order of the Lycan", "Order of the Mutant", "Order of the Profane Soul"],
+    subclassLevel: 3,
   },
   {
     id: "accursed",
@@ -630,6 +734,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Curse of Animation", "Curse of the Armament", "Curse of Lycanthropy", "Curse of the Fiend"],
+    subclassLevel: 1,
   },
   {
     id: "alchemist",
@@ -666,6 +771,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Amorist", "Apothecary", "Dynamo Engineer", "Mad Bomber", "Mutagenist", "Ooze Rancher", "Venomsmith", "Xenoalchemist"],
+    subclassLevel: 2,
   },
   {
     id: "beastheart",
@@ -702,6 +808,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Ferocious Bond", "Hunter Bond", "Infernal Bond", "Primordial Bond", "Protector Bond"],
+    subclassLevel: 3,
   },
   {
     id: "blood-mage",
@@ -735,6 +842,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Haemomancer", "Sacrificial Preserver", "Sanguine Supplementer"],
+    subclassLevel: 1,
   },
   {
     id: "captain",
@@ -771,6 +879,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Dragon Banner", "Eagle Banner", "Lion Banner", "Ram Banner", "Raven Banner", "Turtle Banner"],
+    subclassLevel: 3,
   },
   {
     id: "craftsman",
@@ -807,6 +916,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Armigers' Guild", "Bladeworkers' Guild", "Calibarons' Guild", "Forgeknights' Guild", "Mechanauts' Guild", "Thunderlords' Guild", "Trappers' Guild"],
+    subclassLevel: 1,
   },
   {
     id: "gunslinger",
@@ -838,6 +948,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Gun Tank", "Gun-Ko Master", "High Roller", "Musketeer", "Pistolero", "Sharpshooter", "Spellslinger"],
+    subclassLevel: 3,
   },
   {
     id: "illrigger",
@@ -876,6 +987,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Painkiller (Dispater)", "Shadowmaster (Moloch)", "Architect of Ruin (Asmodeus)"],
+    subclassLevel: 3,
   },
   {
     id: "investigator",
@@ -907,6 +1019,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Antiquarian", "Archivist", "Detective", "Exterminator", "Inquisitor", "Medium", "Occultist", "Spy"],
+    subclassLevel: 3,
   },
   {
     id: "martyr",
@@ -940,6 +1053,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Burden of Atonement", "Burden of Discord", "Burden of Mercy", "Burden of Revolution", "Burden of Truth", "Burden of Tyranny"],
+    subclassLevel: 1,
   },
   {
     id: "necromancer",
@@ -973,6 +1087,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Blood Ascendant", "Death Knight", "Overlord", "Pale Master", "Pharaoh", "Plague Lord", "Reanimator", "Reaper"],
+    subclassLevel: 3,
   },
   {
     id: "pugilist",
@@ -1009,6 +1124,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Arena Royale", "Bloodhound Bruisers", "Dog & Hound", "Piss & Vinegar", "Squared Circle", "Sweet Science"],
+    subclassLevel: 3,
   },
   {
     id: "warden",
@@ -1045,6 +1161,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Bloodwrath Guardian", "Grey Watchman", "Nightgaunt", "Soulblood Shaman", "Stoneheart Defender", "Storm Sentinel", "Verdant Protector"],
+    subclassLevel: 3,
   },
   {
     id: "warmage",
@@ -1083,6 +1200,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["House of Bishops", "House of Cards", "House of Dice", "House of Kings", "House of Knights", "House of Lancers", "House of Rooks"],
+    subclassLevel: 3,
   },
   {
     id: "witch",
@@ -1121,6 +1239,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Black Magic", "Blood Magic", "Green Magic", "Purple Magic", "Red Magic", "Steel Magic", "White Magic"],
+    subclassLevel: 3,
   },
   {
     id: "acolyte",
@@ -1152,6 +1271,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Acolyte of Togashi", "Acolyte of Shadows"],
+    subclassLevel: 1,
   },
   {
     id: "adept",
@@ -1188,6 +1308,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Animota", "Battlemind", "Dreamshaper"],
+    subclassLevel: 1,
   },
   {
     id: "animal-master",
@@ -1209,6 +1330,7 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: [],
+    subclassLevel: 3,
   },
   {
     id: "apothecary",
@@ -1242,5 +1364,6 @@ export const CLASSES: Class[] = [
       },
     ],
     subclasses: ["Alienist", "Chemist", "Exorcist", "Mutagenist", "Pathogenist", "Reanimator"],
+    subclassLevel: 3,
   },
 ];

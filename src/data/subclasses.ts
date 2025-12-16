@@ -271,6 +271,9 @@ export const SUBCLASSES: Subclass[] = [
     "source": "Official",
     "edition": "Both",
     "version": 1,
+    "magicType": "Spell Slots (Wizard List)",
+    "magicAbility": "Intelligence",
+    "magicDescription": "You learn a small number of Wizard spells (mostly Abjuration and Evocation schools) and gain spell slots. Key Feature: You can eventually attack with a weapon and cast a cantrip/spell in the same turn.",
     "features": [
       {
         "level": 3,
@@ -510,6 +513,9 @@ export const SUBCLASSES: Subclass[] = [
     "source": "Official",
     "edition": "Both",
     "version": 1,
+    "magicType": "Spell Slots (Wizard List)",
+    "magicAbility": "Intelligence",
+    "magicDescription": "You learn a small number of Wizard spells (mostly Enchantment and Illusion schools) and gain spell slots. Key Feature: You gain a magical Mage Hand that is invisible and can pick pockets or disarm traps from a distance.",
     "features": [
       {
         "level": 3,
@@ -951,11 +957,14 @@ export const SUBCLASSES: Subclass[] = [
     "id": "totem-warrior",
     "parentClassId": "barbarian",
     "name": "Path of the Totem Warrior",
-    "description": "The Path of the Totem Warrior is a spiritual journey, as the barbarian accepts a spirit animal as guide, protector, and inspiration.",
+    "description": "The Path of the Totem Warrior is a spiritual journey, as the barbarian accepts a spirit animal as a guide, protector, and inspiration. In battle, your totem spirit fills you with supernatural might.",
     "imageUrl": "https://placehold.co/600x400",
     "source": "Official",
     "edition": "Both",
     "version": 1,
+    "magicType": "Rituals Only",
+    "magicAbility": "Wisdom (for DC)",
+    "magicDescription": "You can cast Beast Sense and Speak with Animals, but only as rituals (takes 10 minutes to cast). This adds utility without using spell slots.",
     "features": [
       {
         "level": 3,
@@ -1025,6 +1034,9 @@ export const SUBCLASSES: Subclass[] = [
     "source": "Official",
     "edition": "Both",
     "version": 1,
+    "magicType": "Ki Spells (Stealth)",
+    "magicAbility": "Wisdom",
+    "magicDescription": "Stealth spells using Ki",
     "features": [
       {
         "level": 3,
@@ -1610,6 +1622,9 @@ export const SUBCLASSES: Subclass[] = [
     "source": "Official",
     "edition": "Both",
     "version": 1,
+    "magicType": "Arcane Shots",
+    "magicAbility": "Intelligence",
+    "magicDescription": "You gain one cantrip (Druidcraft or Prestidigation), but your main magic comes from 'Arcane Shots which are magical effects applied to your arrows, rather than actual spells.",
     "features": [
       {
         "level": 3,
@@ -1933,11 +1948,14 @@ export const SUBCLASSES: Subclass[] = [
     "id": "four-elements",
     "parentClassId": "monk",
     "name": "Way of the Four Elements",
-    "description": "You follow a monastic tradition that teaches you to harness the elements. When you focus your ki, you can align yourself with the forces of creation.",
+    "description": "You follow a monastic tradition that teaches you to harness the elements. When you focus your ki, you can align yourself with the forces of creation and bend the four elements to your will.",
     "imageUrl": "https://placehold.co/600x400",
     "source": "Official",
     "edition": "Both",
     "version": 1,
+    "magicType": "Spells using Ki",
+    "magicAbility": "Wisdom",
+    "magicDescription": "You learn 'Elemental Disciplines' that allow you to spend Ki to cast spells like Burning Hands, Fly, or Fireball.",
     "features": [
       {
         "level": 3,
@@ -3249,10 +3267,14 @@ export const SUBCLASSES: Subclass[] = [
     "id": "way-of-shadow",
     "parentClassId": "monk",
     "name": "Way of Shadow",
-    "description": "Monks of the Way of Shadow follow a tradition that values stealth and subterfuge.",
+    "description": "Monks of the Way of Shadow follow a tradition that values stealth and subterfuge. These monks might be called ninjas or shadowdancers, and they serve as spies and assassins.",
+    "imageUrl": "https://placehold.co/600x400",
     "source": "Official",
     "edition": "Both",
     "version": 1,
+    "magicType": "Stealth Spells using Ki",
+    "magicAbility": "Wisdom",
+    "magicDescription": "At Level 3, you can spend 2 Ki points to cast stealth-themed spells: Darkness, Darkvision, Pass Without Trace, or Silence. You also get the Minor Illusion cantrip for free.",
     "features": [
       {
         "level": 3,
@@ -3453,75 +3475,7 @@ export const SUBCLASSES: Subclass[] = [
       }
     ]
   },
-  // --- BLOOD HUNTER SUBCLASSES ---
-  {
-    id: "order-of-the-ghostslayer",
-    parentClassId: "blood-hunter",
-    name: "Order of the Ghostslayer",
-    description: "The Order of the Ghostslayer seeks out and studies the moment of death, obsessing over the mysteries of the transition.",
-    imageUrl: "https://placehold.co/600x400",
-    source: "Official",
-    edition: "5e",
-    version: 1,
-    features: [
-      {
-        level: 3,
-        name: "Rite of the Dawn",
-        description: "Your rite damage is radiant damage."
-      }
-    ]
-  },
-  {
-    id: "order-of-the-lycan",
-    parentClassId: "blood-hunter",
-    name: "Order of the Lycan",
-    description: "You have accepted the curse of lycanthropy to battle monsters.",
-    imageUrl: "https://placehold.co/600x400",
-    source: "Official",
-    edition: "5e",
-    version: 1,
-    features: [
-      {
-        level: 3,
-        name: "Hybrid Transformation",
-        description: "You can transform into a hybrid lycanthrope form."
-      }
-    ]
-  },
-  {
-    id: "order-of-the-mutant",
-    parentClassId: "blood-hunter",
-    name: "Order of the Mutant",
-    description: "You have learned to master the alchemy of your own body.",
-    imageUrl: "https://placehold.co/600x400",
-    source: "Official",
-    edition: "5e",
-    version: 1,
-    features: [
-      {
-        level: 3,
-        name: "Mutagencraft",
-        description: "You can concoct mutagens that alter your physiology."
-      }
-    ]
-  },
-  {
-    id: "order-of-the-profane-soul",
-    parentClassId: "blood-hunter",
-    name: "Order of the Profane Soul",
-    description: "You have made a pact with an otherwordly patron to aid your hunt.",
-    imageUrl: "https://placehold.co/600x400",
-    source: "Official",
-    edition: "5e",
-    version: 1,
-    features: [
-      {
-        level: 3,
-        name: "Otherworldly Patron",
-        description: "You choose a patron: The Archfey, The Fiend, or The Great Old One."
-      }
-    ]
-  },
+
 
   // --- BLOOD MAGE SUBCLASSES ---
   {
@@ -4662,5 +4616,1372 @@ export const SUBCLASSES: Subclass[] = [
     edition: "5e",
     version: 1,
     features: []
+  },
+  {
+    id: "berserker",
+    parentClassId: "barbarian",
+    name: "Berserker",
+    description: "A specialized archetype for the Official Barbarian.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Berserker Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "wild-heart",
+    parentClassId: "barbarian",
+    name: "Wild Heart",
+    description: "A specialized archetype for the Official Barbarian.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Wild Heart Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "path-of-the-world-tree",
+    parentClassId: "barbarian",
+    name: "Path Of The World Tree",
+    description: "A specialized archetype for the Official Barbarian.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Path Of The World Tree Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "zealot",
+    parentClassId: "barbarian",
+    name: "Zealot",
+    description: "A specialized archetype for the Official Barbarian.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Zealot Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "college-of-dance",
+    parentClassId: "bard",
+    name: "College Of Dance",
+    description: "A specialized archetype for the Official Bard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "College Of Dance Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "glamour",
+    parentClassId: "bard",
+    name: "Glamour",
+    description: "A specialized archetype for the Official Bard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Glamour Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "lore",
+    parentClassId: "bard",
+    name: "Lore",
+    description: "A specialized archetype for the Official Bard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Lore Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "valor",
+    parentClassId: "bard",
+    name: "Valor",
+    description: "A specialized archetype for the Official Bard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Valor Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "life",
+    parentClassId: "cleric",
+    name: "Life",
+    description: "A specialized archetype for the Official Cleric.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Life Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "light",
+    parentClassId: "cleric",
+    name: "Light",
+    description: "A specialized archetype for the Official Cleric.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Light Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "trickery",
+    parentClassId: "cleric",
+    name: "Trickery",
+    description: "A specialized archetype for the Official Cleric.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Trickery Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "war",
+    parentClassId: "cleric",
+    name: "War",
+    description: "A specialized archetype for the Official Cleric.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "War Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "land",
+    parentClassId: "druid",
+    name: "Land",
+    description: "A specialized archetype for the Official Druid.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Land Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "moon",
+    parentClassId: "druid",
+    name: "Moon",
+    description: "A specialized archetype for the Official Druid.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Moon Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "circle-of-the-sea",
+    parentClassId: "druid",
+    name: "Circle Of The Sea",
+    description: "A specialized archetype for the Official Druid.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Circle Of The Sea Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "stars",
+    parentClassId: "druid",
+    name: "Stars",
+    description: "A specialized archetype for the Official Druid.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Stars Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "champion",
+    parentClassId: "fighter",
+    name: "Champion",
+    description: "A specialized archetype for the Official Fighter.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Champion Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "battle-master",
+    parentClassId: "fighter",
+    name: "Battle Master",
+    description: "A specialized archetype for the Official Fighter.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Battle Master Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "eldritch-knight",
+    parentClassId: "fighter",
+    name: "Eldritch Knight",
+    description: "A specialized archetype for the Official Fighter.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Eldritch Knight Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "psi-warrior",
+    parentClassId: "fighter",
+    name: "Psi Warrior",
+    description: "A specialized archetype for the Official Fighter.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Psi Warrior Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "warrior-of-mercy",
+    parentClassId: "monk",
+    name: "Warrior Of Mercy",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Warrior Of Mercy Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "warrior-of-shadow",
+    parentClassId: "monk",
+    name: "Warrior Of Shadow",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Warrior Of Shadow Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "warrior-of-the-elements",
+    parentClassId: "monk",
+    name: "Warrior Of The Elements",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Warrior Of The Elements Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "warrior-of-the-open-hand",
+    parentClassId: "monk",
+    name: "Warrior Of The Open Hand",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Warrior Of The Open Hand Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "astral-self",
+    parentClassId: "monk",
+    name: "Astral Self",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Astral Self Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "ascendant-dragon",
+    parentClassId: "monk",
+    name: "Ascendant Dragon",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Ascendant Dragon Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "drunken-master",
+    parentClassId: "monk",
+    name: "Drunken Master",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Drunken Master Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "four-elements",
+    parentClassId: "monk",
+    name: "Four Elements",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Four Elements Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "kensei",
+    parentClassId: "monk",
+    name: "kensei",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "kensei Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "long-death",
+    parentClassId: "monk",
+    name: "Long Death",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Long Death Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "mercy-5e",
+    parentClassId: "monk",
+    name: "Mercy 5E",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Mercy 5E Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "open-hand",
+    parentClassId: "monk",
+    name: "Open Hand",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Open Hand Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "shadow",
+    parentClassId: "monk",
+    name: "shadow",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "shadow Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "sun-soul",
+    parentClassId: "monk",
+    name: "Sun Soul",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    magicType: "Radiant Abilities",
+    magicAbility: "Wisdom",
+    magicDescription: "Radiant attacks & spells",
+    features: [
+      {
+        level: 3,
+        name: "Sun Soul Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "tranquility",
+    parentClassId: "monk",
+    name: "tranquility",
+    description: "A specialized archetype for the Official Monk.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "tranquility Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "devotion",
+    parentClassId: "paladin",
+    name: "devotion",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "devotion Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "glory",
+    parentClassId: "paladin",
+    name: "glory",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "glory Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "ancients",
+    parentClassId: "paladin",
+    name: "ancients",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "ancients Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "vengeance",
+    parentClassId: "paladin",
+    name: "vengeance",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "vengeance Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "conquest",
+    parentClassId: "paladin",
+    name: "conquest",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "conquest Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "crown",
+    parentClassId: "paladin",
+    name: "crown",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "crown Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "redemption",
+    parentClassId: "paladin",
+    name: "redemption",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "redemption Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "watchers",
+    parentClassId: "paladin",
+    name: "watchers",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "watchers Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "oathbreaker",
+    parentClassId: "paladin",
+    name: "oathbreaker",
+    description: "A specialized archetype for the Official Paladin.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "oathbreaker Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "beast-master",
+    parentClassId: "ranger",
+    name: "Beast Master",
+    description: "A specialized archetype for the Official Ranger.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Beast Master Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "fey-wanderer",
+    parentClassId: "ranger",
+    name: "Fey Wanderer",
+    description: "A specialized archetype for the Official Ranger.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Fey Wanderer Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "gloom-stalker",
+    parentClassId: "ranger",
+    name: "Gloom Stalker",
+    description: "A specialized archetype for the Official Ranger.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Gloom Stalker Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "hunter",
+    parentClassId: "ranger",
+    name: "Hunter",
+    description: "A specialized archetype for the Official Ranger.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Hunter Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "arcane-trickster",
+    parentClassId: "rogue",
+    name: "Arcane Trickster",
+    description: "A specialized archetype for the Official Rogue.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Arcane Trickster Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "assassin",
+    parentClassId: "rogue",
+    name: "Assassin",
+    description: "A specialized archetype for the Official Rogue.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Assassin Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "soulknife",
+    parentClassId: "rogue",
+    name: "Soulknife",
+    description: "A specialized archetype for the Official Rogue.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Soulknife Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "thief",
+    parentClassId: "rogue",
+    name: "Thief",
+    description: "A specialized archetype for the Official Rogue.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Thief Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "aberrant-sorcery",
+    parentClassId: "sorcerer",
+    name: "Aberrant Sorcery",
+    description: "A specialized archetype for the Official Sorcerer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Aberrant Sorcery Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "clockwork-sorcery",
+    parentClassId: "sorcerer",
+    name: "Clockwork Sorcery",
+    description: "A specialized archetype for the Official Sorcerer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Clockwork Sorcery Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "draconic-sorcery",
+    parentClassId: "sorcerer",
+    name: "Draconic Sorcery",
+    description: "A specialized archetype for the Official Sorcerer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Draconic Sorcery Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "wild-magic-sorcery",
+    parentClassId: "sorcerer",
+    name: "Wild Magic Sorcery",
+    description: "A specialized archetype for the Official Sorcerer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Wild Magic Sorcery Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "archfey",
+    parentClassId: "warlock",
+    name: "Archfey",
+    description: "A specialized archetype for the Official Warlock.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Archfey Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "celestial",
+    parentClassId: "warlock",
+    name: "Celestial",
+    description: "A specialized archetype for the Official Warlock.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Celestial Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "fiend",
+    parentClassId: "warlock",
+    name: "Fiend",
+    description: "A specialized archetype for the Official Warlock.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Fiend Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "great-old-one",
+    parentClassId: "warlock",
+    name: "Great Old One",
+    description: "A specialized archetype for the Official Warlock.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Great Old One Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "abjurer",
+    parentClassId: "wizard",
+    name: "Abjurer",
+    description: "A specialized archetype for the Official Wizard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Abjurer Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "diviner",
+    parentClassId: "wizard",
+    name: "Diviner",
+    description: "A specialized archetype for the Official Wizard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Diviner Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "evoker",
+    parentClassId: "wizard",
+    name: "Evoker",
+    description: "A specialized archetype for the Official Wizard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Evoker Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "illusionist",
+    parentClassId: "wizard",
+    name: "Illusionist",
+    description: "A specialized archetype for the Official Wizard.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Illusionist Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "alchemist",
+    parentClassId: "artificer",
+    name: "Alchemist",
+    description: "A specialized archetype for the Official Artificer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Alchemist Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "armorer",
+    parentClassId: "artificer",
+    name: "Armorer",
+    description: "A specialized archetype for the Official Artificer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Armorer Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "artillerist",
+    parentClassId: "artificer",
+    name: "Artillerist",
+    description: "A specialized archetype for the Official Artificer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Artillerist Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "battle-smith",
+    parentClassId: "artificer",
+    name: "Battle Smith",
+    description: "A specialized archetype for the Official Artificer.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Official",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Battle Smith Feature",
+        description: "You gain a feature specific to this subclass."
+      }
+    ]
+  },
+  {
+    id: "order-of-the-ghostslayer",
+    parentClassId: "blood-hunter",
+    name: "Order of the Ghostslayer",
+    description: "The 'Classic' Witch Hunter. Focuses on killing Undead and rapid damage.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Critical Role",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Rite of the Dawn",
+        description: "You gain the Rite of the Dawn (Radiant damage). It does extra damage to Undead."
+      },
+      {
+        level: 7,
+        name: "Hallowed Veins",
+        description: "Blood Curses work on creatures normally immune to blood magic (like ghosts)."
+      },
+      {
+        level: 11,
+        name: "Supernal Surge",
+        description: "You can turn ghost-like for a short time (pass through enemies, make extra attacks)."
+      },
+      {
+        level: 15,
+        name: "Gravesight",
+        description: "You can see invisible creatures out to 60 feet."
+      }
+    ]
+  },
+  {
+    id: "order-of-the-lycan",
+    parentClassId: "blood-hunter",
+    name: "Order of the Lycan",
+    description: "The Werewolf Hybrid. Focuses on tanking and melee unarmed strikes.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Critical Role",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Hybrid Transformation",
+        description: "You can transform into a werewolf hybrid for 1 hour. You gain resistance to non-magical damage, +1 AC, and your unarmed strikes do significant damage."
+      },
+      {
+        level: 3,
+        name: "Bloodlust",
+        description: "If you take damage while transformed, you must make a Save or attack the nearest creature."
+      },
+      {
+        level: 7,
+        name: "Stalker's Prowess",
+        description: "Your speed increases, and you jump further."
+      },
+      {
+        level: 11,
+        name: "Advanced Transformation",
+        description: "Your unarmed strikes become magical, and you regenerate HP if you are below half health."
+      },
+      {
+        level: 15,
+        name: "Hybrid Howl",
+        description: "You can howl to frighten enemies and stun them."
+      }
+    ]
+  },
+  {
+    id: "order-of-the-mutant",
+    parentClassId: "blood-hunter",
+    name: "Order of the Mutant",
+    description: "The Alchemist/Witcher. Focuses on flexibility and preparation.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Critical Role",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Mutagencraft",
+        description: "You can brew Mutagens. Drinking one gives you a powerful buff but also a side effect."
+      },
+      {
+        level: 7,
+        name: "Strange Metabolism",
+        description: "You gain immunity to poison. You can ignore the side effect of a mutagen for 1 minute."
+      },
+      {
+        level: 11,
+        name: "Brand of Axiom",
+        description: "Your Brand prevents shape-shifters from changing form."
+      },
+      {
+        level: 15,
+        name: "Exalted Mutation",
+        description: "Your mutagens become stronger (e.g., gain flight, or resistance to all physical damage)."
+      }
+    ]
+  },
+  {
+    id: "order-of-the-profane-soul",
+    parentClassId: "blood-hunter",
+    name: "Order of the Profane Soul",
+    description: "The Warlock Hybrid. Focuses on spellcasting utility.",
+    imageUrl: "https://placehold.co/600x400",
+    source: "Critical Role",
+    edition: "Both",
+    version: 1,
+    features: [
+      {
+        level: 3,
+        name: "Pact Magic",
+        description: "You gain Warlock spell slots and Cantrips. Your patron gives you a specific bonus feature."
+      },
+      {
+        level: 7,
+        name: "Rite Focus",
+        description: "You can cast a spell as a bonus action when you take the Attack action."
+      },
+      {
+        level: 11,
+        name: "Brand of the Sapping Scar",
+        description: "Your Brand disrupts the enemy's magic (they have Disadvantage on saves against your spells)."
+      },
+      {
+        level: 15,
+        name: "Unsealed Arcana",
+        description: "You can cast one high-level Warlock spell once per long rest without using a slot."
+      }
+    ]
+  },
+  {
+    "id": "path-of-wild-magic",
+    "parentClassId": "barbarian",
+    "name": "Path of Wild Magic",
+    "description": "Many places in the multiverse abound with beauty, intense emotion, and rampant magic; the Feywild, the Upper Planes, and other realms of supernatural power radiate with such forces.",
+    "imageUrl": "https://placehold.co/600x400",
+    "source": "Official",
+    "edition": "Both",
+    "version": 1,
+    "magicType": "Magical Effects",
+    "magicAbility": "Constitution",
+    "magicDescription": "You can cast Detect Magic at will without using a spell slot. (Your primary feature creates random magical effects when you rage, but these are not technically 'spells').",
+    "features": [
+      {
+        "level": 3,
+        "name": "Magic Awareness",
+        "description": "You can seek out magical energy."
+      },
+      {
+        "level": 3,
+        "name": "Wild Surge",
+        "description": "The magic that roils inside you erupts."
+      },
+      {
+        "level": 6,
+        "name": "Bolstering Magic",
+        "description": "You can infuse a creature or yourself with magic."
+      },
+      {
+        "level": 10,
+        "name": "Unstable Backlash",
+        "description": "When you are in danger, the magic within you lashes out."
+      },
+      {
+        "level": 14,
+        "name": "Controlled Surge",
+        "description": "You can exercise some control over your wild surges."
+      }
+    ]
+  },
+  {
+    "id": "way-of-the-sun-soul",
+    "parentClassId": "monk",
+    "name": "Way of the Sun Soul",
+    "description": "Monks of the Way of the Sun Soul learn to channel their own life energy into searing bolts of light. They teach that meditation can unlock the ability to unleash the indomitable light shed by the soul of every living creature.",
+    "imageUrl": "https://placehold.co/600x400",
+    "source": "Official",
+    "edition": "Both",
+    "version": 1,
+    "magicType": "Radiant Abilities & Spells",
+    "magicAbility": "Wisdom",
+    "magicDescription": "You gain a radiant ranged attack. Later, you can spend Ki to cast Burning Hands (radiant version) and Sunbeam.",
+    "features": [
+      {
+        "level": 3,
+        "name": "Radiant Sun Bolt",
+        "description": "You can hurl searing bolts of magical radiance."
+      },
+      {
+        "level": 6,
+        "name": "Searing Arc Strike",
+        "description": "You can channel your ki into searing waves of energy."
+      },
+      {
+        "level": 11,
+        "name": "Searing Sunburst",
+        "description": "You can create an orb of light that erupts into a devastating explosion."
+      },
+      {
+        "level": 17,
+        "name": "Sun Shield",
+        "description": "You become wreathed in a luminous, magical aura."
+      }
+    ]
   }
 ];

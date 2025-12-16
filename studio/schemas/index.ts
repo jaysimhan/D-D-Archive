@@ -10,6 +10,8 @@ import trait from './trait'
 import { proficiencyRule, spellGrant } from './objects/rules'
 
 
+import homepage from './homepage'
+
 export const schemaTypes = [
     race,
     classType,
@@ -17,6 +19,7 @@ export const schemaTypes = [
     spell,
     item,
     trait,
+    homepage,
     // Objects
     proficiencyRule,
     spellGrant,
@@ -24,4 +27,3 @@ export const schemaTypes = [
     background,
     monster,
 ]
-

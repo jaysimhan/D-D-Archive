@@ -52,9 +52,11 @@ export interface SpellGrant {
   mode: 'fixed' | 'choice' | 'access';
   count?: number;
   spellList?: string; // e.g. "wizard"
-  specificSpells?: string[]; // IDs or refs
+  specificSpells?: Spell[]; // Expanded objects
   ability?: 'INT' | 'WIS' | 'CHA' | 'CON';
   recharge?: 'at-will' | 'short-rest' | 'long-rest' | 'day';
+  spellLevel?: number; // New
+  notes?: string; // New
 }
 
 export interface Race {
@@ -134,11 +136,12 @@ export interface Class {
   savingThrows: AbilityScore[];
   proficiencies?: ProficiencyRule[];
   spells?: SpellGrant[];
-  spellcaster?: "full" | "half" | "third" | "pact" | "special";
+  spellcaster?: "full" | "half" | "third" | "pact" | "special" | "None" | "none";
   spellcastingAbility?: AbilityScore;
   features: Feature[];
   traits?: { name: string; description: string }[];
   subclasses: string[]; // IDs of subclasses
+  subclassLevel?: number; // Level at which subclass is selected (1-3)
 }
 
 export interface Feature {
@@ -165,6 +168,9 @@ export interface Subclass {
   spells?: SpellGrant[];
   spellcaster?: boolean;
   spellcastingAbility?: string;
+  magicType?: string;
+  magicAbility?: string;
+  magicDescription?: string;
 }
 
 // ===== Background System =====
