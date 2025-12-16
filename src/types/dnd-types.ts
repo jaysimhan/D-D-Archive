@@ -137,7 +137,7 @@ export interface Class {
   spellcaster?: "full" | "half" | "third" | "pact" | "special";
   spellcastingAbility?: AbilityScore;
   features: Feature[];
-  traits: { name: string; description: string }[];
+  traits?: { name: string; description: string }[];
   subclasses: string[]; // IDs of subclasses
 }
 
@@ -157,9 +157,10 @@ export interface Subclass {
   image?: SanityImage;
   imageUrl?: string;
   source: Source;
+  edition: Edition;
   version: number;
   features: Feature[];
-  traits: { name: string; description: string }[];
+  traits?: { name: string; description: string }[];
   proficiencies?: ProficiencyRule[];
   spells?: SpellGrant[];
   spellcaster?: boolean;
@@ -179,7 +180,7 @@ export interface Background {
   skillProficiencies: string[];
   toolProficiencies: string[];
   proficiencies?: ProficiencyRule[]; // New unified field
-  traits: { name: string; description: string }[];
+  traits?: { name: string; description: string }[];
   languages: number; // Count of extra languages
   equipment: string[];
   feature: {
