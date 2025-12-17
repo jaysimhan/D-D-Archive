@@ -89,7 +89,7 @@ async function migrateClasses() {
         savingThrows: cls.savingThrows,
         spellcaster: cls.spellcaster || 'none',
         spellcastingAbility: cls.spellcastingAbility,
-        features: cls.features?.map((f, idx) => ({
+        features: cls.features?.map((f: any, idx: number) => ({
             _key: `feature-${idx}`,
             level: f.level,
             name: f.name,
@@ -106,7 +106,7 @@ async function migrateClasses() {
 async function migrateSubclasses() {
     console.log('\n📖 Migrating Subclasses...');
 
-    const documents = SUBCLASSES.map((sub, idx) => ({
+    const documents = SUBCLASSES.map((sub: any, idx: number) => ({
         _id: `subclass-${toSanityId(sub.id)}-${idx}`,
         _type: 'subclass',
         name: sub.name,
@@ -116,7 +116,7 @@ async function migrateSubclasses() {
         source: sub.source || 'Official',
         edition: sub.edition || 'Both',
         version: sub.version || 1,
-        features: sub.features?.map((f, fidx) => ({
+        features: sub.features?.map((f: any, fidx: number) => ({
             _key: `feature-${fidx}`,
             level: f.level,
             name: f.name,
@@ -135,13 +135,13 @@ async function migrateRaces() {
     // Combine and deduplicate races
     const allRaces = RACES;
     const seenIds = new Set<string>();
-    const uniqueRaces = allRaces.filter((race) => {
+    const uniqueRaces = allRaces.filter((race: any) => {
         if (seenIds.has(race.id)) return false;
         seenIds.add(race.id);
         return true;
     });
 
-    const documents = uniqueRaces.map((race, idx) => ({
+    const documents = uniqueRaces.map((race: any, idx: number) => ({
         _id: `race-${toSanityId(race.id)}-${idx}`,
         _type: 'race',
         name: race.name,
@@ -153,14 +153,14 @@ async function migrateRaces() {
         abilityScoreIncrease: race.abilityScoreIncrease,
         size: race.size,
         speed: race.speed,
-        traits: race.traits?.map((t, tidx) => ({
+        traits: race.traits?.map((t: any, tidx: number) => ({
             _key: `trait-${tidx}`,
             name: typeof t === 'string' ? t : t.name,
             description: typeof t === 'string' ? '' : t.description,
         })),
         languages: race.languages,
         subraces: race.subraces,
-        racialSpellChoices: race.racialSpellChoices?.map((choice, cidx) => ({
+        racialSpellChoices: race.racialSpellChoices?.map((choice: any, cidx: number) => ({
             _key: `spell-choice-${cidx}`,
             choose: choice.choose,
             name: choice.name,
@@ -168,7 +168,7 @@ async function migrateRaces() {
             school: choice.school,
             level: choice.level,
         })),
-        racialKnownSpells: race.racialKnownSpells?.map((spell, sidx) => ({
+        racialKnownSpells: race.racialKnownSpells?.map((spell: any, sidx: number) => ({
             _key: `known-spell-${sidx}`,
             level: spell.level,
             spellId: spell.spellId,
@@ -186,7 +186,7 @@ async function migrateRaces() {
 async function migrateBackgrounds() {
     console.log('\n🎭 Migrating Backgrounds...');
 
-    const documents = BACKGROUNDS.map((bg) => ({
+    const documents = BACKGROUNDS.map((bg: any) => ({
         _id: `background-${toSanityId(bg.id)}`,
         _type: 'background',
         name: bg.name,
@@ -211,7 +211,7 @@ async function migrateSpells() {
     console.log('\n✨ Migrating Spells...');
 
     // Use expanded spells which includes most spells
-    const documents = SPELLS.map((spell, idx) => ({
+    const documents = SPELLS.map((spell: any, idx: number) => ({
         _id: `spell-${toSanityId(spell.id)}-${idx}`,
         _type: 'spell',
         name: spell.name,
@@ -243,13 +243,13 @@ async function migrateFeats() {
     // Combine and deduplicate feats
     const allFeats = FEATS;
     const seenIds = new Set<string>();
-    const uniqueFeats = allFeats.filter((feat) => {
+    const uniqueFeats = allFeats.filter((feat: any) => {
         if (seenIds.has(feat.id)) return false;
         seenIds.add(feat.id);
         return true;
     });
 
-    const documents = uniqueFeats.map((feat, idx) => ({
+    const documents = uniqueFeats.map((feat: any, idx: number) => ({
         _id: `feat-${toSanityId(feat.id)}-${idx}`,
         _type: 'feat',
         name: feat.name,
@@ -273,13 +273,13 @@ async function migrateItems() {
     // Combine and deduplicate items
     const allItems = ITEMS;
     const seenIds = new Set<string>();
-    const uniqueItems = allItems.filter((item) => {
+    const uniqueItems = allItems.filter((item: any) => {
         if (seenIds.has(item.id)) return false;
         seenIds.add(item.id);
         return true;
     });
 
-    const documents = uniqueItems.map((item, idx) => ({
+    const documents = uniqueItems.map((item: any, idx: number) => ({
         _id: `item-${toSanityId(item.id)}-${idx}`,
         _type: 'item',
         name: item.name,
