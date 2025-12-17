@@ -1,12 +1,7 @@
 import { useState, useMemo } from "react";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
-import { Race } from "../types/dnd-types";
 import { CharacterData, CreationStep } from "../types/character-creator";
-import {
-  RACES,
-  SUBRACES,
-  SUBCLASSES as mockSubclasses,
-} from "../data/comprehensive-library";
+
 import { CharacterSheet } from "./CharacterSheet";
 import { useSubclasses } from "../hooks/useSanityData";
 
@@ -41,69 +36,16 @@ export function CharacterCreator() {
       tools: [],
       armor: [],
       weapons: []
-    }
+    },
+    racialBonusAllocation: {}
   });
 
-  // All races including subraces as individual options
-  const allRaces = useMemo(() => {
-    const raceList: Race[] = [...RACES];
-    SUBRACES.forEach(subrace => {
-      const parentRace = RACES.find(r => r.id === subrace.parentRaceId);
-      if (parentRace) {
-        raceList.push({
-          ...subrace,
-          name: `${subrace.name}`,
-          description: subrace.description || parentRace.description,
-          id: subrace.id,
-          source: subrace.source,
-          edition: subrace.edition,
-          version: subrace.version,
-          abilityScoreIncrease: {
-            ...parentRace.abilityScoreIncrease,
-            ...subrace.abilityScoreIncrease
-          },
-          size: parentRace.size,
-          speed: parentRace.speed,
-          traits: [...parentRace.traits, ...(subrace.traits || [])],
-          languages: parentRace.languages,
-          racialSpellChoices: subrace.racialSpellChoices || parentRace.racialSpellChoices,
-        } as Race);
-      }
-    });
-    // Deduplicate races by name
-    const seenNames = new Set<string>();
-    const uniqueRaces: Race[] = [];
-
-    for (const r of raceList) {
-      // Filter out races without Ability Score Increases
-      const hasASI = r.abilityScoreIncrease && Object.values(r.abilityScoreIncrease).some(v => v !== 0);
-      if (!hasASI) continue;
-
-      if (r.id === "tortle" || r.id === "satyr") {
-        if (!seenNames.has(r.name)) {
-          seenNames.add(r.name);
-          uniqueRaces.push(r);
-        }
-      } else {
-        // Default checking for name duplicates for all races
-        if (!seenNames.has(r.name)) {
-          seenNames.add(r.name);
-          uniqueRaces.push(r);
-        }
-      }
-    }
-
-    return uniqueRaces;
-  }, []);
 
   // Fetch subclasses here for the check
   const { data: sanitySubclasses } = useSubclasses();
 
   const allSubclasses = useMemo(() => {
-    const sanity = sanitySubclasses || [];
-    const mock = mockSubclasses || [];
-    const sanityIds = new Set(sanity.map(s => s.id));
-    return [...sanity, ...mock.filter(s => !sanityIds.has(s.id))];
+    return sanitySubclasses || [];
   }, [sanitySubclasses]);
 
   const steps: CreationStep[] = useMemo(() => {
@@ -128,25 +70,11 @@ export function CharacterCreator() {
     baseSteps.push("abilities");
     baseSteps.push("proficiencies"); // Added Proficiencies
     baseSteps.push("background");
-
-    // Check for spell-granting feats
-    const spellFeats = ["Magic Initiate", "Aberrant Dragonmark", "Fey Touched", "Shadow Touched", "Telekinetic"];
-    const hasSpellFeat = characterData.feats.some(f => spellFeats.some(sf => f.name.includes(sf)));
-
-    // Check for racial spell choices or known spells
-    const hasRacialSpells = (characterData.race?.racialSpellChoices && characterData.race.racialSpellChoices.length > 0) ||
-      (characterData.subrace?.racialSpellChoices && characterData.subrace.racialSpellChoices.length > 0) ||
-      (characterData.race?.racialKnownSpells && characterData.race.racialKnownSpells.length > 0) ||
-      (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0);
-
-    if (characterData.class?.spellcaster || characterData.subclass?.spellcaster || hasSpellFeat || hasRacialSpells) {
-      baseSteps.push("spells");
-    }
-
+    baseSteps.push("spells"); // Always show spells step
     baseSteps.push("equipment", "personality");
 
     return baseSteps;
-  }, [characterData.class, characterData.level, characterData.feats, characterData.race, characterData.subrace, allSubclasses]);
+  }, [characterData.class, characterData.level, characterData.feats, characterData.race, allSubclasses]);
 
   const currentStepIndex = steps.indexOf(currentStep);
 
@@ -177,7 +105,8 @@ export function CharacterCreator() {
       case "background":
         return !!characterData.background;
       case "spells":
-        return characterData.selectedSpells.length > 0;
+        // Always allow progression - non-spellcasters don't need to select spells
+        return true;
       case "feats":
         return true;
       case "proficiencies":
@@ -291,9 +220,8 @@ export function CharacterCreator() {
             {currentStep === "race" && (
               <RaceStep
                 race={characterData.race}
-                subrace={characterData.subrace}
-                onChange={(race, subrace) =>
-                  setCharacterData({ ...characterData, race, subrace })
+                onChange={(race) =>
+                  setCharacterData({ ...characterData, race })
                 }
               />
             )}
@@ -325,10 +253,13 @@ export function CharacterCreator() {
               <AbilityScoreStep
                 scores={characterData.abilityScores}
                 race={characterData.race}
-                subrace={characterData.subrace}
                 feats={characterData.feats}
                 onScoresChange={(abilityScores) =>
                   setCharacterData({ ...characterData, abilityScores })
+                }
+                racialBonusAllocation={characterData.racialBonusAllocation}
+                onRacialBonusChange={(racialBonusAllocation) =>
+                  setCharacterData({ ...characterData, racialBonusAllocation })
                 }
               />
             )}
@@ -346,30 +277,21 @@ export function CharacterCreator() {
                 onSelect={(background) => setCharacterData({ ...characterData, background })}
               />
             )}
-            {currentStep === "spells" && (
-              !!characterData.class?.spellcaster ||
-              !!characterData.subclass?.spellcaster ||
-              characterData.feats.some(f => f.name.includes("Magic Initiate") || f.name.includes("Aberrant Dragonmark")) ||
-              (characterData.race?.racialSpellChoices && characterData.race.racialSpellChoices.length > 0) ||
-              (characterData.subrace?.racialSpellChoices && characterData.subrace.racialSpellChoices.length > 0) ||
-              (characterData.race?.racialKnownSpells && characterData.race.racialKnownSpells.length > 0) ||
-              (characterData.subrace?.racialKnownSpells && characterData.subrace.racialKnownSpells.length > 0)
-            ) && (
-                <SpellSelectionStep
-                  classData={characterData.class!}
-                  level={characterData.level}
-                  selectedSpells={characterData.selectedSpells}
-                  race={characterData.race}
-                  subrace={characterData.subrace}
-                  onSpellsChange={(spells) =>
-                    setCharacterData({ ...characterData, selectedSpells: spells })
-                  }
-                  feats={characterData.feats}
-                  subclass={characterData.subclass}
-                  magicInitiateClass={characterData.magicInitiateClass}
-                  onMagicInitiateClassChange={(cls) => setCharacterData({ ...characterData, magicInitiateClass: cls })}
-                />
-              )}
+            {currentStep === "spells" && characterData.class && (
+              <SpellSelectionStep
+                classData={characterData.class}
+                level={characterData.level}
+                selectedSpells={characterData.selectedSpells}
+                race={characterData.race}
+                onSpellsChange={(spells) =>
+                  setCharacterData({ ...characterData, selectedSpells: spells })
+                }
+                feats={characterData.feats}
+                subclass={characterData.subclass}
+                magicInitiateClass={characterData.magicInitiateClass}
+                onMagicInitiateClassChange={(cls) => setCharacterData({ ...characterData, magicInitiateClass: cls })}
+              />
+            )}
             {currentStep === "equipment" && (
               <EquipmentStep
                 equipment={characterData.equipment}

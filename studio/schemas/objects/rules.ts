@@ -8,7 +8,8 @@ const SKILLS = [
 
 const LANGUAGES = [
     'Common', 'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc',
-    'Abyssal', 'Celestial', 'Draconic', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon'
+    'Abyssal', 'Celestial', 'Draconic', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon',
+    'Aarakocra', 'Aquan', 'Auran', 'Gith', 'Ignan', 'Minotaur', 'Quori', 'Terran'
 ];
 
 const TOOLS = [

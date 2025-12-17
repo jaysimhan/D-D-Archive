@@ -39,4 +39,5 @@ export interface CharacterData {
         armor: string[];
         weapons: string[];
     };
+    racialBonusAllocation?: Record<string, number>;
 }

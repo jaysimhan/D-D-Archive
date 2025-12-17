@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, Loader2 } from "lucide-react";
 import { Feat } from "../../types/dnd-types";
-import { FEATS } from "../../data/comprehensive-library";
+import { useFeats } from "../../hooks/useSanityData";
 
 // Feat Selection Step
 export function FeatSelectionStep({
@@ -12,12 +12,14 @@ export function FeatSelectionStep({
     onFeatsChange: (feats: Feat[]) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
+    const { data: allFeats, loading } = useFeats();
 
     const filteredFeats = useMemo(() => {
-        return FEATS.filter((feat) =>
+        if (!allFeats) return [];
+        return allFeats.filter((feat) =>
             feat.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm]);
+    }, [searchTerm, allFeats]);
 
     const toggleFeat = (feat: Feat) => {
         if (selectedFeats.find((f) => f.id === feat.id)) {

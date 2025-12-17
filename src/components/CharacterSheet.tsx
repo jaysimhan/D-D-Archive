@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { User, Shield, Heart, Package, BookOpen, Sparkles, Download, Edit, FileText, Wand2 } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Subrace, Subclass, Feat } from "../types/dnd-types";
-import { SPELLS as mockSpells } from "../data/comprehensive-library";
+import { useSpells } from "../hooks/useSanityData";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { PDFDocument } from './pdf/PDFDocument';
 
@@ -48,6 +48,7 @@ export function CharacterSheet({
   onEdit: () => void;
 }) {
   const contentRef = React.useRef<HTMLDivElement>(null);
+  const { data: allSanitySpells } = useSpells();
 
   const getModifier = (score: number): string => {
     const mod = Math.floor((score - 10) / 2);
@@ -78,18 +79,20 @@ export function CharacterSheet({
       ...(character.subrace?.racialKnownSpells || [])
     ];
 
-    racialSpells.forEach(rs => {
-      // Check level requirement
-      if (character.level >= rs.level) {
-        const spell = mockSpells.find(s => s.id === rs.spellId);
-        if (spell) {
-          // Avoid duplicates if already selected (shouldn't happen for racial known)
-          if (!spells.find(s => s.id === spell.id)) {
-            spells.push({ ...spell, source: 'Race' });
+    if (allSanitySpells) {
+      racialSpells.forEach(rs => {
+        // Check level requirement
+        if (character.level >= rs.level) {
+          const spell = allSanitySpells.find(s => s.id === rs.spellId);
+          if (spell) {
+            // Avoid duplicates if already selected (shouldn't happen for racial known)
+            if (!spells.find(s => s.id === spell.id)) {
+              spells.push({ ...spell, source: 'Race' });
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     return spells;
   };

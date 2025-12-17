@@ -1,15 +1,17 @@
 import { useState, useMemo } from "react";
 import { ArrowRight, ArrowLeft, Check, Sparkles, User, BookOpen, Settings, Download, Shield, Heart, Package, Wand2, Edit, FileText } from "lucide-react";
 import { Race, Class, Background, Spell, Item, AbilityScores, Source, Subrace, Subclass } from "../types/dnd-types";
-import {
-  RACES,
-  SUBRACES,
-  BACKGROUNDS,
-  CLASSES as combinedClasses,
-  SUBCLASSES as mockSubclasses,
-  SPELLS as expandedSpells,
-  ITEMS as mockItems,
-} from "../data/comprehensive-library";
+// import {
+//   RACES,
+//   SUBRACES,
+//   BACKGROUNDS,
+//   CLASSES as combinedClasses,
+//   SUBCLASSES as mockSubclasses,
+//   SPELLS as expandedSpells,
+//   ITEMS as mockItems,
+// } from "../data/comprehensive-library";
+// Mock data removed. This component needs refactoring to use Sanity data if it is to be used.
+
 import { CharacterSheet } from "./CharacterSheet";
 
 type CreationStep =

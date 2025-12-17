@@ -24,6 +24,10 @@ export function RaceCard({ race }: RaceCardProps) {
   };
 
   const getAbilityScoreText = () => {
+    // Check if race uses flexible ability scores (Tasha's rules)
+    if (race.flexibleAbilityScores) {
+      return "+2/+1 or +1/+1/+1";
+    }
     if (!race.abilityScoreIncrease) {
       return "None";
     }
@@ -104,7 +108,7 @@ export function RaceCard({ race }: RaceCardProps) {
         <div className="mt-3 mb-3">
           <p className="text-sm text-gray-900 mb-1">Racial Traits:</p>
           <div className="space-y-3">
-            {race.traits.map((trait, i) => (
+            {(race.traits || []).map((trait, i) => (
               <div key={i} className="text-sm">
                 <span className="font-medium text-gray-900 block">{trait.name}</span>
                 <span className="text-gray-600">{trait.description}</span>
@@ -118,7 +122,7 @@ export function RaceCard({ race }: RaceCardProps) {
       <div className="mt-3 pt-3 border-t border-gray-200">
         <div className="flex items-start gap-2 text-xs text-gray-600">
           <Languages className="w-4 h-4 mt-0.5" />
-          <span>{race.languages.join(", ")}</span>
+          <span>{(race.languages || []).join(", ")}</span>
         </div>
       </div>
 

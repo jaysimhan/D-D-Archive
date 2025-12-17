@@ -69,6 +69,7 @@ export interface Race {
   edition: Edition;
   version: number;
   abilityScoreIncrease: Partial<AbilityScores>;
+  flexibleAbilityScores?: boolean;
   size: "Tiny" | "Small" | "Medium" | "Large";
   speed: number;
   traits: { name: string; description: string }[];

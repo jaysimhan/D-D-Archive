@@ -108,6 +108,7 @@ export function useRaces() {
         description,
         image,
         abilityScoreIncrease,
+        flexibleAbilityScores,
         size,
         speed,
         traits[]->{name, description},
@@ -161,24 +162,24 @@ export function useBackgrounds() {
 
 // ===== SPELLS =====
 export function useSpells() {
-    return useSanityQuery<Spell>('*[_type == "spell"] | order(name asc)');
+    return useSanityQuery<Spell>('*[_type == "spell"] { ..., "id": slug.current } | order(name asc)');
 }
 
 export function useSpellsByClass(classId: string) {
     return useSanityQuery<Spell>(
-        '*[_type == "spell" && $classId in classes] | order(level asc, name asc)',
+        '*[_type == "spell" && $classId in classes] { ..., "id": slug.current } | order(level asc, name asc)',
         { classId }
     );
 }
 
 // ===== FEATS =====
 export function useFeats() {
-    return useSanityQuery<Feat>('*[_type == "feat"] | order(name asc)');
+    return useSanityQuery<Feat>('*[_type == "feat"] { ..., "id": slug.current } | order(name asc)');
 }
 
 // ===== ITEMS =====
 export function useItems() {
-    return useSanityQuery<Item>('*[_type == "item"] | order(name asc)');
+    return useSanityQuery<Item>('*[_type == "item"] { ..., "id": slug.current } | order(name asc)');
 }
 
 // ===== MONSTERS =====

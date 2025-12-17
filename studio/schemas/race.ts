@@ -40,9 +40,18 @@ export default {
         editionField,
         versionField,
         {
+            name: 'flexibleAbilityScores',
+            title: 'Flexible Ability Scores',
+            type: 'boolean',
+            description: "If true, player can distribute +2/+1 or +1/+1/+1 to any abilities (Tasha's rules). Fixed ability scores below will be hidden.",
+            initialValue: false,
+        },
+        {
             name: 'abilityScoreIncrease',
-            title: 'Ability Score Increase',
+            title: 'Ability Score Increase (Fixed)',
             type: 'object',
+            description: 'Set specific ability score bonuses for this race.',
+            hidden: ({ parent }: { parent: { flexibleAbilityScores?: boolean } }) => parent?.flexibleAbilityScores === true,
             fields: [
                 { name: 'STR', title: 'Strength', type: 'number' },
                 { name: 'DEX', title: 'Dexterity', type: 'number' },
@@ -87,11 +96,18 @@ export default {
             description: 'Skills, Tools, Languages, Armor, Weapons granted by this race.',
         },
         {
-            name: 'subraces',
-            title: 'Subraces',
+            name: 'languages',
+            title: 'Languages (Legacy)',
             type: 'array',
             of: [{ type: 'string' }],
-            description: 'IDs of subraces',
+            options: {
+                list: [
+                    'Common', 'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc',
+                    'Abyssal', 'Celestial', 'Draconic', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon',
+                    'Aarakocra', 'Aquan', 'Auran', 'Gith', 'Ignan', 'Minotaur', 'Quori', 'Terran', 'Thieves\' Cant', 'Druidic'
+                ],
+            },
+            description: 'Languages granted by this race. For new entries, prefer using the Proficiencies field with type "language".',
         },
         {
             name: 'spells',

@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
 import { Class } from "../../types/dnd-types";
-import { CLASSES as combinedClasses, SUBCLASSES as mockSubclasses } from "../../data/comprehensive-library";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
 
@@ -26,77 +25,34 @@ export function ClassStep({
         return 3; // Default for others (Artificer, Barbarian, Bard, Fighter, Monk, Paladin, Ranger, Rogue, and homebrew)
     };
     const [searchTerm, setSearchTerm] = useState("");
+    const [showNonCore, setShowNonCore] = useState(false);
 
     // Fetch subclasses for details display
     const { data: sanitySubclasses } = useSubclasses();
-    const allSubclasses = useMemo(() => {
-        const sanity = sanitySubclasses || [];
-        const mock = mockSubclasses || [];
-
-        // First, deduplicate mock data - prefer entries with magicType
-        const deduplicatedMock = new Map<string, typeof mock[0]>();
-        for (const s of mock) {
-            const existing = deduplicatedMock.get(s.id);
-            if (!existing || (s.magicType && !existing.magicType)) {
-                deduplicatedMock.set(s.id, s);
-            }
-        }
-        const uniqueMock = Array.from(deduplicatedMock.values());
-
-        // If Sanity hasn't loaded yet, use deduplicated mock data
-        if (sanity.length === 0) {
-            return uniqueMock;
-        }
-
-        // Create lookup map for augmenting Sanity data with mock fields
-        const mockMap = new Map(uniqueMock.map(s => [s.id, s]));
-
-        // Augment sanity data with missing fields from mock
-        const augmentedSanity = sanity.map(s => {
-            const mockVer = mockMap.get(s.id);
-            if (mockVer) {
-                return {
-                    ...s,
-                    // Fall back to Mock for missing magic fields
-                    magicType: s.magicType || mockVer.magicType,
-                    magicAbility: s.magicAbility || mockVer.magicAbility,
-                    magicDescription: s.magicDescription || mockVer.magicDescription,
-                    spellcaster: s.spellcaster ?? mockVer.spellcaster
-                };
-            }
-            return s;
-        });
-
-        const sanityIds = new Set(augmentedSanity.map(s => s.id));
-        const result = [...augmentedSanity, ...uniqueMock.filter(s => !sanityIds.has(s.id))];
-        console.log('[ClassStep] allSubclasses computed:', { sanityCount: sanity.length, mockCount: mock.length, uniqueMockCount: uniqueMock.length, resultCount: result.length });
-        // Debug: log a specific subclass to check magic fields
-        const arcaneTrickster = result.find(s => s.id === 'arcane-trickster');
-        if (arcaneTrickster) {
-            console.log('[ClassStep] Arcane Trickster:', { magicType: arcaneTrickster.magicType, spellcaster: arcaneTrickster.spellcaster });
-        }
-        return result;
-    }, [sanitySubclasses]);
+    const allSubclasses = useMemo(() => sanitySubclasses || [], [sanitySubclasses]);
 
     const relatedSubclasses = useMemo(() => {
         if (!selected) return [];
         return allSubclasses.filter(s => s.parentClassId === selected.id);
     }, [selected, allSubclasses]);
 
-    // Fetch classes from Sanity, fall back to mock data
+    // Fetch classes from Sanity
     const { data: sanityClasses, loading: classesLoading } = useClasses();
-    const allClasses = useMemo(() => {
-        const sanity = sanityClasses || [];
-        const mock = combinedClasses || [];
-        const sanityIds = new Set(sanity.map(c => c.id));
-        return [...sanity, ...mock.filter(c => !sanityIds.has(c.id))];
-    }, [sanityClasses]);
+    const allClasses = useMemo(() => sanityClasses || [], [sanityClasses]);
 
     const filteredClasses = useMemo(() => {
-        return allClasses.filter((classData) =>
+        let classes = allClasses;
+
+        // Filter non-core if needed
+        if (!showNonCore) {
+            classes = classes.filter(c => c.source === "Player's Handbook" || c.source === "Official");
+        }
+
+        // Filter by search term
+        return classes.filter((classData) =>
             classData.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm, allClasses]);
+    }, [searchTerm, allClasses, showNonCore]);
 
     // Use the class from allClasses to ensure we have Sanity image data
     const displayedClass = selected ? allClasses.find(c => c.id === selected.id) || selected : undefined;
@@ -111,20 +67,33 @@ export function ClassStep({
             <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px]">
                 {/* Left Column: Grid */}
                 <div className="flex-1 w-full">
-                    {/* Level Selector */}
-                    <div className="mb-6 max-w-xs">
-                        <label className="block text-gray-700 font-medium mb-2">
-                            Character Level (Beginner: 1-3)
+                    {/* Toggle and Level Selector Row */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        {/* Level Selector */}
+                        <div className="max-w-xs">
+                            <label className="block text-gray-700 font-medium mb-2">
+                                Character Level (Beginner: 1-3)
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="3"
+                                value={level}
+                                onChange={(e) => onLevelChange(Math.max(1, Math.min(3, parseInt(e.target.value) || 1)))}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-lg font-semibold"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Limited to levels 1-3 for beginner characters</p>
+                        </div>
+
+                        {/* Non-core Toggle */}
+                        <label className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input type="checkbox" className="sr-only" checked={showNonCore} onChange={e => setShowNonCore(e.target.checked)} />
+                                <div className={`block w-10 h-6 rounded-full transition-colors ${showNonCore ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
+                                <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showNonCore ? 'transform translate-x-4' : ''}`}></div>
+                            </div>
+                            <div className="ml-3 text-sm font-medium text-gray-700">Enable non-core classes</div>
                         </label>
-                        <input
-                            type="number"
-                            min="1"
-                            max="3"
-                            value={level}
-                            onChange={(e) => onLevelChange(Math.max(1, Math.min(3, parseInt(e.target.value) || 1)))}
-                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-lg font-semibold"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Limited to levels 1-3 for beginner characters</p>
                     </div>
 
                     {/* Search Bar */}
@@ -251,8 +220,8 @@ export function ClassStep({
                                                 <div
                                                     key={sub.id}
                                                     className={`p-3 rounded-lg ${hasSpellcasting
-                                                            ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 shadow-sm'
-                                                            : 'bg-gray-50'
+                                                        ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 shadow-sm'
+                                                        : 'bg-gray-50'
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-2 mb-1">

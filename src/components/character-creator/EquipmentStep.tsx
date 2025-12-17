@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { Class, Item } from "../../types/dnd-types";
-import { ITEMS as mockItems } from "../../data/comprehensive-library";
+import { useItems } from "../../hooks/useSanityData";
 
 // Equipment Step
 export function EquipmentStep({
@@ -14,12 +14,14 @@ export function EquipmentStep({
     onEquipmentChange: (equipment: Item[]) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
+    const { data: allItems, loading } = useItems();
 
     const availableItems = useMemo(() => {
-        return mockItems.filter(
+        if (!allItems) return [];
+        return allItems.filter(
             (item) => item.type === "Weapon" || item.type === "Armor" || item.type === "Adventuring Gear"
         );
-    }, []);
+    }, [allItems]);
 
     const filteredItems = useMemo(() => {
         let items = availableItems.filter((item) =>

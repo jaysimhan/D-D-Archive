@@ -93,9 +93,8 @@ export function SpellCard({ spell }: SpellCardProps) {
       <p className="text-sm text-gray-700 mb-3">
         {expanded
           ? spell.description
-          : `${spell.description.substring(0, 150)}${
-              spell.description.length > 150 ? "..." : ""
-            }`}
+          : `${spell.description.substring(0, 150)}${spell.description.length > 150 ? "..." : ""
+          }`}
       </p>
 
       {spell.description.length > 150 && (
@@ -121,10 +120,10 @@ export function SpellCard({ spell }: SpellCardProps) {
       <div className="mt-3 pt-3 border-t border-gray-200">
         <p className="text-xs text-gray-600">
           <span>Available to: </span>
-          {spell.classes.map((c, i) => (
+          {(spell.classes || []).map((c, i) => (
             <span key={c}>
               {c.charAt(0).toUpperCase() + c.slice(1)}
-              {i < spell.classes.length - 1 ? ", " : ""}
+              {i < (spell.classes || []).length - 1 ? ", " : ""}
             </span>
           ))}
         </p>

@@ -1,89 +1,26 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
-import { Race, Subrace } from "../../types/dnd-types";
-import { RACES, SUBRACES } from "../../data/comprehensive-library";
+import { Race } from "../../types/dnd-types";
 import { useRaces } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
 
 // Race Selection Step
 export function RaceStep({
     race,
-    subrace,
     onChange,
 }: {
     race?: Race;
-    subrace?: Subrace;
-    onChange: (race: Race, subrace?: Subrace) => void;
+    onChange: (race: Race) => void;
 }) {
-    const [showNonCore, setShowNonCore] = useState(true); // Default to true now to show expansions
+    const [showNonCore, setShowNonCore] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
     // Fetch races from Sanity
     const { data: sanityRaces, loading: racesLoading } = useRaces();
-    const useSanityData = sanityRaces && sanityRaces.length > 0;
 
-    // Flatten races and subraces logic (for local data only)
     const displayRaces = useMemo(() => {
-        // If we have Sanity data, use it directly
-        if (useSanityData) {
-            let all = [...sanityRaces];
-
-            // Filter by search term
-            if (searchTerm) {
-                const lower = searchTerm.toLowerCase();
-                all = all.filter(r => r.name.toLowerCase().includes(lower));
-            }
-
-            // Filter non-core if needed
-            if (!showNonCore) {
-                all = all.filter(r => r.source === "Player's Handbook" || r.source === "Official");
-            }
-
-            return all.sort((a, b) => a.name.localeCompare(b.name));
-        }
-
-        // Fallback to local data with synthetic subrace logic
-        const flattened: Race[] = [];
-
-        // Helper to check if a race has specific flattened variants coming up
-        const hasVariants = (id: string) => ["dwarf", "elf", "halfling", "gnome", "human"].includes(id);
-
-        RACES.forEach(r => {
-            // If it's a "Core" race that has explicit subraces in the UI (Hill/Mountain), hide the base?
-            if (r.id === "dwarf") return;
-            if (r.id === "elf") return;
-            if (r.id === "halfling") return;
-            if (r.id === "gnome") return;
-            if (r.id === "human") return;
-
-            flattened.push(r);
-        });
-
-        // Now inject Subraces as "Races"
-        const subraceCards = SUBRACES.map(s => {
-            // Find parent base stats
-            const parent = RACES.find(r => r.id === s.parentRaceId);
-            if (!parent) return null;
-
-            // Create a synthetic Race object
-            return {
-                ...parent,
-                id: s.id, // e.g. "hill-dwarf"
-                name: s.name,
-                description: s.description,
-                abilityScoreIncrease: { ...parent.abilityScoreIncrease, ...s.abilityScoreIncrease },
-                traits: [...parent.traits, ...s.traits],
-                isSubrace: true, // Marker
-                parentRaceId: s.parentRaceId
-            } as Race & { isSubrace?: boolean, parentRaceId?: string };
-        }).filter(Boolean) as Race[];
-
-        // Add Human back explicitly if not treated as subrace
-        const human = RACES.find(r => r.id === "human");
-        if (human) flattened.push(human);
-
-        // Merge
-        let all = [...flattened, ...subraceCards];
+        // Use Sanity data
+        let all = sanityRaces || [];
 
         // Filter by search term
         if (searchTerm) {
@@ -91,42 +28,19 @@ export function RaceStep({
             all = all.filter(r => r.name.toLowerCase().includes(lower));
         }
 
-        // Filter non-core
+        // Filter non-core if needed
         if (!showNonCore) {
-            const coreIds = [
-                "hill-dwarf", "mountain-dwarf", "high-elf", "wood-elf", "drow",
-                "lightfoot-halfling", "stout-halfling", "human", "human-feat",
-                "dragonborn", "tiefling", "half-orc", "half-elf", "gnome-forest", "gnome-rock"
-            ];
-            all = all.filter(r => coreIds.includes(r.id) || r.source === "Player's Handbook" || r.source === "Official");
+            all = all.filter(r => r.source === "Player's Handbook" || r.source === "Official");
         }
 
         return all.sort((a, b) => a.name.localeCompare(b.name));
-    }, [showNonCore, searchTerm, useSanityData, sanityRaces]);
+    }, [showNonCore, searchTerm, sanityRaces]);
 
     // Use the race from displayRaces to ensure we have Sanity image data
     const displayedRace = race ? displayRaces.find(r => r.id === race.id) || race : undefined;
 
     const handleRaceClick = (r: Race) => {
-        // If using Sanity data, just pass the race directly
-        if (useSanityData) {
-            onChange(r, undefined);
-            return;
-        }
-
-        // Check if it's a subrace wrapper (for local data only)
-        const isSynthetic = (r as any).isSubrace;
-        if (isSynthetic) {
-            const parent = RACES.find(p => p.id === (r as any).parentRaceId);
-            const realSubrace = SUBRACES.find(s => s.id === r.id);
-            if (parent && realSubrace) {
-                onChange(parent, realSubrace);
-                return;
-            }
-        }
-
-        // Normal race
-        onChange(r, undefined);
+        onChange(r);
     };
 
     return (
@@ -171,13 +85,7 @@ export function RaceStep({
                 ) : (
                     <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                         {displayRaces.map(r => {
-                            // Check if active (selected)
-                            let isActive = false;
-                            if (subrace) {
-                                isActive = r.id === subrace.id;
-                            } else if (race) {
-                                isActive = r.id === race.id;
-                            }
+                            const isActive = race?.id === r.id;
 
                             return (
                                 <button
@@ -217,17 +125,15 @@ export function RaceStep({
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 e.currentTarget.style.display = 'none';
-                                                // Show fallback icon if image fails
                                                 const iconContainer = e.currentTarget.nextElementSibling;
                                                 if (iconContainer) {
                                                     (iconContainer as HTMLElement).style.display = 'flex';
                                                 }
                                             }}
                                         />
-                                        {/* Fallback Icon - hidden by default unless image is missing/broken */}
                                         <div
                                             className="absolute inset-0 flex items-center justify-center -z-10"
-                                            style={{ display: 'none' }} // Controlled by onError above
+                                            style={{ display: 'none' }}
                                         >
                                             <User className="w-12 h-12 text-gray-300" />
                                         </div>
@@ -242,7 +148,10 @@ export function RaceStep({
                             <div>
                                 <span className="font-bold text-gray-900">Ability Score Increase.</span>{' '}
                                 <span className="text-gray-700">
-                                    {Object.entries(displayedRace.abilityScoreIncrease).map(([k, v]) => `${k} +${v}`).join(", ") || "None"}
+                                    {displayedRace.flexibleAbilityScores
+                                        ? "+2/+1 or +1/+1/+1"
+                                        : (Object.entries(displayedRace.abilityScoreIncrease).filter(([_, v]) => v && v > 0).map(([k, v]) => `${k} +${v}`).join(", ") || "None")
+                                    }
                                 </span>
                             </div>
 
@@ -279,12 +188,10 @@ export function RaceStep({
                                         {displayedRace.spells.map((s, i) => {
                                             const parts: React.ReactNode[] = [];
 
-                                            // Level Requirement Prefix
                                             if (s.level > 1) {
                                                 parts.push(<span key="lvl" className="font-semibold text-indigo-700">Level {s.level}:</span>);
                                             }
 
-                                            // Core Grant Info
                                             let mainText = "";
                                             if (s.mode === 'fixed') {
                                                 if (s.specificSpells && s.specificSpells.length > 0) {
@@ -307,7 +214,6 @@ export function RaceStep({
                                             }
                                             parts.push(<span key="main">{mainText}</span>);
 
-                                            // Details
                                             const details: string[] = [];
                                             if (s.ability) details.push(s.ability);
                                             if (s.recharge) details.push(s.recharge === 'day' ? '1/Day' : s.recharge);

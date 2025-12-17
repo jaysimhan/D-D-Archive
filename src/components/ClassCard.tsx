@@ -113,7 +113,7 @@ export function ClassCard({ classData }: ClassCardProps) {
         <div className="mt-3 space-y-2">
           <p className="text-sm text-gray-900">Key Features:</p>
           <div className="space-y-1">
-            {classData.features.map((feature, i) => (
+            {(classData.features || []).map((feature, i) => (
               <div key={i} className="text-sm pl-3 border-l-2 border-blue-500">
                 <span className="text-gray-900">{feature.name}</span>
                 <span className="text-gray-600"> (Level {feature.level})</span>

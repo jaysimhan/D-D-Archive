@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
 import { Background } from "../../types/dnd-types";
-import { BACKGROUNDS as mockBackgrounds } from "../../data/comprehensive-library";
 import { useBackgrounds } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
 
@@ -15,9 +14,9 @@ export function BackgroundStep({
 }) {
     const [searchTerm, setSearchTerm] = useState("");
 
-    // Fetch backgrounds from Sanity, fall back to mock data
+    // Fetch backgrounds from Sanity
     const { data: sanityBackgrounds, loading: backgroundsLoading } = useBackgrounds();
-    const allBackgrounds = sanityBackgrounds && sanityBackgrounds.length > 0 ? sanityBackgrounds : mockBackgrounds;
+    const allBackgrounds = sanityBackgrounds || [];
 
     const filteredBackgrounds = useMemo(() => {
         return allBackgrounds.filter((bg) =>

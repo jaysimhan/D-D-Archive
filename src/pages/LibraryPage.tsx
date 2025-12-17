@@ -1,36 +1,29 @@
-import { useState } from "react";
-import type { Race, Class, Spell, Item, Feat, Background } from "../types/dnd-types";
-import {
-    RACES,
-    BACKGROUNDS,
-    FEATS,
-    CLASSES,
-    SUBCLASSES,
-    SPELLS,
-    ITEMS
-} from "../data/comprehensive-library";
+import { useRaces, useClasses, useSubclasses, useSpells, useItems, useFeats, useBackgrounds } from "../hooks/useSanityData";
 import { Library } from "../components/Library";
 
 export function LibraryPage() {
-    // Content management state - initializing with imported data
-    // In a real app this might come from an API, but here we mirror App.tsx behavior
-    const [races] = useState<Race[]>(RACES);
-    const [classes] = useState<Class[]>(CLASSES.filter(c => !((c as any).parentClassId)));
-    const [subclasses] = useState(SUBCLASSES);
-    const [spells] = useState<Spell[]>(SPELLS);
-    const [items] = useState<Item[]>(ITEMS);
-    const [feats] = useState<Feat[]>(FEATS);
-    const [backgrounds] = useState<Background[]>(BACKGROUNDS);
+    const { data: races } = useRaces();
+    const { data: classes } = useClasses();
+    const { data: subclasses } = useSubclasses();
+    const { data: spells } = useSpells();
+    const { data: items } = useItems();
+    const { data: feats } = useFeats();
+    const { data: backgrounds } = useBackgrounds();
+
+    // Filter classes to only main ones if needed, though hook likely returns all. 
+    // The previous logic filtered classes without parentClassId. 
+    // Sanity 'class' documents likely don't have parentClassId (only subclasses do).
+    // So 'classes' should be fine.
 
     return (
         <Library
-            spells={spells}
-            classes={classes}
-            subclasses={subclasses}
-            races={races}
-            items={items}
-            backgrounds={backgrounds}
-            feats={feats}
+            spells={spells || []}
+            classes={classes || []}
+            subclasses={subclasses || []}
+            races={races || []}
+            items={items || []}
+            backgrounds={backgrounds || []}
+            feats={feats || []}
         />
     );
 }

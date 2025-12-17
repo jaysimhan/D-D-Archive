@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { Search, User, Sparkles, Plus } from "lucide-react";
+import { Search, User, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
-import { SPELLS as expandedSpells } from "../../data/comprehensive-library";
+import { useSpells } from "../../hooks/useSanityData";
 
 // Spell Selection Step - Slot Based
 export function SpellSelectionStep({
@@ -27,6 +27,7 @@ export function SpellSelectionStep({
     magicInitiateClass?: string;
     onMagicInitiateClassChange?: (cls: string) => void;
 }) {
+    const { data: allSpells, loading: spellsLoading } = useSpells();
     const [activeSlot, setActiveSlot] = useState<{ level: number, index: number, source: string, choiceIndex?: number } | null>(null);
 
     // Magic Initiate Detection
@@ -230,6 +231,62 @@ export function SpellSelectionStep({
         );
     };
 
+    // Check if character has any spellcasting ability
+    const hasSpellcasting = classData?.spellcaster ||
+        (subclass?.spellcaster) ||
+        hasMagicInitiate ||
+        hasAberrantDragonmark ||
+        hasRacialCantripChoice ||
+        (race?.racialKnownSpells && race.racialKnownSpells.length > 0) ||
+        (subrace?.racialKnownSpells && subrace.racialKnownSpells.length > 0) ||
+        (race?.spells && race.spells.length > 0) ||
+        (subrace?.spells && subrace.spells.length > 0);
+
+    const totalSlots = classSlots.length + magicInitiateSlots.length + aberrantSlots.length + racialSlots.length;
+
+    // Check for fixed racial spells that would be displayed
+    const hasFixedRacialSpells = (race?.racialKnownSpells && race.racialKnownSpells.length > 0) ||
+        (subrace?.racialKnownSpells && subrace.racialKnownSpells.length > 0) ||
+        (race?.spells && race.spells.some(s => s.mode === 'fixed')) ||
+        (subrace?.spells && subrace.spells.some(s => s.mode === 'fixed'));
+
+    // If no slots to display AND no fixed racial spells, show the "No Spellcasting" message
+    if (totalSlots === 0 && !hasFixedRacialSpells) {
+        return (
+            <div className="min-h-[500px]">
+                <div className="text-center mb-6">
+                    <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <h2 className="text-gray-900 text-2xl font-bold mb-2">Spells</h2>
+                    <p className="text-gray-600">Review your spellcasting abilities.</p>
+                </div>
+
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Sparkles className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Spellcasting</h3>
+                        <p className="text-gray-500 mb-4 max-w-md mx-auto">
+                            Your current class, subclass, and race do not grant any spellcasting abilities.
+                            You can proceed to the next step.
+                        </p>
+                        <div className="text-sm text-gray-400">
+                            <p>
+                                Spellcasting can be gained through:
+                            </p>
+                            <ul className="mt-2 space-y-1">
+                                <li>• Choosing a spellcasting class (Wizard, Cleric, Bard, etc.)</li>
+                                <li>• Selecting a spellcasting subclass (Eldritch Knight, Arcane Trickster, etc.)</li>
+                                <li>• Taking the Magic Initiate or similar feats</li>
+                                <li>• Choosing a race with innate spellcasting</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-[500px]">
             <div className="text-center mb-6">
@@ -282,7 +339,7 @@ export function SpellSelectionStep({
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {knownRacialSpells.map((known, idx) => {
-                                    const spell = expandedSpells.find(s => s.id === known.spellId) || { name: known.name || "Unknown Spell", id: known.spellId };
+                                    const spell = allSpells.find(s => s.id === known.spellId) || { name: known.name || "Unknown Spell", id: known.spellId };
                                     if (!spell) return null;
                                     return (
                                         <div key={`${known.spellId}-${idx}`} className="p-3 bg-white border-2 border-indigo-300 rounded-lg opacity-90">
@@ -315,6 +372,7 @@ export function SpellSelectionStep({
                     subclass={subclass}
                     race={race}
                     subrace={subrace}
+                    allSpells={allSpells}
                     racialChoice={activeSlot.source === "Racial" && (activeSlot as any).choiceIndex !== undefined
                         ? racialChoices[(activeSlot as any).choiceIndex]
                         : undefined}
@@ -335,6 +393,7 @@ function SpellSelectionModal({
     subclass,
     race,
     subrace,
+    allSpells,
     racialChoice
 }: {
     classData: Class;
@@ -347,6 +406,7 @@ function SpellSelectionModal({
     subclass?: Subclass;
     race?: Race;
     subrace?: Subrace; // Add subrace prop
+    allSpells: Spell[];
     racialChoice?: { list: string[]; name: string; school?: string; level?: number; spellList?: string }; // Specific choice block
 }) {
     const [searchTerm, setSearchTerm] = useState("");
@@ -366,7 +426,7 @@ function SpellSelectionModal({
 
         // specialized logic for Divine Soul Class Slots
         if (isDivineSoulSelection) {
-            return expandedSpells.filter(s =>
+            return allSpells.filter(s =>
                 s.level === slotLevel &&
                 !currentSpells.find(existing => existing.id === s.id) &&
                 (
@@ -389,7 +449,7 @@ function SpellSelectionModal({
 
         // Racial Logic
         if (slotSource === "Racial" && racialChoice) {
-            return expandedSpells.filter(s => {
+            return allSpells.filter(s => {
                 // Check level cap
                 if (racialChoice.level !== undefined && s.level > racialChoice.level) return false;
                 if (racialChoice.level === undefined && s.level !== 0) return false; // Default to cantrip
@@ -420,12 +480,12 @@ function SpellSelectionModal({
         }
 
         // Default: Class spell selection (targetClass already set above)
-        return expandedSpells.filter(s =>
+        return allSpells.filter(s =>
             s.level === slotLevel &&
             s.classes.includes(targetClass) &&
             !currentSpells.find(existing => existing.id === s.id)
         );
-    }, [classData, slotLevel, currentSpells, slotSource, magicInitiateClass, subclass, race, isDivineSoulSelection, divineSoulFilter, racialChoice]);
+    }, [classData, slotLevel, currentSpells, slotSource, magicInitiateClass, subclass, race, isDivineSoulSelection, divineSoulFilter, racialChoice, allSpells]);
 
     const filtered = spells.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
 

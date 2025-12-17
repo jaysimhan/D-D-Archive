@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
 import { Class, Subclass } from "../../types/dnd-types";
-import { SUBCLASSES as mockSubclasses } from "../../data/comprehensive-library";
 import { useSubclasses } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
 
@@ -30,44 +29,8 @@ export function SubclassStep({
 
     const availableSubclasses = useMemo(() => {
         const sanity = sanitySubclasses || [];
-        const mock = mockSubclasses || [];
-
-        // First, deduplicate mock data - prefer entries with magicType
-        const deduplicatedMock = new Map<string, typeof mock[0]>();
-        for (const s of mock) {
-            const existing = deduplicatedMock.get(s.id);
-            if (!existing || (s.magicType && !existing.magicType)) {
-                deduplicatedMock.set(s.id, s);
-            }
-        }
-        const uniqueMock = Array.from(deduplicatedMock.values());
-
-        // If Sanity hasn't loaded yet, use deduplicated mock data
-        if (sanity.length === 0) {
-            return uniqueMock.filter((sc) => sc.parentClassId === classData.id);
-        }
-
-        const mockMap = new Map(uniqueMock.map(s => [s.id, s]));
-
-        // Augment sanity data with missing fields from mock
-        const augmentedSanity = sanity.map(s => {
-            const mockVer = mockMap.get(s.id);
-            if (mockVer) {
-                return {
-                    ...s,
-                    // Fall back to Mock for missing magic fields
-                    magicType: s.magicType || mockVer.magicType,
-                    magicAbility: s.magicAbility || mockVer.magicAbility,
-                    magicDescription: s.magicDescription || mockVer.magicDescription,
-                    spellcaster: s.spellcaster ?? mockVer.spellcaster
-                };
-            }
-            return s;
-        });
-
-        const sanityIds = new Set(augmentedSanity.map(s => s.id));
-        const allSubclasses = [...augmentedSanity, ...uniqueMock.filter(s => !sanityIds.has(s.id))];
-        return allSubclasses.filter((sc) => sc.parentClassId === classData.id);
+        // Just use Sanity data (plus we only need subclasses for this class)
+        return sanity.filter((sc) => sc.parentClassId === classData.id);
     }, [classData.id, sanitySubclasses]);
 
     const filteredSubclasses = useMemo(() => {
