@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { sanityClient } from '../lib/sanity';
-import type { Class, Subclass, Race, Background, Spell, Feat, Item } from '../types/dnd-types';
+import type { Class, Subclass, Race, Background, Spell, Feat, Item, HomepageData } from '../types/dnd-types';
 
 // Helper hook for Sanity queries
 function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
@@ -188,12 +188,16 @@ export function useMonsters() {
 }
 
 // ===== HOMEPAGE =====
+// ===== HOMEPAGE =====
 export function useHomepage() {
-    return useSanityQuery<any>(`*[_type == "homepage"] {
+    return useSanityQuery<HomepageData>(`*[_type == "homepage"] {
         title,
+        heroTitleLine1,
+        heroTitleLine2,
         subtitle,
         heroImage,
         features,
         footer
     }`);
 }
+

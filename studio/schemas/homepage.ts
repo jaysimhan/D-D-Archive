@@ -7,10 +7,57 @@ export default defineType({
     fields: [
         defineField({
             name: 'title',
-            title: 'Hero Title',
+            title: 'Hero Title (Deprecated)',
             type: 'string',
-            description: 'The main title displayed in the hero section',
-            validation: Rule => Rule.required()
+            description: 'Deprecated. Use Hero Title Line 1 and 2 instead.',
+            hidden: true,
+            validation: Rule => Rule.warning('This field is deprecated.')
+        }),
+        defineField({
+            name: 'heroTitleLine1',
+            title: 'Hero Title Line 1',
+            type: 'object',
+            fields: [
+                defineField({ name: 'text', type: 'string', title: 'Text' }),
+                defineField({ name: 'fontSize', type: 'string', title: 'Font Size (e.g. 7xl)', initialValue: '7xl' }),
+                defineField({ name: 'letterSpacing', type: 'string', title: 'Letter Spacing', initialValue: 'normal' }),
+                defineField({
+                    name: 'style',
+                    type: 'string',
+                    title: 'Style',
+                    options: {
+                        list: [
+                            { title: 'Default (Cream/White)', value: 'default' },
+                            { title: 'Glow (Amber)', value: 'glow' },
+                            { title: 'Gradient (Amber/Orange)', value: 'gradient' }
+                        ]
+                    },
+                    initialValue: 'glow'
+                }),
+            ]
+        }),
+        defineField({
+            name: 'heroTitleLine2',
+            title: 'Hero Title Line 2',
+            type: 'object',
+            fields: [
+                defineField({ name: 'text', type: 'string', title: 'Text' }),
+                defineField({ name: 'fontSize', type: 'string', title: 'Font Size (e.g. 9xl)', initialValue: '9xl' }),
+                defineField({ name: 'letterSpacing', type: 'string', title: 'Letter Spacing', initialValue: 'normal' }),
+                defineField({
+                    name: 'style',
+                    type: 'string',
+                    title: 'Style',
+                    options: {
+                        list: [
+                            { title: 'Default (Cream/White)', value: 'default' },
+                            { title: 'Glow (Amber)', value: 'glow' },
+                            { title: 'Gradient (Amber/Orange)', value: 'gradient' }
+                        ]
+                    },
+                    initialValue: 'gradient'
+                }),
+            ]
         }),
         defineField({
             name: 'subtitle',

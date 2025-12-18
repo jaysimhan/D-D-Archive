@@ -10,6 +10,7 @@ export type CreationStep =
     | "spells"
     | "feats"
     | "proficiencies"
+    | "hp"
     | "equipment"
     | "personality";
 
@@ -40,4 +41,6 @@ export interface CharacterData {
         weapons: string[];
     };
     racialBonusAllocation?: Record<string, number>;
+    hpMax?: number;
+    hpRolls?: number[];
 }

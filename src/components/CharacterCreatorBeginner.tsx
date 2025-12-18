@@ -17,9 +17,10 @@ import { EquipmentStep } from "./character-creator/EquipmentStep";
 import { PersonalityStep } from "./character-creator/PersonalityStep";
 import { FeatSelectionStep } from "./character-creator/FeatSelectionStep";
 import { ProficiencyStep } from "./character-creator/ProficiencyStep";
+import { HitPointsStep } from "./character-creator/HitPointsStep";
 
 export function CharacterCreator() {
-  const [currentStep, setCurrentStep] = useState<CreationStep>("name");
+  const [currentStep, setCurrentStep] = useState<CreationStep>("race");
   const [isComplete, setIsComplete] = useState(false);
   const [characterData, setCharacterData] = useState<CharacterData>({
     name: "",
@@ -49,7 +50,7 @@ export function CharacterCreator() {
   }, [sanitySubclasses]);
 
   const steps: CreationStep[] = useMemo(() => {
-    const baseSteps: CreationStep[] = ["name", "race", "class"];
+    const baseSteps: CreationStep[] = ["race", "class"];
 
     // Add subclass step if character level requires it
     if (characterData.class) {
@@ -66,12 +67,20 @@ export function CharacterCreator() {
       }
     }
 
-    baseSteps.push("feats"); // Feats Moved BEFORE abilities
-    baseSteps.push("abilities");
-    baseSteps.push("proficiencies"); // Added Proficiencies
     baseSteps.push("background");
-    baseSteps.push("spells"); // Always show spells step
-    baseSteps.push("equipment", "personality");
+    baseSteps.push("feats");
+    baseSteps.push("abilities");
+    baseSteps.push("proficiencies");
+    baseSteps.push("spells");
+
+    // New Steps
+    baseSteps.push("hp"); // We need to add 'hp' to CreationStep type or use a loose string for now, but better to update type. 
+    // Wait, I can't update type easily in this call. I will cast or hope TS ignores if I don't update type file? 
+    // No, I should update type file first or use "equipment" as next known.
+    // I will add "hp" to the types/character-creator.ts file in a separate call.
+    // For now let's assume I will do that.
+    baseSteps.push("equipment");
+    baseSteps.push("personality"); // Matches "Character Details"
 
     return baseSteps;
   }, [characterData.class, characterData.level, characterData.feats, characterData.race, allSubclasses]);
@@ -92,29 +101,28 @@ export function CharacterCreator() {
 
   const canProgress = (): boolean => {
     switch (currentStep) {
-      case "name":
-        return characterData.name.trim().length > 0;
       case "race":
         return !!characterData.race;
       case "class":
         return !!characterData.class;
       case "subclass":
         return !!characterData.subclass;
-      case "abilities":
-        return true;
       case "background":
         return !!characterData.background;
-      case "spells":
-        // Always allow progression - non-spellcasters don't need to select spells
-        return true;
       case "feats":
+        return true;
+      case "abilities":
         return true;
       case "proficiencies":
         return true;
+      case "spells":
+        return true;
+      case "hp": // New
+        return true;
       case "equipment":
         return true;
-      case "personality":
-        return true;
+      case "personality": // Character Details - Check Name
+        return characterData.name.trim().length > 0;
       default:
         return false;
     }
@@ -216,7 +224,7 @@ export function CharacterCreator() {
         <div className="bg-white rounded-xl shadow-lg border">
           <div className="p-4 md:p-8">
             {/* Step Content */}
-            {currentStep === "name" && <NameStep characterData={characterData} setCharacterData={setCharacterData} />}
+
             {currentStep === "race" && (
               <RaceStep
                 race={characterData.race}
@@ -266,6 +274,7 @@ export function CharacterCreator() {
             {currentStep === "proficiencies" && (
               <ProficiencyStep
                 proficiencies={characterData.proficiencies || { skills: [], languages: ["Common"], tools: [], armor: [], weapons: [] }}
+                race={characterData.race}
                 onProficienciesChange={(proficiencies: any) =>
                   setCharacterData({ ...characterData, proficiencies })
                 }
@@ -292,6 +301,22 @@ export function CharacterCreator() {
                 onMagicInitiateClassChange={(cls) => setCharacterData({ ...characterData, magicInitiateClass: cls })}
               />
             )}
+            {currentStep === "hp" && (
+              <HitPointsStep
+                classData={characterData.class}
+                abilityScores={characterData.abilityScores}
+                level={characterData.level}
+                race={characterData.race}
+                subrace={characterData.subrace}
+                feats={characterData.feats}
+                racialBonusAllocation={characterData.racialBonusAllocation}
+                hpRolls={characterData.hpRolls}
+                onHpRollsChange={(rolls) => setCharacterData(prev => ({ ...prev, hpRolls: rolls }))}
+                onMaxHpChange={(val) =>
+                  setCharacterData(prev => ({ ...prev, hpMax: val }))
+                }
+              />
+            )}
             {currentStep === "equipment" && (
               <EquipmentStep
                 equipment={characterData.equipment}
@@ -300,12 +325,27 @@ export function CharacterCreator() {
               />
             )}
             {currentStep === "personality" && (
-              <PersonalityStep
-                personality={characterData.personality}
-                onPersonalityChange={(personality) =>
-                  setCharacterData({ ...characterData, personality })
-                }
-              />
+              <div className="space-y-6">
+                <div className="max-w-xl mx-auto space-y-4">
+                  <h2 className="text-xl font-bold text-center">Final Details</h2>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Character Name</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Enter character name..."
+                      value={characterData.name}
+                      onChange={(e) => setCharacterData({ ...characterData, name: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <PersonalityStep
+                  personality={characterData.personality}
+                  onPersonalityChange={(personality) =>
+                    setCharacterData({ ...characterData, personality })
+                  }
+                />
+              </div>
             )}
 
             {/* Navigation */}

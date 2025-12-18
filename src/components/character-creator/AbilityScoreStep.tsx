@@ -53,9 +53,32 @@ export function AbilityScoreStep({
     // assignments[colIndex] = AbilityKey | null
     const [assignments, setAssignments] = useState<(AbilityKey | null)[]>([null, null, null]);
 
+    // Calculate derived allocation for parent
+    const localAllocation: RacialBonusAllocation = useMemo(() => {
+        const alloc: RacialBonusAllocation = {};
+        assignments.forEach(ability => {
+            if (ability) {
+                alloc[ability] = (alloc[ability] || 0) + 1;
+            }
+        });
+        return alloc;
+    }, [assignments]);
+
     // Initialize from props (Hydration)
     useEffect(() => {
         if (racialBonusAllocation && isFlexible) {
+            // Check if current internal state already matches the prop allocation
+            // This prevents "defragging" the dots (e.g. 101 -> 110) while the user is interacting
+            const currentAllocIsMatch = Object.entries(racialBonusAllocation).every(([key, val]) => {
+                return (localAllocation[key] || 0) === val;
+            });
+            // Also need to check if we have extra keys in local not in props (rare if synced, but good for safety)
+            const localHasExtra = Object.keys(localAllocation).some(key => !racialBonusAllocation[key]);
+
+            if (currentAllocIsMatch && !localHasExtra) {
+                return;
+            }
+
             const newAssignments: (AbilityKey | null)[] = [null, null, null];
             let colIndex = 0;
 
@@ -68,18 +91,9 @@ export function AbilityScoreStep({
             });
             setAssignments(newAssignments);
         }
-    }, [racialBonusAllocation, isFlexible]); // Run once when props/mode stabilizes? Actually be careful of loops.
+    }, [racialBonusAllocation, isFlexible, localAllocation]);
 
-    // Calculate derived allocation for parent
-    const localAllocation: RacialBonusAllocation = useMemo(() => {
-        const alloc: RacialBonusAllocation = {};
-        assignments.forEach(ability => {
-            if (ability) {
-                alloc[ability] = (alloc[ability] || 0) + 1;
-            }
-        });
-        return alloc;
-    }, [assignments]);
+
 
     // Sync to parent when assignments change
     const updateParent = (newAssignments: (AbilityKey | null)[]) => {
@@ -175,15 +189,16 @@ export function AbilityScoreStep({
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-[140px_1fr_120px_120px] gap-4 mb-2 px-2 text-sm font-semibold text-gray-600">
+            <div className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center mb-2 px-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
                 <div></div>
                 <div className="text-center">Brut Score</div>
                 <div className="text-center">Racial Bonus</div>
+                <div className="text-center">Feat Bonus</div>
                 <div className="text-center">Final Score</div>
             </div>
 
             {/* Ability Rows */}
-            <div className="space-y-3">
+            <div className="space-y-2">
                 {abilities.map((ability) => {
                     const baseScore = scores[ability];
                     const racialBonus = getRacialBonus(ability);
@@ -193,36 +208,36 @@ export function AbilityScoreStep({
                     return (
                         <div
                             key={ability}
-                            className="grid grid-cols-[140px_1fr_120px_120px] gap-4 items-center py-3 px-2 rounded-lg hover:bg-gray-50"
+                            className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center py-4 px-4 bg-white border border-gray-100 rounded-xl hover:border-indigo-200 hover:shadow-sm transition-all"
                         >
                             {/* Ability Name */}
-                            <div className="font-bold text-gray-900 text-lg">
+                            <div className="font-bold text-gray-800 text-lg">
                                 {ABILITY_NAMES[ability]}
                             </div>
 
                             {/* Base Score with +/- buttons */}
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-3">
                                 <button
                                     onClick={() => adjustScore(ability, -1)}
                                     disabled={baseScore <= 1}
-                                    className="w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded font-bold text-xl hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    <Minus className="w-5 h-5" />
+                                    <Minus className="w-4 h-4" />
                                 </button>
-                                <div className="w-14 h-10 flex items-center justify-center bg-gray-800 text-white font-bold text-xl rounded">
+                                <div className="w-12 text-center font-bold text-xl text-gray-900">
                                     {baseScore}
                                 </div>
                                 <button
                                     onClick={() => adjustScore(ability, 1)}
                                     disabled={baseScore >= 20}
-                                    className="w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded font-bold text-xl hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    <Plus className="w-5 h-5" />
+                                    <Plus className="w-4 h-4" />
                                 </button>
                             </div>
 
                             {/* Racial Bonus Matrix */}
-                            <div className="flex items-center justify-center gap-4">
+                            <div className="flex items-center justify-center gap-2 w-full">
                                 {[0, 1, 2].map((colIndex) => {
                                     // Status for this cell
                                     const assignedToSelf = assignments[colIndex] === ability;
@@ -241,26 +256,31 @@ export function AbilityScoreStep({
                                             onClick={() => handleToggle(ability, colIndex)}
                                             disabled={!isClickable || disabled}
                                             className={`
-                                                w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center
+                                                w-7 h-7 rounded-full border-[1.5px] transition-all flex items-center justify-center
                                                 ${assignedToSelf
-                                                    ? (isHuman ? 'border-gray-500' : 'border-indigo-600')
-                                                    : 'border-gray-400'
+                                                    ? (isHuman ? 'border-gray-500 bg-gray-50' : 'border-indigo-600 bg-indigo-50')
+                                                    : 'border-gray-300 hover:border-gray-400'
                                                 }
                                                 ${isClickable && !disabled
                                                     ? 'cursor-pointer hover:border-indigo-400'
                                                     : ''
                                                 }
-                                                ${(!isClickable || disabled) ? 'cursor-default opacity-50' : ''}
+                                                ${(!isClickable || disabled) ? 'cursor-default opacity-40' : ''}
                                             `}
                                             title={disabled ? "Max +2 per ability" : `Assign Point ${colIndex + 1}`}
                                         >
                                             {/* Inner Dot */}
                                             {assignedToSelf && (
-                                                <div className={`w-3 h-3 rounded-full ${isHuman ? 'bg-gray-500' : 'bg-indigo-600'}`} />
+                                                <div className={`w-3.5 h-3.5 rounded-full ${isHuman ? 'bg-gray-500' : 'bg-indigo-600'}`} />
                                             )}
                                         </button>
                                     );
                                 })}
+                            </div>
+
+                            {/* Feat Bonus */}
+                            <div className="text-center font-medium text-gray-700">
+                                {featBonus > 0 ? `+${featBonus}` : '-'}
                             </div>
 
                             {/* Final Score with Modifier */}

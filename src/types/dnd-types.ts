@@ -484,3 +484,29 @@ export const SPELL_SLOTS_BY_LEVEL: {
     20: [4, 3, 3, 1, 0, 0, 0, 0, 0],
   },
 };
+
+// ===== Homepage System =====
+export interface HeroTitleLine {
+  text: string;
+  fontSize: string;
+  letterSpacing: string;
+  style: "default" | "glow" | "gradient" | string;
+}
+
+export interface HomepageData {
+  title?: string; // Deprecated
+  heroTitleLine1?: HeroTitleLine;
+  heroTitleLine2?: HeroTitleLine;
+  subtitle: string;
+  heroImage?: SanityImage;
+  features?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+  footer?: {
+    text: string;
+    disclaimer: string;
+    credits: string;
+  };
+}

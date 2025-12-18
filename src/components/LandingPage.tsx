@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Swords, BookOpen, Flame, Crown } from "lucide-react";
 import { useHomepage } from "../hooks/useSanityData";
 import { urlFor } from "../lib/sanity";
+import { SmokeEffect } from "./SmokeEffect";
 
 export function LandingPage() {
   const { data: homepageData } = useHomepage();
@@ -61,6 +62,9 @@ export function LandingPage() {
           <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl animate-drift"></div>
           <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl animate-drift-reverse"></div>
         </div>
+
+        {/* Three.js Smoke Effect */}
+        <SmokeEffect />
       </div>
 
       {/* Content Container */}
@@ -96,12 +100,27 @@ export function LandingPage() {
 
             {/* Title */}
             <div className="space-y-3 sm:space-y-4">
-              <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-serif leading-none">
-                <span className="block text-amber-100 drop-shadow-[0_0_30px_rgba(251,191,36,0.3)] animate-glow">
-                  {content?.title ? content.title.split(' ')[0] : "Forge Your"}
+              <h2 className="font-serif leading-none flex flex-col items-center">
+                <span className={`block ${content?.heroTitleLine1?.fontSize ? `text-${content.heroTitleLine1.fontSize}` : 'text-5xl sm:text-7xl md:text-8xl lg:text-9xl'
+                  } ${content?.heroTitleLine1?.letterSpacing ? `tracking-${content.heroTitleLine1.letterSpacing}` : ''
+                  } ${(content?.heroTitleLine1?.style || 'glow') === 'gradient'
+                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-orange-600 drop-shadow-[0_0_50px_rgba(251,191,36,0.5)] animate-glow-intense'
+                    : (content?.heroTitleLine1?.style || 'glow') === 'glow'
+                      ? 'text-amber-100 drop-shadow-[0_0_30px_rgba(251,191,36,0.3)] animate-glow'
+                      : 'text-amber-100'
+                  }`}>
+                  {content?.heroTitleLine1?.text || (content?.title ? content.title.split(' ')[0] : "Forge")}
                 </span>
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-orange-600 drop-shadow-[0_0_50px_rgba(251,191,36,0.5)] animate-glow-intense">
-                  {content?.title ? content.title.split(' ').slice(1).join(' ') : "Legend"}
+
+                <span className={`block ${content?.heroTitleLine2?.fontSize ? `text-${content.heroTitleLine2.fontSize}` : 'text-5xl sm:text-7xl md:text-8xl lg:text-9xl'
+                  } ${content?.heroTitleLine2?.letterSpacing ? `tracking-${content.heroTitleLine2.letterSpacing}` : ''
+                  } ${(content?.heroTitleLine2?.style || 'gradient') === 'gradient'
+                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-orange-600 drop-shadow-[0_0_50px_rgba(251,191,36,0.5)] animate-glow-intense'
+                    : (content?.heroTitleLine2?.style || 'gradient') === 'glow'
+                      ? 'text-amber-100 drop-shadow-[0_0_30px_rgba(251,191,36,0.3)] animate-glow'
+                      : 'text-amber-100'
+                  }`}>
+                  {content?.heroTitleLine2?.text || (content?.title ? content.title.split(' ').slice(1).join(' ') : "Your Legend")}
                 </span>
               </h2>
               <p className="text-base sm:text-xl md:text-2xl text-amber-200/60 max-w-3xl mx-auto leading-relaxed font-light tracking-wide px-4">

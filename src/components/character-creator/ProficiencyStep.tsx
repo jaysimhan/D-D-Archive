@@ -6,6 +6,7 @@ import { CharacterData } from "../../types/character-creator";
 export function ProficiencyStep({
     proficiencies,
     onProficienciesChange,
+    race,
 }: {
     proficiencies: {
         skills: { name: string; proficient: boolean; expertise: boolean }[];
@@ -15,6 +16,7 @@ export function ProficiencyStep({
         weapons: string[];
     };
     onProficienciesChange: (proficiencies: any) => void;
+    race?: CharacterData['race'];
 }) {
     const SKILLS = [
         "Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History",
@@ -137,36 +139,55 @@ export function ProficiencyStep({
                 {/* Languages */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Languages</h3>
-                    <div className="flex gap-2 mb-4">
-                        <input
-                            type="text"
-                            value={newLang}
-                            onChange={(e) => setNewLang(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && addLanguage()}
-                            placeholder="Add a language..."
-                            list="languages-list"
-                            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <datalist id="languages-list">
-                            <option value="Common" />
-                            <option value="Dwarvish" />
-                            <option value="Elvish" />
-                            <option value="Giant" />
-                            <option value="Gnomish" />
-                            <option value="Goblin" />
-                            <option value="Halfling" />
-                            <option value="Orc" />
-                            <option value="Abyssal" />
-                            <option value="Celestial" />
-                            <option value="Draconic" />
-                            <option value="Deep Speech" />
-                            <option value="Infernal" />
-                            <option value="Primordial" />
-                            <option value="Sylvan" />
-                            <option value="Undercommon" />
-                        </datalist>
-                        <button onClick={addLanguage} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Add</button>
+
+                    {/* Racial Languages */}
+                    {race && race.languages && race.languages.length > 0 && (
+                        <div className="mb-4">
+                            <h4 className="font-semibold text-gray-700 mb-2 text-sm uppercase">Known from Race ({race.name})</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {race.languages.map(lang => (
+                                    <span key={lang} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-purple-200">
+                                        {lang}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="mb-2">
+                        <h4 className="font-semibold text-gray-700 mb-2 text-sm uppercase">Additional Languages</h4>
+                        <div className="flex gap-2 mb-2">
+                            <input
+                                type="text"
+                                value={newLang}
+                                onChange={(e) => setNewLang(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && addLanguage()}
+                                placeholder="Add a language..."
+                                list="languages-list"
+                                className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <datalist id="languages-list">
+                                <option value="Common" />
+                                <option value="Dwarvish" />
+                                <option value="Elvish" />
+                                <option value="Giant" />
+                                <option value="Gnomish" />
+                                <option value="Goblin" />
+                                <option value="Halfling" />
+                                <option value="Orc" />
+                                <option value="Abyssal" />
+                                <option value="Celestial" />
+                                <option value="Draconic" />
+                                <option value="Deep Speech" />
+                                <option value="Infernal" />
+                                <option value="Primordial" />
+                                <option value="Sylvan" />
+                                <option value="Undercommon" />
+                            </datalist>
+                            <button onClick={addLanguage} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Add</button>
+                        </div>
                     </div>
+
                     <div className="flex flex-wrap gap-2">
                         {(proficiencies.languages || []).map(lang => (
                             <span key={lang} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
@@ -174,7 +195,7 @@ export function ProficiencyStep({
                                 <button onClick={() => removeLanguage(lang)} className="hover:text-blue-900 font-bold">&times;</button>
                             </span>
                         ))}
-                        {(!proficiencies.languages || proficiencies.languages.length === 0) && <span className="text-gray-500 text-sm italic">No languages added.</span>}
+                        {(!proficiencies.languages || proficiencies.languages.length === 0) && <span className="text-gray-500 text-sm italic">No additional languages added.</span>}
                     </div>
                 </div>
 
