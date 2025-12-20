@@ -90,14 +90,14 @@ export default {
         },
         {
             name: 'proficiencies',
-            title: 'Proficiencies & Languages',
+            title: 'Proficiencies',
             type: 'array',
             of: [{ type: 'proficiencyRule' }],
-            description: 'Skills, Tools, Languages, Armor, Weapons granted by this race.',
+            description: 'Skills, Tools, Armor, Weapons granted by this race.',
         },
         {
             name: 'languages',
-            title: 'Languages (Legacy)',
+            title: 'Languages',
             type: 'array',
             of: [{ type: 'string' }],
             options: {
@@ -107,13 +107,21 @@ export default {
                     'Aarakocra', 'Aquan', 'Auran', 'Gith', 'Ignan', 'Minotaur', 'Quori', 'Terran', 'Thieves\' Cant', 'Druidic'
                 ],
             },
-            description: 'Languages granted by this race. For new entries, prefer using the Proficiencies field with type "language".',
+            description: 'Languages granted by this race.',
+        },
+        {
+            name: 'isSpellcaster',
+            title: 'Is Spellcaster?',
+            type: 'boolean',
+            description: 'Enable this if the race grants spellcasting abilities (e.g. High Elf, Tiefling).',
+            initialValue: false,
         },
         {
             name: 'spells',
             title: 'Spells',
             type: 'array',
             of: [{ type: 'spellGrant' }],
+            hidden: ({ document }: any) => !document?.isSpellcaster,
             description: 'Spells known or choices granted by this race.',
         },
     ],

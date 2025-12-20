@@ -89,9 +89,17 @@ export default {
             description: 'Define initial proficiencies and choices (e.g. "Choose 2 from...")',
         },
         {
+            name: 'isSpellcaster',
+            title: 'Is Spellcaster?',
+            type: 'boolean',
+            description: 'Enable this if the class grants spellcasting abilities.',
+            initialValue: false,
+        },
+        {
             name: 'spellcaster',
             title: 'Spellcaster Type',
             type: 'string',
+            hidden: ({ document }: any) => !document?.isSpellcaster,
             options: {
                 list: [
                     { title: 'Full Caster', value: 'full' },
@@ -107,7 +115,7 @@ export default {
             name: 'spellcastingAbility',
             title: 'Spellcasting Ability',
             type: 'string',
-            hidden: ({ document }: any) => !document?.spellcaster || document?.spellcaster === 'none',
+            hidden: ({ document }: any) => !document?.isSpellcaster,
             options: {
                 list: [
                     { title: 'Intelligence', value: 'INT' },
@@ -121,6 +129,7 @@ export default {
             title: 'Spells (New)',
             type: 'array',
             of: [{ type: 'spellGrant' }],
+            hidden: ({ document }: any) => !document?.isSpellcaster,
             description: 'Spells specifically granted by class features (not general spellcasting).',
         },
         {
@@ -156,8 +165,26 @@ export default {
             name: 'subclasses',
             title: 'Subclasses',
             type: 'array',
-            of: [{ type: 'string' }],
-            description: 'IDs of subclasses',
+            of: [
+                {
+                    type: 'reference',
+                    to: [{ type: 'subclass' }],
+                    options: {
+                        filter: ({ document }: any) => {
+                            if (!document.slug?.current) {
+                                return {
+                                    filter: '!defined(parentClassId)',
+                                }
+                            }
+                            return {
+                                filter: 'parentClassId == $classSlug || !defined(parentClassId)',
+                                params: { classSlug: document.slug.current }
+                            }
+                        }
+                    }
+                }
+            ],
+            description: 'References to subclasses belonging to this class',
         },
         {
             name: 'traits',

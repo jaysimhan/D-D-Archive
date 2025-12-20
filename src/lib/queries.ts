@@ -13,10 +13,48 @@ export const ALL_CLASSES_QUERY = `*[_type == "class"] | order(name asc) {
   primaryAbility,
   savingThrows,
   spellcaster,
+  isSpellcaster,
   spellcastingAbility,
   features,
   traits[]->{name, description},
-  subclasses
+  "subclasses": *[_type == "subclass" && parentClassId == ^.slug.current] | order(name asc) {
+    "id": slug.current,
+    name,
+    description,
+    image,
+    features,
+    traits[]->{name, description},
+    isSpellcaster,
+    spellcaster,
+    magicType,
+    magicAbility,
+    magicType,
+    magicAbility,
+    magicDescription,
+    spells[]{
+        name,
+        level,
+        mode,
+        count,
+        spellList,
+        specificSpells[]->{
+            name,
+            "id": slug.current,
+            level,
+            school,
+            castingTime,
+            range,
+            duration,
+            description,
+            image
+        },
+        ability,
+        recharge,
+        spellLevel,
+        notes
+    }
+  },
+  subclassLevel
 }`;
 
 export const CLASS_BY_ID_QUERY = `*[_type == "class" && slug.current == $id][0] {
@@ -31,10 +69,48 @@ export const CLASS_BY_ID_QUERY = `*[_type == "class" && slug.current == $id][0] 
   primaryAbility,
   savingThrows,
   spellcaster,
+  isSpellcaster,
   spellcastingAbility,
   features,
   traits[]->{name, description},
-  subclasses
+  "subclasses": *[_type == "subclass" && parentClassId == ^.slug.current] | order(name asc) {
+    "id": slug.current,
+    name,
+    description,
+    image,
+    features,
+    traits[]->{name, description},
+    isSpellcaster,
+    spellcaster,
+    magicType,
+    magicAbility,
+    magicType,
+    magicAbility,
+    magicDescription,
+    spells[]{
+        name,
+        level,
+        mode,
+        count,
+        spellList,
+        specificSpells[]->{
+            name,
+            "id": slug.current,
+            level,
+            school,
+            castingTime,
+            range,
+            duration,
+            description,
+            image
+        },
+        ability,
+        recharge,
+        spellLevel,
+        notes
+    }
+  },
+  subclassLevel
 }`;
 
 // ===== SUBCLASSES =====
@@ -48,7 +124,12 @@ export const ALL_SUBCLASSES_QUERY = `*[_type == "subclass"] | order(name asc) {
   edition,
   version,
   features,
-  traits[]->{name, description}
+  traits[]->{name, description},
+  isSpellcaster,
+  spellcaster, // Backward compatibility
+  magicType,
+  magicAbility,
+  magicDescription
 }`;
 
 export const SUBCLASSES_BY_CLASS_QUERY = `*[_type == "subclass" && parentClassId == $classId] | order(name asc) {
@@ -61,7 +142,12 @@ export const SUBCLASSES_BY_CLASS_QUERY = `*[_type == "subclass" && parentClassId
   edition,
   version,
   features,
-  traits[]->{name, description}
+  traits[]->{name, description},
+  isSpellcaster,
+  spellcaster, // Backward compatibility
+  magicType,
+  magicAbility,
+  magicDescription
 }`;
 
 // ===== RACES =====
@@ -78,6 +164,7 @@ export const ALL_RACES_QUERY = `*[_type == "race"] | order(name asc) {
   speed,
   traits[]->{name, description},
   languages,
+  isSpellcaster,
   subraces,
   racialSpellChoices,
   racialKnownSpells
@@ -96,6 +183,7 @@ export const RACE_BY_ID_QUERY = `*[_type == "race" && slug.current == $id][0] {
   speed,
   traits[]->{name, description},
   languages,
+  isSpellcaster,
   subraces,
   racialSpellChoices,
   racialKnownSpells

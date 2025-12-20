@@ -10,6 +10,7 @@ const HomePage = lazy(() => import("./pages/HomePage").then(module => ({ default
 const LibraryPage = lazy(() => import("./pages/LibraryPage").then(module => ({ default: module.LibraryPage })));
 const CharacterCreatorPage = lazy(() => import("./pages/CharacterCreatorPage").then(module => ({ default: module.CharacterCreatorPage })));
 
+
 function Navigation() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);

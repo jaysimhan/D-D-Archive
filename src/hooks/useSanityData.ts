@@ -52,6 +52,7 @@ export function useClasses() {
         primaryAbility,
         savingThrows,
         spellcaster,
+        isSpellcaster,
         spellcastingAbility,
         features,
         traits[]->{name, description},
@@ -73,7 +74,30 @@ export function useSubclasses() {
         magicType,
         magicAbility,
         magicDescription,
+        isSpellcaster,
         spellcaster,
+        spells[]{
+            name,
+            level,
+            mode,
+            count,
+            spellList,
+            specificSpells[]->{
+                name,
+                "id": slug.current,
+                level,
+                school,
+                castingTime,
+                range,
+                duration,
+                description,
+                image
+            },
+            ability,
+            recharge,
+            spellLevel,
+            notes
+        },
         source,
         edition
     } | order(name asc)`);
@@ -92,7 +116,30 @@ export function useSubclassesByClass(classId: string) {
             magicType,
             magicAbility,
             magicDescription,
+            isSpellcaster,
             spellcaster,
+            spells[]{
+                name,
+                level,
+                mode,
+                count,
+                spellList,
+                specificSpells[]->{
+                    name,
+                    "id": slug.current,
+                    level,
+                    school,
+                    castingTime,
+                    range,
+                    duration,
+                    description,
+                    image
+                },
+                ability,
+                recharge,
+                spellLevel,
+                notes
+            },
             source,
             edition
         } | order(name asc)`,
@@ -136,6 +183,7 @@ export function useRaces() {
             notes
         },
         languages,
+        isSpellcaster,
         subraces,
         source,
         edition

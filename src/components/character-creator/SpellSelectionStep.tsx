@@ -60,35 +60,109 @@ export function SpellSelectionStep({
         return type === 'at-will' ? 'At Will' : type;
     };
 
-    // Helper to determine Class Slots
+    // Helper to determine Class Slots dynamically
     const getClassCapacities = () => {
         let cantrips = 0;
         let level1 = 0;
         let level2 = 0;
 
-        // Class Logic (Beginner: Level 1-3)
-        if (["bard", "druid", "warlock", "martyr", "apothecary"].includes(classData.id)) cantrips = 2;
-        if (["cleric", "wizard", "sorcerer", "witch", "necromancer", "warmage", "blood-mage", "illrigger"].includes(classData.id)) cantrips = 3;
-        if (classData.id === "warmage") cantrips = 4; // Warmages get more cantrips
-        if (level >= 4 && ["bard", "druid", "sorcerer", "warlock", "wizard", "witch", "necromancer"].includes(classData.id)) cantrips += 1;
+        const type = classData.spellcaster; // 'full', 'half', 'half-up', 'third', 'pact', 'none'
+        const effectiveLevel = level;
 
-        // Spells Known / Prepared
-        if (classData.id === "bard") level1 = level + 3;
-        if (classData.id === "sorcerer") level1 = level + 1;
-        if (classData.id === "warlock") level1 = level + 1;
-        if (classData.id === "ranger" && level >= 2) level1 = level;
-        if (["cleric", "druid", "wizard", "witch", "necromancer", "apothecary", "warmage", "blood-mage", "martyr", "illrigger"].includes(classData.id)) level1 = Math.max(1, level + 3);
-
-        // Level 2 Spells
-        if (["bard", "cleric", "druid", "sorcerer", "wizard", "witch", "necromancer", "apothecary", "blood-mage"].includes(classData.id) && level >= 3) {
-            level2 = 2;
-            level1 -= 1;
+        // If not a caster, return 0
+        if (!type || type === 'none') {
+            // Check manual override boolean just in case logic is mixed
+            if (!classData.isSpellcaster) return { cantrips: 0, level1: 0, level2: 0 };
         }
 
-        // Eldritch Knight & Arcane Trickster (Start at Level 3)
-        if ((subclass?.id === "eldritch-knight" || subclass?.id === "arcane-trickster") && level >= 3) {
-            cantrips = subclass.id === "arcane-trickster" ? 3 : 2;
-            level1 = 3;
+        // Cantrips
+        // Most full casters start with 3, some 2, some 4. This is hard to generalize perfectly without data field,
+        // but we can make reasonable defaults based on type.
+        // Or we can rely on specific fields in future. For now, we'll use a mix of type + ID override if needed.
+        if (type === 'full') cantrips = 3;
+        if (type === 'half') cantrips = 0; // Paladin/Ranger usually 0
+        if (type === 'half-up') cantrips = 2; // Artificer
+        if (type === 'third') cantrips = 2; // But usually AT/EK start at lvl 3
+        if (type === 'pact') cantrips = 2;
+
+        // Specific overrides for accuracy (still needed for exact 5e rules until we add 'cantripsKnown' to schema)
+        if (["bard", "druid"].includes(classData.id)) cantrips = 2;
+        if (classData.id === "warmage") cantrips = 4;
+        if (level >= 4 && (type === 'full' || type === 'pact')) cantrips += 1;
+
+
+        // Slot Logic
+        if (type === 'pact') {
+            // Warlock Logic
+            level1 = level + 1; // 1 slot at lvl 1, 2 slots at lvl 2+
+            if (level >= 2) level1 = 2;
+            // Warlock slots upgrade level, they don't add strictly.
+            // Beginner creator (1-3):
+            // Lvl 1: 1 x 1st
+            // Lvl 2: 2 x 1st
+            // Lvl 3: 2 x 2nd
+            if (level === 1) { level1 = 1; level2 = 0; }
+            if (level === 2) { level1 = 2; level2 = 0; }
+            if (level === 3) { level1 = 0; level2 = 2; }
+        } else if (type === 'full' || type === 'half-up' || type === 'half' || type === 'third') {
+            // Standard Progression
+            let casterLevel = 0;
+            if (type === 'full') casterLevel = level;
+            if (type === 'half-up') casterLevel = Math.ceil(level / 2);
+            if (type === 'half') casterLevel = Math.floor(level / 2);
+            if (type === 'third') casterLevel = Math.floor(level / 3);
+
+            // Level 1 Slots
+            if (casterLevel >= 1) level1 = 2;
+            if (casterLevel >= 2) level1 = 3;
+            if (casterLevel >= 3) level1 = 4;
+
+            // Level 2 Slots
+            if (casterLevel >= 3) {
+                level2 = 2;
+                // Note: In 5e, slots are additive. You have 4 1st AND 2 2nd.
+                // But this UI seems slot-selection based (known spells vs slots).
+                // "Spells Known" (Bard/Sorc/Warlock) vs "Prepared" (Cleric/Druid/Wiz).
+                // Existing logic seemed to try to calculate "Spells you can select".
+
+                // Let's approximate "Spells Known/Prepared" count, not Spell Slots.
+                // User selects spells to "prepare" or "know".
+
+                // Full Casters (Prep): Lvl + Mod (assume +3)
+                // Full Casters (Known): Bard/Sorc ~ Lvl + something.
+
+                // Let's default to a generous "Standard Prep" formula for future proofing:
+                // Level + 3. (Min 1).
+
+                const baseCount = Math.max(1, effectiveLevel + 3);
+
+                // Distribute reasonable split for UI
+                level1 = baseCount;
+                if (casterLevel >= 3) {
+                    level2 = 2;
+                    level1 = Math.max(1, baseCount - 2);
+                }
+            } else {
+                // Low level
+                level1 = Math.max(1, casterLevel + 2); // heuristic
+                if (type === 'half' && casterLevel < 2) level1 = 0; // Paladin 1 has 0
+                if (type === 'half' && casterLevel >= 2 && effectiveLevel >= 2) level1 = 2; // Paladin 2
+            }
+        }
+
+        // Manual override for "Subclass Caster" (Third Caster logic usually handles this if class is updated, but if subclass adds it to non-caster class?)
+        // E.g. Fighter (None) -> Eldritch Knight (Third).
+        // If class is 'none' but subclass isSpellcaster?
+        if (classData.spellcaster === 'none' && subclass?.isSpellcaster) {
+            // Assume Third Caster
+            const casterLevel = Math.floor(level / 3);
+            if (casterLevel >= 1) { // Level 3+
+                cantrips = 2;
+                if (subclass.id === 'arcane-trickster') cantrips = 3;
+                level1 = 3; // usually 3 known at lvl 3
+            } else {
+                cantrips = 0; level1 = 0; level2 = 0;
+            }
         }
 
         return { cantrips, level1, level2 };
@@ -126,14 +200,38 @@ export function SpellSelectionStep({
     // Racial Spell Slots
     const racialSlots: { level: number, index: number, id: string, source: string, choiceIndex: number }[] = [];
     racialChoices.forEach((choice, idx) => {
-        // Create slots for this choice
         for (let i = 0; i < choice.choose; i++) {
             racialSlots.push({
-                level: choice.level || 0, // Default to cantrip if not specified
+                level: choice.level || 0,
                 index: racialSlots.length,
                 id: `race-${idx}-${i}`,
                 source: "Racial",
-                choiceIndex: idx // Track which choice block this slot belongs to
+                choiceIndex: idx
+            });
+        }
+    });
+
+    // Subclass Spell Slots (Choices)
+    // Separate from Racial Slots for cleaner UI
+    const subclassChoiceSlots: { level: number, index: number, id: string, source: string, choiceIndex: number }[] = [];
+    const subclassChoices = [
+        ...(subclass?.spells || []).filter(s => s.mode === 'choice').map(s => ({
+            choose: s.count || 1,
+            name: s.name || "Subclass Choice",
+            level: s.spellLevel,
+            list: s.specificSpells?.map(sp => sp.id) || [],
+            spellList: s.spellList,
+        }))
+    ];
+
+    subclassChoices.forEach((choice, idx) => {
+        for (let i = 0; i < choice.choose; i++) {
+            subclassChoiceSlots.push({
+                level: choice.level || 0,
+                index: subclassChoiceSlots.length, // local index
+                id: `subclass-choice-${idx}-${i}`,
+                source: "Subclass",
+                choiceIndex: idx
             });
         }
     });
@@ -186,15 +284,58 @@ export function SpellSelectionStep({
                                 {lvlSlots.map((slot) => {
                                     const globalLevelSpells = selectedSpells.filter(s => s.level === lvl);
 
-                                    // Determine index in global list
-                                    let spellIndex = slot.index;
-                                    if (slot.source === "Feat") {
-                                        // Offset by class capacity for this level
-                                        const classCap = classCapacities[lvl === 0 ? "cantrips" : lvl === 1 ? "level1" : "level2"] || 0;
-                                        spellIndex += classCap;
+                                    // Determine index in global list (simplified for robustness)
+                                    // Actually, distinct Source groups make 'index' logic tricky if we rely on global position.
+                                    // Better to just check if THIS slot ID has a mapped spell?
+                                    // Current logic stores full Spell objects in selectedSpells, not mapped to Slot IDs.
+                                    // It relies on Count match: "You have 3 Level 1 selected, fill the first 3 slots".
+                                    // This breaks if we have multiple groups of Level 1 slots (Class + Race).
+
+                                    // FIX: We need to filter selectedSpells by SOURCE if possible, or just rely on global "fill from top" behavior per level?
+                                    // "fill from top" is chaotic with multiple groups.
+                                    // Ideally, we should tag selected spells with their source slot.
+                                    // BUt `selectedSpells` is just `Spell[]`.
+                                    // The `CharacterSheet` and `finalData` probably don't track which slot a spell is in.
+
+                                    // Compromise:
+                                    // We will count how many spells of this Level are already "claimed" by previous Groups/Slots
+                                    // and display the remainder here.
+
+                                    // NO, that's getting complex.
+                                    // Existing behavior:
+                                    // let spellIndex = slot.index; 
+                                    // if (Feat) spellIndex += classCap;
+
+                                    // This assumes a strict order: Class -> Feat -> ...
+                                    // If we keep strict order of rendering, we can maintain this offset logic.
+
+                                    // Order: Class -> MagicInit -> Aberrant -> Racial -> Subclass
+                                    let offset = 0;
+                                    if (classSlots.length > 0) {
+                                        // Count how many slots of THIS level are in classSlots
+                                        offset += classSlots.filter(s => s.level === lvl).length;
+                                    }
+                                    if (slot.source === "Magic Initiate" || slot.source === "Aberrant Dragonmark" || slot.source === "Racial" || slot.source === "Subclass") {
+                                        // If we are NOT class, we skip class slots.
+                                        // If we are Aberrant, skip MagicInit too?
+                                        // This is getting messy defined locally.
                                     }
 
-                                    const filledSpell = globalLevelSpells[spellIndex];
+                                    // Better Clean approach:
+                                    // Calculate global offset for this specific slot ID based on our defined order.
+
+                                    const allSlotsCombined = [
+                                        ...classSlots,
+                                        ...magicInitiateSlots,
+                                        ...aberrantSlots,
+                                        ...racialSlots,
+                                        ...subclassChoiceSlots
+                                    ];
+
+                                    const slotsOfSameLevel = allSlotsCombined.filter(s => s.level === lvl);
+                                    const myGlobalIndexForLevel = slotsOfSameLevel.findIndex(s => s.id === slot.id);
+
+                                    const filledSpell = globalLevelSpells[myGlobalIndexForLevel];
 
                                     return (
                                         <div key={slot.id} className="relative group">
@@ -213,7 +354,12 @@ export function SpellSelectionStep({
                                                 </div>
                                             ) : (
                                                 <button
-                                                    onClick={() => setActiveSlot({ level: slot.level, index: slot.index, source: slot.source, choiceIndex: slot.choiceIndex })}
+                                                    onClick={() => setActiveSlot({
+                                                        level: slot.level,
+                                                        index: slot.index,
+                                                        source: slot.source,
+                                                        choiceIndex: slot.choiceIndex
+                                                    })}
                                                     className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
                                                 >
                                                     <Plus className="w-4 h-4" />
@@ -231,27 +377,32 @@ export function SpellSelectionStep({
         );
     };
 
-    // Check if character has any spellcasting ability
-    const hasSpellcasting = classData?.spellcaster ||
-        (subclass?.spellcaster) ||
+    // Check if character has any spellcasting ability (Updated for Future Proofing)
+    // FIX: Explicitly check for 'none' or missing spellcaster field to avoid treating undefined as a caster.
+    const isClassCaster = classData?.isSpellcaster || (classData?.spellcaster && classData.spellcaster !== 'none');
+
+    const hasSpellcasting = isClassCaster ||
+        (subclass?.isSpellcaster) ||
         hasMagicInitiate ||
         hasAberrantDragonmark ||
         hasRacialCantripChoice ||
         (race?.racialKnownSpells && race.racialKnownSpells.length > 0) ||
         (subrace?.racialKnownSpells && subrace.racialKnownSpells.length > 0) ||
         (race?.spells && race.spells.length > 0) ||
-        (subrace?.spells && subrace.spells.length > 0);
+        (subrace?.spells && subrace.spells.length > 0) ||
+        (subclass?.spells && subclass.spells.length > 0);
 
-    const totalSlots = classSlots.length + magicInitiateSlots.length + aberrantSlots.length + racialSlots.length;
+    const totalSlots = classSlots.length + magicInitiateSlots.length + aberrantSlots.length + racialSlots.length + subclassChoiceSlots.length;
 
     // Check for fixed racial spells that would be displayed
-    const hasFixedRacialSpells = (race?.racialKnownSpells && race.racialKnownSpells.length > 0) ||
+    const hasFixedSpells = (race?.racialKnownSpells && race.racialKnownSpells.length > 0) ||
         (subrace?.racialKnownSpells && subrace.racialKnownSpells.length > 0) ||
         (race?.spells && race.spells.some(s => s.mode === 'fixed')) ||
-        (subrace?.spells && subrace.spells.some(s => s.mode === 'fixed'));
+        (subrace?.spells && subrace.spells.some(s => s.mode === 'fixed')) ||
+        (subclass?.spells && subclass.spells.some(s => s.mode === 'fixed'));
 
-    // If no slots to display AND no fixed racial spells, show the "No Spellcasting" message
-    if (totalSlots === 0 && !hasFixedRacialSpells) {
+    // If no slots to display AND no fixed spells, show the "No Spellcasting" message
+    if (totalSlots === 0 && !hasFixedSpells) {
         return (
             <div className="min-h-[500px]">
                 <div className="text-center mb-6">
@@ -304,10 +455,12 @@ export function SpellSelectionStep({
 
                 {hasRacialCantripChoice && renderSlotGroup(racialSlots, "Racial Spell Choices")}
 
+                {subclassChoiceSlots.length > 0 && renderSlotGroup(subclassChoiceSlots, `${subclass?.name || "Subclass"} Spell Choices`)}
+
                 {/* Fixed Racial Spells Display */}
                 {(() => {
-                    // Derive known racial spells from new schema
-                    const newKnownSpells = [
+                    // Racial Fixed Spells
+                    const newRacialSpells = [
                         ...(race?.spells || []),
                         ...(subrace?.spells || [])
                     ].filter(s => (s.mode === 'fixed') && s.level <= level)
@@ -317,38 +470,87 @@ export function SpellSelectionStep({
                                 level: s.level,
                                 abilityScore: s.ability,
                                 type: s.recharge,
-                                name: sp.name
+                                name: sp.name,
+                                source: "Racial"
                             }));
                         });
 
                     const knownRacialSpells = [
                         ...(race?.racialKnownSpells || []),
                         ...(subrace?.racialKnownSpells || []),
-                        ...newKnownSpells
-                    ].filter(s => s.level <= level); // Only show spells available at current level
+                        ...newRacialSpells
+                    ].filter(s => s.level <= level);
 
                     if (knownRacialSpells.length === 0) return null;
 
                     return (
                         <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 mb-6">
                             <div className="flex justify-between items-start mb-4">
-                                <h3 className="text-lg font-bold text-indigo-900">Innate Racial Magic</h3>
+                                <h3 className="text-lg font-bold text-indigo-900">Racial Spells</h3>
                             </div>
                             <p className="text-sm text-indigo-700 mb-4">
-                                Your lineage grants you these spells automatically. They do not count against your class spells.
+                                Your lineage grants you these spells automatically.
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {knownRacialSpells.map((known, idx) => {
                                     const spell = allSpells.find(s => s.id === known.spellId) || { name: known.name || "Unknown Spell", id: known.spellId };
                                     if (!spell) return null;
                                     return (
-                                        <div key={`${known.spellId}-${idx}`} className="p-3 bg-white border-2 border-indigo-300 rounded-lg opacity-90">
+                                        <div key={`race-${known.spellId}-${idx}`} className="p-3 bg-white border-2 border-indigo-300 rounded-lg opacity-90">
                                             <div className="flex justify-between items-start mb-1">
                                                 <h4 className="font-semibold text-gray-900 truncate">{spell.name}</h4>
                                                 <span className="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full border border-indigo-200">Known</span>
                                             </div>
                                             <p className="text-xs text-gray-500">
                                                 {minLevelLabel(known.type || "at-will")} {known.abilityScore ? `(Ability: ${known.abilityScore})` : ''}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {/* Fixed Subclass Spells Display */}
+                {(() => {
+                    // Subclass Fixed Spells
+                    const knownSubclassSpells = [
+                        ...(subclass?.spells || [])
+                    ].filter(s => (s.mode === 'fixed') && s.level <= level)
+                        .flatMap(s => {
+                            return (s.specificSpells || []).map(sp => ({
+                                spellId: sp.id,
+                                level: s.level,
+                                abilityScore: s.ability,
+                                type: s.recharge,
+                                name: sp.name,
+                                source: "Subclass"
+                            }));
+                        });
+
+                    if (knownSubclassSpells.length === 0) return null;
+
+                    return (
+                        <div className="bg-purple-50 p-6 rounded-xl border border-purple-200 mb-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-lg font-bold text-purple-900">Subclass Spells</h3>
+                            </div>
+                            <p className="text-sm text-purple-700 mb-4">
+                                Your subclass grants you these spells automatically.
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {knownSubclassSpells.map((known, idx) => {
+                                    const spell = allSpells.find(s => s.id === known.spellId) || { name: known.name || "Unknown Spell", id: known.spellId };
+                                    if (!spell) return null;
+                                    return (
+                                        <div key={`sub-${known.spellId}-${idx}`} className="p-3 bg-white border-2 border-purple-300 rounded-lg opacity-90">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h4 className="font-semibold text-gray-900 truncate">{spell.name}</h4>
+                                                <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">Known</span>
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                {minLevelLabel(known.type || "always")} {known.abilityScore ? `(Ability: ${known.abilityScore})` : ''}
                                             </p>
                                         </div>
                                     );
@@ -375,7 +577,9 @@ export function SpellSelectionStep({
                     allSpells={allSpells}
                     racialChoice={activeSlot.source === "Racial" && (activeSlot as any).choiceIndex !== undefined
                         ? racialChoices[(activeSlot as any).choiceIndex]
-                        : undefined}
+                        : activeSlot.source === "Subclass" && (activeSlot as any).choiceIndex !== undefined
+                            ? subclassChoices[(activeSlot as any).choiceIndex]
+                            : undefined}
                 />
             )}
         </div>

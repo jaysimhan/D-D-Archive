@@ -76,6 +76,7 @@ export interface Race {
   languages: string[];
   subraces?: string[]; // IDs of subraces
   proficiencies?: ProficiencyRule[];
+  isSpellcaster?: boolean;
   spells?: SpellGrant[];
   racialSpellChoices?: {
     choose: number;
@@ -137,11 +138,12 @@ export interface Class {
   savingThrows: AbilityScore[];
   proficiencies?: ProficiencyRule[];
   spells?: SpellGrant[];
-  spellcaster?: "full" | "half" | "third" | "pact" | "special" | "None" | "none";
+  spellcaster?: "full" | "half" | "half-up" | "third" | "pact" | "special" | "None" | "none";
+  isSpellcaster?: boolean;
   spellcastingAbility?: AbilityScore;
   features: Feature[];
   traits?: { name: string; description: string }[];
-  subclasses: string[]; // IDs of subclasses
+  subclasses: Subclass[]; // Auto-detected from Subclass.parentClassId
   subclassLevel?: number; // Level at which subclass is selected (1-3)
 }
 
@@ -166,12 +168,13 @@ export interface Subclass {
   features: Feature[];
   traits?: { name: string; description: string }[];
   proficiencies?: ProficiencyRule[];
-  spells?: SpellGrant[];
-  spellcaster?: boolean;
+  isSpellcaster?: boolean;
+  spellcaster?: boolean; // Deprecated
   spellcastingAbility?: string;
   magicType?: string;
   magicAbility?: string;
   magicDescription?: string;
+  spells?: SpellGrant[];
 }
 
 // ===== Background System =====

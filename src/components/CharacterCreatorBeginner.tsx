@@ -54,10 +54,7 @@ export function CharacterCreator() {
 
     // Add subclass step if character level requires it
     if (characterData.class) {
-      const subclassLevel = characterData.class.id === "cleric" ||
-        characterData.class.id === "sorcerer" ||
-        characterData.class.id === "warlock" ? 1 :
-        characterData.class.id === "wizard" ? 2 : 3;
+      const subclassLevel = characterData.class.subclassLevel || 3;
 
       // Check if there are any subclasses available for this class
       const hasSubclasses = allSubclasses.some(s => s.parentClassId === characterData.class?.id);
@@ -71,7 +68,15 @@ export function CharacterCreator() {
     baseSteps.push("feats");
     baseSteps.push("abilities");
     baseSteps.push("proficiencies");
-    baseSteps.push("spells");
+
+    // Add spells step if class is spellcaster OR race is spellcaster OR subclass is spellcaster
+    const isClassCaster = characterData.class?.isSpellcaster === true || (characterData.class?.spellcaster && characterData.class.spellcaster !== 'none' && characterData.class.spellcaster !== 'None');
+    const isRaceCaster = characterData.race?.isSpellcaster === true;
+    const isSubclassCaster = characterData.subclass?.isSpellcaster === true || characterData.subclass?.spellcaster === true;
+
+    if (isClassCaster || isRaceCaster || isSubclassCaster) {
+      baseSteps.push("spells");
+    }
 
     // New Steps
     baseSteps.push("hp"); // We need to add 'hp' to CreationStep type or use a loose string for now, but better to update type. 

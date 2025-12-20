@@ -47,7 +47,7 @@ export const proficiencyRule = {
                 list: [
                     { title: 'Skill', value: 'skill' },
                     { title: 'Tool', value: 'tool' },
-                    { title: 'Language', value: 'language' },
+
                     { title: 'Armor', value: 'armor' },
                     { title: 'Weapon', value: 'weapon' },
                     { title: 'Saving Throw', value: 'savingThrow' },
@@ -93,14 +93,7 @@ export const proficiencyRule = {
             options: { list: TOOLS },
             hidden: ({ parent }: any) => parent?.type !== 'tool',
         },
-        {
-            name: 'languageOptions',
-            title: 'Languages',
-            type: 'array',
-            of: [{ type: 'string' }],
-            options: { list: LANGUAGES },
-            hidden: ({ parent }: any) => parent?.type !== 'language',
-        },
+
         {
             name: 'armorOptions',
             title: 'Armor',
@@ -124,7 +117,7 @@ export const proficiencyRule = {
             type: 'array',
             of: [{ type: 'string' }],
             description: 'Use valid IDs/Names. Only use if the dropdowns above are insufficient.',
-            hidden: ({ parent }: any) => ['skill', 'tool', 'language', 'armor', 'weapon'].includes(parent?.type),
+            hidden: ({ parent }: any) => ['skill', 'tool', 'armor', 'weapon'].includes(parent?.type),
         },
         {
             name: 'description',

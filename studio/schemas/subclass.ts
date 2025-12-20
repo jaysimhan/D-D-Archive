@@ -54,11 +54,41 @@ export default {
             description: 'Proficiencies granted by this subclass (e.g. Hexblade armor).',
         },
         {
+            name: 'isSpellcaster',
+            title: 'Is Spellcaster?',
+            type: 'boolean',
+            description: 'Enable this if the subclass grants spellcasting abilities (e.g. Arcane Trickster, Eldritch Knight).',
+            initialValue: false,
+        },
+        {
             name: 'spells',
             title: 'Additional Spells',
             type: 'array',
             of: [{ type: 'spellGrant' }],
+            hidden: ({ document }: any) => !document?.isSpellcaster,
             description: 'Spells granted by this subclass (e.g. Domain spells).',
+        },
+        {
+            name: 'magicType',
+            title: 'Magic Type',
+            type: 'string',
+            hidden: ({ document }: any) => !document?.isSpellcaster,
+            description: 'Type of magic for non-caster subclasses (e.g., "Spell Slots (Wizard List)", "Ki Spells")',
+        },
+        {
+            name: 'magicAbility',
+            title: 'Magic Ability',
+            type: 'string',
+            hidden: ({ document }: any) => !document?.isSpellcaster,
+            description: 'Primary ability score for magic (e.g., "Intelligence", "Wisdom")',
+        },
+        {
+            name: 'magicDescription',
+            title: 'Magic Description',
+            type: 'text',
+            rows: 2,
+            hidden: ({ document }: any) => !document?.isSpellcaster,
+            description: 'Short description of how the magic works',
         },
         {
             name: 'extraLanguages',
@@ -109,32 +139,7 @@ export default {
             of: [{ type: 'reference', to: [{ type: 'trait' }] }],
             description: 'Reference traits from the centralized Trait library',
         },
-        {
-            name: 'magicType',
-            title: 'Magic Type',
-            type: 'string',
-            description: 'Type of magic for non-caster subclasses (e.g., "Spell Slots (Wizard List)", "Ki Spells")',
-        },
-        {
-            name: 'magicAbility',
-            title: 'Magic Ability',
-            type: 'string',
-            description: 'Primary ability score for magic (e.g., "Intelligence", "Wisdom")',
-        },
-        {
-            name: 'magicDescription',
-            title: 'Magic Description',
-            type: 'text',
-            rows: 2,
-            description: 'Short description of how the magic works',
-        },
-        {
-            name: 'spellcaster',
-            title: 'Is Spellcaster',
-            type: 'boolean',
-            description: 'Whether this subclass grants spellcasting abilities',
-            initialValue: false,
-        },
+
     ],
     preview: {
         select: {

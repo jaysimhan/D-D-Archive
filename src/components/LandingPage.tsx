@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Swords, BookOpen, Flame, Crown } from "lucide-react";
 import { useHomepage } from "../hooks/useSanityData";
 import { urlFor } from "../lib/sanity";
-import { SmokeEffect } from "./SmokeEffect";
+
 
 export function LandingPage() {
   const { data: homepageData } = useHomepage();
@@ -64,7 +64,7 @@ export function LandingPage() {
         </div>
 
         {/* Three.js Smoke Effect */}
-        <SmokeEffect />
+
       </div>
 
       {/* Content Container */}
