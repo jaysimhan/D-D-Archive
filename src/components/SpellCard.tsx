@@ -14,23 +14,23 @@ export function SpellCard({ spell }: SpellCardProps) {
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
       case "Official":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-900/50 text-blue-300 border border-blue-700";
       case "Homebrew":
-        return "bg-purple-100 text-purple-800";
+        return "bg-brand-900/50 text-brand-300 border border-brand-700";
       case "Unofficial":
-        return "bg-gray-100 text-gray-800";
+        return "bg-zinc-800 text-gray-400 border border-zinc-700";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-zinc-800 text-gray-400 border border-zinc-700";
     }
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow bg-white">
+    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Header */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1">
-          <h3 className="text-gray-900 mb-1">{spell.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <h3 className="text-gray-100 mb-1 font-serif">{spell.name}</h3>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
             <span>{levelText}</span>
             <span>•</span>
             <span>{spell.school}</span>
@@ -44,14 +44,14 @@ export function SpellCard({ spell }: SpellCardProps) {
           >
             {spell.source}
           </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
             {spell.edition}
           </span>
         </div>
       </div>
 
       {/* Quick Info Icons */}
-      <div className="flex gap-4 mb-3 text-sm text-gray-600">
+      <div className="flex gap-4 mb-3 text-sm text-gray-400">
         <div className="flex items-center gap-1">
           <Clock className="w-4 h-4" />
           <span>{spell.castingTime}</span>
@@ -62,25 +62,25 @@ export function SpellCard({ spell }: SpellCardProps) {
         </div>
         {spell.concentration && (
           <div className="flex items-center gap-1">
-            <Zap className="w-4 h-4 text-yellow-600" />
+            <Zap className="w-4 h-4 text-yellow-500" />
             <span>Concentration</span>
           </div>
         )}
         {spell.ritual && (
           <div className="flex items-center gap-1">
-            <Sparkles className="w-4 h-4 text-purple-600" />
+            <Sparkles className="w-4 h-4 text-brand-400" />
             <span>Ritual</span>
           </div>
         )}
       </div>
 
       {/* Components */}
-      <div className="text-sm text-gray-600 mb-3">
+      <div className="text-sm text-gray-400 mb-3">
         <span>Components: </span>
-        {spell.components?.verbal && <span className="font-medium">V </span>}
-        {spell.components?.somatic && <span className="font-medium">S </span>}
+        {spell.components?.verbal && <span className="font-medium text-gray-300">V </span>}
+        {spell.components?.somatic && <span className="font-medium text-gray-300">S </span>}
         {spell.components?.material && (
-          <span className="font-medium">
+          <span className="font-medium text-gray-300">
             M
             {spell.components.materialDescription &&
               ` (${spell.components.materialDescription})`}
@@ -90,7 +90,7 @@ export function SpellCard({ spell }: SpellCardProps) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-700 mb-3">
+      <p className="text-sm text-gray-300 mb-3">
         {expanded
           ? spell.description
           : `${spell.description.substring(0, 150)}${spell.description.length > 150 ? "..." : ""
@@ -100,7 +100,7 @@ export function SpellCard({ spell }: SpellCardProps) {
       {spell.description.length > 150 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-sm text-blue-600 hover:text-blue-800 mb-3"
+          className="text-sm text-brand-400 hover:text-brand-300 mb-3"
         >
           {expanded ? "Show Less" : "Show More"}
         </button>
@@ -108,20 +108,20 @@ export function SpellCard({ spell }: SpellCardProps) {
 
       {/* Higher Levels */}
       {expanded && spell.higherLevels && (
-        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-          <p className="text-sm text-gray-900">
-            <span>At Higher Levels: </span>
-            <span className="text-gray-700">{spell.higherLevels}</span>
+        <div className="mt-3 p-3 bg-brand-950/30 rounded-lg border border-brand-900/50">
+          <p className="text-sm text-gray-200">
+            <span className="font-medium">At Higher Levels: </span>
+            <span className="text-gray-400">{spell.higherLevels}</span>
           </p>
         </div>
       )}
 
       {/* Classes that can cast this spell */}
-      <div className="mt-3 pt-3 border-t border-gray-200">
-        <p className="text-xs text-gray-600">
+      <div className="mt-3 pt-3 border-t border-zinc-800">
+        <p className="text-xs text-gray-500">
           <span>Available to: </span>
           {(spell.classes || []).map((c, i) => (
-            <span key={c}>
+            <span key={c} className="text-gray-400">
               {c.charAt(0).toUpperCase() + c.slice(1)}
               {i < (spell.classes || []).length - 1 ? ", " : ""}
             </span>

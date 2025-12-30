@@ -174,12 +174,12 @@ export function AbilityScoreStep({
     return (
         <div>
             <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 mb-1">Ability Scores</h2>
-                <p className="text-gray-600">Assign the 6 Ability Scores.</p>
+                <h2 className="text-3xl font-bold text-white mb-1 font-serif">Ability Scores</h2>
+                <p className="text-gray-400">Assign the 6 Ability Scores.</p>
                 {isFlexible && (
-                    <div className="mt-2 text-sm text-indigo-600 bg-indigo-50 p-3 rounded-md border border-indigo-200">
+                    <div className="mt-2 text-sm text-brand-300 bg-brand-950/50 p-3 rounded-md border border-brand-800">
                         <p className="font-bold">🎲 Flexible Race Rules:</p>
-                        <ul className="list-disc list-inside ml-2">
+                        <ul className="list-disc list-inside ml-2 text-gray-400">
                             <li>Distribute 3 distinct points (Columns).</li>
                             <li>Each point can be assigned to only one ability.</li>
                             <li>Max +2 points per ability.</li>
@@ -208,10 +208,10 @@ export function AbilityScoreStep({
                     return (
                         <div
                             key={ability}
-                            className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center py-4 px-4 bg-white border border-gray-100 rounded-xl hover:border-indigo-200 hover:shadow-sm transition-all"
+                            className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center py-4 px-4 bg-zinc-900/60 border border-zinc-800 rounded-xl hover:border-brand-800 hover:shadow-sm transition-all"
                         >
                             {/* Ability Name */}
-                            <div className="font-bold text-gray-800 text-lg">
+                            <div className="font-bold text-gray-200 text-lg font-serif">
                                 {ABILITY_NAMES[ability]}
                             </div>
 
@@ -220,17 +220,17 @@ export function AbilityScoreStep({
                                 <button
                                     onClick={() => adjustScore(ability, -1)}
                                     disabled={baseScore <= 1}
-                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center bg-zinc-800 text-gray-400 rounded-lg hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Minus className="w-4 h-4" />
                                 </button>
-                                <div className="w-12 text-center font-bold text-xl text-gray-900">
+                                <div className="w-12 text-center font-bold text-xl text-white">
                                     {baseScore}
                                 </div>
                                 <button
                                     onClick={() => adjustScore(ability, 1)}
                                     disabled={baseScore >= 20}
-                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center bg-zinc-800 text-gray-400 rounded-lg hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Plus className="w-4 h-4" />
                                 </button>
@@ -258,11 +258,11 @@ export function AbilityScoreStep({
                                             className={`
                                                 w-7 h-7 rounded-full border-[1.5px] transition-all flex items-center justify-center
                                                 ${assignedToSelf
-                                                    ? (isHuman ? 'border-gray-500 bg-gray-50' : 'border-indigo-600 bg-indigo-50')
-                                                    : 'border-gray-300 hover:border-gray-400'
+                                                    ? (isHuman ? 'border-gray-500 bg-zinc-800' : 'border-brand-500 bg-brand-950')
+                                                    : 'border-zinc-600 hover:border-zinc-500'
                                                 }
                                                 ${isClickable && !disabled
-                                                    ? 'cursor-pointer hover:border-indigo-400'
+                                                    ? 'cursor-pointer hover:border-brand-400'
                                                     : ''
                                                 }
                                                 ${(!isClickable || disabled) ? 'cursor-default opacity-40' : ''}
@@ -271,7 +271,7 @@ export function AbilityScoreStep({
                                         >
                                             {/* Inner Dot */}
                                             {assignedToSelf && (
-                                                <div className={`w-3.5 h-3.5 rounded-full ${isHuman ? 'bg-gray-500' : 'bg-indigo-600'}`} />
+                                                <div className={`w-3.5 h-3.5 rounded-full ${isHuman ? 'bg-gray-500' : 'bg-brand-500'}`} />
                                             )}
                                         </button>
                                     );
@@ -279,16 +279,16 @@ export function AbilityScoreStep({
                             </div>
 
                             {/* Feat Bonus */}
-                            <div className="text-center font-medium text-gray-700">
+                            <div className="text-center font-medium text-gray-400">
                                 {featBonus > 0 ? `+${featBonus}` : '-'}
                             </div>
 
                             {/* Final Score with Modifier */}
                             <div className="text-center">
-                                <span className="font-bold text-2xl text-gray-900">
+                                <span className="font-bold text-2xl text-white">
                                     {finalScore}
                                 </span>
-                                <span className="text-xl text-gray-600 ml-1">
+                                <span className="text-xl text-gray-500 ml-1">
                                     ({getModifier(finalScore)})
                                 </span>
                             </div>
@@ -299,8 +299,8 @@ export function AbilityScoreStep({
 
             {/* Feat bonuses summary if any */}
             {feats && feats.some(f => f.benefits?.abilityScoreIncrease) && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-sm text-amber-600">
+                <div className="mt-4 pt-4 border-t border-zinc-800">
+                    <p className="text-sm text-amber-400">
                         ✨ Feat bonuses are included in final scores
                     </p>
                 </div>

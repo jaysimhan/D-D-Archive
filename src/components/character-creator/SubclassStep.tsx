@@ -45,7 +45,7 @@ export function SubclassStep({
     if (level < subclassLevel) {
         return (
             <div className="text-center py-12">
-                <p className="text-gray-600 text-lg mb-2">
+                <p className="text-gray-400 text-lg mb-2">
                     Subclass selection unlocks at level {subclassLevel}
                 </p>
                 <p className="text-sm text-gray-500">
@@ -60,30 +60,30 @@ export function SubclassStep({
             {/* Left Column: Grid */}
             <div className="flex-1 w-full">
                 <div className="text-center lg:text-left mb-6">
-                    <h2 className="text-gray-900 text-2xl font-bold mb-2">Choose Your {classData.name} Subclass</h2>
-                    <p className="text-gray-600">Specialize your character's abilities</p>
+                    <h2 className="text-white text-3xl font-bold mb-2 font-serif">Choose Your {classData.name} Subclass</h2>
+                    <p className="text-gray-400">Specialize your character's abilities</p>
                 </div>
 
                 {/* Search Bar */}
                 <div className="mb-6 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                     <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search subclasses..."
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full pl-12 pr-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-gray-500"
                     />
                 </div>
 
                 {subclassesLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                         {Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="p-4 border-2 border-gray-200 rounded-lg animate-pulse">
-                                <div className="h-5 w-32 bg-gray-200 rounded mb-2"></div>
-                                <div className="h-4 w-16 bg-gray-200 rounded mb-3"></div>
-                                <div className="h-4 w-full bg-gray-200 rounded mb-1"></div>
-                                <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+                            <div key={i} className="p-4 border border-zinc-800 rounded-lg animate-pulse bg-zinc-900/50">
+                                <div className="h-5 w-32 bg-zinc-800 rounded mb-2"></div>
+                                <div className="h-4 w-16 bg-zinc-800 rounded mb-3"></div>
+                                <div className="h-4 w-full bg-zinc-800 rounded mb-1"></div>
+                                <div className="h-4 w-3/4 bg-zinc-800 rounded"></div>
                             </div>
                         ))}
                     </div>
@@ -93,42 +93,42 @@ export function SubclassStep({
                             <button
                                 key={subclass.id}
                                 onClick={() => onSelect(subclass)}
-                                className={`text-left p-4 border-2 rounded-lg transition-all ${selectedSubclass?.id === subclass.id
-                                    ? "border-indigo-600 bg-indigo-50 shadow-md"
-                                    : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
+                                className={`text-left p-4 border rounded-lg transition-all ${selectedSubclass?.id === subclass.id
+                                    ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+                                    : "border-zinc-800 bg-zinc-900/40 hover:border-brand-500/50 hover:bg-zinc-800"
                                     }`}
                             >
-                                <h3 className="text-gray-900 font-semibold text-lg mb-1">{subclass.name}</h3>
+                                <h3 className={`font-semibold text-lg mb-1 font-serif ${selectedSubclass?.id === subclass.id ? 'text-brand-400' : 'text-gray-200'}`}>{subclass.name}</h3>
                                 {subclass.edition && (
-                                    <span className="text-[10px] px-2 py-1 bg-gray-100 text-gray-700 rounded inline-block mb-2 mr-1">
+                                    <span className="text-[10px] px-2 py-1 bg-zinc-800 text-gray-400 rounded inline-block mb-2 mr-1 border border-zinc-700">
                                         {subclass.edition}
                                     </span>
                                 )}
                                 {subclass.spellcaster && (
-                                    <span className="text-[10px] px-2 py-1 bg-indigo-100 text-indigo-700 rounded inline-block mb-2 font-semibold">
+                                    <span className="text-[10px] px-2 py-1 bg-brand-900/50 text-brand-300 rounded inline-block mb-2 font-semibold border border-brand-700">
                                         Spellcasting
                                     </span>
                                 )}
                                 {subclass.magicType && (
                                     <div className="mb-2 flex flex-col gap-1">
                                         <div className="flex flex-wrap gap-1">
-                                            <span className="text-[10px] px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-semibold">
+                                            <span className="text-[10px] px-2 py-1 bg-amber-900/50 text-amber-300 rounded-full font-semibold border border-amber-700">
                                                 {subclass.magicType}
                                             </span>
                                             {subclass.magicAbility && (
-                                                <span className="text-[10px] px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold">
+                                                <span className="text-[10px] px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full font-semibold border border-blue-700">
                                                     {subclass.magicAbility}
                                                 </span>
                                             )}
                                         </div>
                                         {subclass.magicDescription && (
-                                            <p className="text-xs text-purple-600 font-medium italic mt-1 bg-purple-50 p-1.5 rounded border border-purple-100">
+                                            <p className="text-xs text-amber-300/80 font-medium italic mt-1 bg-amber-900/30 p-1.5 rounded border border-amber-800">
                                                 {subclass.magicDescription}
                                             </p>
                                         )}
                                     </div>
                                 )}
-                                <p className="text-sm text-gray-600 line-clamp-2">{subclass.description}</p>
+                                <p className="text-sm text-gray-400 line-clamp-2">{subclass.description}</p>
                             </button>
                         ))}
                     </div>
@@ -136,11 +136,11 @@ export function SubclassStep({
             </div>
 
             {/* Right Column: Details Panel */}
-            <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-white border border-gray-200 rounded-xl shadow-sm min-h-[400px]">
+            <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
                 {displayedSubclass ? (
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
-                        <div className="w-full h-48 bg-gray-100 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative">
+                        <div className="w-full h-48 bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
                             {displayedSubclass?.image || displayedSubclass?.imageUrl ? (
                                 <img
                                     src={displayedSubclass.imageUrl || (displayedSubclass.image ? urlFor(displayedSubclass.image)?.url() : '') || ''}
@@ -150,8 +150,8 @@ export function SubclassStep({
                             ) : (
                                 <>
                                     <div className="text-center p-4">
-                                        <User className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                                        <span className="text-xs text-gray-400">Subclass Icon</span>
+                                        <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
+                                        <span className="text-xs text-zinc-600">Subclass Icon</span>
                                     </div>
                                     <img
                                         src={`/images/subclasses/${displayedSubclass.id}.jpg`}
@@ -163,39 +163,39 @@ export function SubclassStep({
                             )}
                         </div>
 
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2 text-indigo-700 font-serif">{displayedSubclass.name}</h3>
+                        <h3 className="text-3xl font-bold text-brand-500 mb-2 font-serif border-b border-brand-900/30 pb-2">{displayedSubclass.name}</h3>
 
                         {/* Spellcaster Badge */}
                         {(displayedSubclass.spellcaster || displayedSubclass.magicType) && (
                             <div className="mb-3">
-                                <span className="text-xs px-3 py-1 bg-purple-600 text-white rounded-full font-semibold">
+                                <span className="text-xs px-3 py-1 bg-brand-600 text-white rounded-full font-semibold">
                                     ✨ Spellcaster Subclass
                                 </span>
                             </div>
                         )}
 
                         {displayedSubclass.magicType && (
-                            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg mb-4 border border-purple-200 shadow-sm">
-                                <h4 className="font-bold text-purple-900 text-sm mb-2 flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                            <div className="bg-gradient-to-r from-brand-950/50 to-amber-950/50 p-4 rounded-lg mb-4 border border-brand-800 shadow-sm">
+                                <h4 className="font-bold text-brand-300 text-sm mb-2 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-brand-500"></span>
                                     Magic Capability
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
                                         <span className="text-gray-500 block text-xs">Type</span>
-                                        <span className="font-medium text-gray-900">{displayedSubclass.magicType}</span>
+                                        <span className="font-medium text-gray-200">{displayedSubclass.magicType}</span>
                                     </div>
                                     {displayedSubclass.magicAbility && (
                                         <div>
                                             <span className="text-gray-500 block text-xs">Ability</span>
-                                            <span className="font-medium text-gray-900">{displayedSubclass.magicAbility}</span>
+                                            <span className="font-medium text-gray-200">{displayedSubclass.magicAbility}</span>
                                         </div>
                                     )}
                                 </div>
                                 {displayedSubclass.magicDescription && (
-                                    <div className="mt-3 pt-3 border-t border-purple-200">
+                                    <div className="mt-3 pt-3 border-t border-brand-800">
                                         <span className="text-gray-500 block text-xs mb-1">Details</span>
-                                        <p className="text-sm text-purple-800 italic bg-white/50 p-2 rounded">
+                                        <p className="text-sm text-brand-200 italic bg-black/30 p-2 rounded">
                                             {displayedSubclass.magicDescription}
                                         </p>
                                     </div>
@@ -203,15 +203,15 @@ export function SubclassStep({
                             </div>
                         )}
 
-                        <p className="text-gray-700 leading-relaxed mb-6 text-sm">{displayedSubclass.description}</p>
+                        <p className="text-gray-300 leading-relaxed mb-6 text-sm">{displayedSubclass.description}</p>
 
-                        <div className="text-sm text-gray-500">
-                            <strong className="text-gray-900 block mb-2">Features:</strong>
+                        <div className="text-sm text-gray-400">
+                            <strong className="text-gray-200 block mb-2">Features:</strong>
                             <ul className="space-y-3">
                                 {displayedSubclass.features.map((feature, idx) => (
-                                    <li key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                        <span className="font-semibold text-indigo-700 block mb-1">Level {feature.level}: {feature.name}</span>
-                                        <p className="text-gray-600 text-sm mt-1">{feature.description}</p>
+                                    <li key={idx} className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700">
+                                        <span className="font-semibold text-brand-400 block mb-1">Level {feature.level}: {feature.name}</span>
+                                        <p className="text-gray-400 text-sm mt-1">{feature.description}</p>
                                     </li>
                                 ))}
                             </ul>

@@ -18,13 +18,13 @@ export function SearchBar({
     <div className="space-y-4">
       {/* Search Input */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
         <input
           type="text"
           placeholder="Search the archive..."
           value={filters.query}
           onChange={(e) => onFiltersChange({ ...filters, query: e.target.value })}
-          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-gray-500"
         />
       </div>
 
@@ -32,7 +32,7 @@ export function SearchBar({
       <div className="flex flex-wrap gap-4">
         {/* Edition Filter */}
         <div className="flex-1 min-w-[150px]">
-          <label className="block text-sm mb-1 text-gray-700">Edition</label>
+          <label className="block text-sm mb-1 text-gray-400">Edition</label>
           <select
             value={filters.edition || ""}
             onChange={(e) =>
@@ -41,7 +41,7 @@ export function SearchBar({
                 edition: e.target.value ? (e.target.value as Edition) : undefined,
               })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
           >
             <option value="">All Editions</option>
             <option value="2014">2014 Rules</option>
@@ -52,7 +52,7 @@ export function SearchBar({
 
         {/* Source Filter */}
         <div className="flex-1 min-w-[150px]">
-          <label className="block text-sm mb-1 text-gray-700">Source</label>
+          <label className="block text-sm mb-1 text-gray-400">Source</label>
           <select
             value={filters.source || ""}
             onChange={(e) =>
@@ -61,7 +61,7 @@ export function SearchBar({
                 source: e.target.value ? (e.target.value as Source) : undefined,
               })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
           >
             <option value="">All Sources</option>
             <option value="Official">Official</option>
@@ -74,7 +74,7 @@ export function SearchBar({
         {showSpellFilters && (
           <>
             <div className="flex-1 min-w-[150px]">
-              <label className="block text-sm mb-1 text-gray-700">Spell Level</label>
+              <label className="block text-sm mb-1 text-gray-400">Spell Level</label>
               <select
                 value={filters.level !== undefined ? filters.level : ""}
                 onChange={(e) =>
@@ -83,7 +83,7 @@ export function SearchBar({
                     level: e.target.value !== "" ? parseInt(e.target.value) : undefined,
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
               >
                 <option value="">All Levels</option>
                 <option value="0">Cantrip</option>
@@ -96,7 +96,7 @@ export function SearchBar({
             </div>
 
             <div className="flex-1 min-w-[150px]">
-              <label className="block text-sm mb-1 text-gray-700">School</label>
+              <label className="block text-sm mb-1 text-gray-400">School</label>
               <select
                 value={filters.school || ""}
                 onChange={(e) =>
@@ -107,7 +107,7 @@ export function SearchBar({
                       : undefined,
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
               >
                 <option value="">All Schools</option>
                 <option value="Abjuration">Abjuration</option>
@@ -124,7 +124,7 @@ export function SearchBar({
 
             {/* Class Filter */}
             <div className="flex-1 min-w-[150px]">
-              <label className="block text-sm mb-1 text-gray-700">Class List</label>
+              <label className="block text-sm mb-1 text-gray-400">Class List</label>
               <select
                 value={filters.class || ""}
                 onChange={(e) =>
@@ -133,7 +133,7 @@ export function SearchBar({
                     class: e.target.value || undefined,
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
               >
                 <option value="">All Classes</option>
                 <option value="artificer">Artificer</option>
@@ -159,8 +159,8 @@ export function SearchBar({
             <div className="w-full h-0 basis-full md:hidden"></div> {/* Break row on small screens */}
 
             {/* Components Filter */}
-            <div className="flex items-center gap-3 min-w-[200px] border border-gray-200 rounded-lg px-3 py-2 bg-white">
-              <span className="text-sm text-gray-700 font-medium">Require:</span>
+            <div className="flex items-center gap-3 min-w-[200px] border border-zinc-700 rounded-lg px-3 py-2 bg-zinc-900/50">
+              <span className="text-sm text-gray-400 font-medium">Require:</span>
               <label className="flex items-center gap-1 cursor-pointer">
                 <input
                   type="checkbox"
@@ -172,9 +172,9 @@ export function SearchBar({
                       : current.filter(c => c !== "verbal");
                     onFiltersChange({ ...filters, components: next as any });
                   }}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-brand-600 focus:ring-brand-500 bg-zinc-800 border-zinc-600"
                 />
-                <span className="text-sm">V</span>
+                <span className="text-sm text-gray-300">V</span>
               </label>
               <label className="flex items-center gap-1 cursor-pointer">
                 <input
@@ -187,9 +187,9 @@ export function SearchBar({
                       : current.filter(c => c !== "somatic");
                     onFiltersChange({ ...filters, components: next as any });
                   }}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-brand-600 focus:ring-brand-500 bg-zinc-800 border-zinc-600"
                 />
-                <span className="text-sm">S</span>
+                <span className="text-sm text-gray-300">S</span>
               </label>
               <label className="flex items-center gap-1 cursor-pointer">
                 <input
@@ -202,9 +202,9 @@ export function SearchBar({
                       : current.filter(c => c !== "material");
                     onFiltersChange({ ...filters, components: next as any });
                   }}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-brand-600 focus:ring-brand-500 bg-zinc-800 border-zinc-600"
                 />
-                <span className="text-sm">M</span>
+                <span className="text-sm text-gray-300">M</span>
               </label>
             </div>
 
@@ -213,8 +213,8 @@ export function SearchBar({
               <button
                 onClick={() => onFiltersChange({ ...filters, concentration: filters.concentration === true ? undefined : true })}
                 className={`px-3 py-2 rounded-lg text-sm border transition-colors ${filters.concentration
-                  ? "bg-blue-100 border-blue-200 text-blue-700 font-medium"
-                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                  ? "bg-brand-900/50 border-brand-500/50 text-brand-300 font-medium"
+                  : "bg-zinc-900/50 border-zinc-700 text-gray-400 hover:bg-zinc-800"
                   }`}
               >
                 Conc.
@@ -222,8 +222,8 @@ export function SearchBar({
               <button
                 onClick={() => onFiltersChange({ ...filters, ritual: filters.ritual === true ? undefined : true })}
                 className={`px-3 py-2 rounded-lg text-sm border transition-colors ${filters.ritual
-                  ? "bg-blue-100 border-blue-200 text-blue-700 font-medium"
-                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                  ? "bg-brand-900/50 border-brand-500/50 text-brand-300 font-medium"
+                  : "bg-zinc-900/50 border-zinc-700 text-gray-400 hover:bg-zinc-800"
                   }`}
               >
                 Ritual
@@ -235,7 +235,7 @@ export function SearchBar({
         {/* Class-specific filters */}
         {showClassFilters && (
           <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm mb-1 text-gray-700">Type</label>
+            <label className="block text-sm mb-1 text-gray-400">Type</label>
             <select
               value={
                 filters.spellcaster !== undefined ? (filters.spellcaster ? "yes" : "no") : ""
@@ -247,7 +247,7 @@ export function SearchBar({
                     e.target.value === "" ? undefined : e.target.value === "yes",
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
             >
               <option value="">All Classes</option>
               <option value="yes">Spellcasters</option>
@@ -275,7 +275,7 @@ export function SearchBar({
                     spellcaster: undefined,
                   })
                 }
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 underline"
+                className="px-4 py-2 text-sm text-gray-400 hover:text-brand-400 underline transition-colors"
               >
                 Clear Filters
               </button>

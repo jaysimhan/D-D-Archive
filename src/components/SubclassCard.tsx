@@ -12,25 +12,25 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
       case "Official":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-900/50 text-blue-300 border border-blue-700";
       case "Homebrew":
-        return "bg-purple-100 text-purple-800";
+        return "bg-brand-900/50 text-brand-300 border border-brand-700";
       case "Unofficial":
-        return "bg-gray-100 text-gray-800";
+        return "bg-zinc-800 text-gray-400 border border-zinc-700";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-zinc-800 text-gray-400 border border-zinc-700";
     }
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow bg-white">
+    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
-          <h3 className="text-gray-900 mb-1">{subclass.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <h3 className="text-gray-100 mb-1 font-serif">{subclass.name}</h3>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
             <span className="flex items-center gap-1">
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4 text-brand-400" />
               {subclass.parentClassId.charAt(0).toUpperCase() +
                 subclass.parentClassId.slice(1)}{" "}
               Subclass
@@ -45,14 +45,14 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
           >
             {subclass.source}
           </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
             {subclass.edition}
           </span>
         </div>
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-700 mb-3">
+      <p className="text-sm text-gray-300 mb-3">
         {expanded
           ? subclass.description
           : `${subclass.description.substring(0, 120)}${subclass.description.length > 120 ? "..." : ""
@@ -61,7 +61,7 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
 
       <button
         onClick={() => setExpanded(!expanded)}
-        className="text-sm text-blue-600 hover:text-blue-800 mb-3 flex items-center gap-1"
+        className="text-sm text-brand-400 hover:text-brand-300 mb-3 flex items-center gap-1"
       >
         {expanded ? "Show Less" : "Show Details"}
       </button>
@@ -69,18 +69,18 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
       {/* Key Features */}
       {expanded && (
         <div className="mt-3 space-y-2">
-          <p className="text-sm text-gray-900 flex items-center gap-2">
+          <p className="text-sm text-gray-200 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             Key Features:
           </p>
           <div className="space-y-3">
             {subclass.features.map((feature, i) => (
-              <div key={i} className="bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
+              <div key={i} className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700 shadow-sm">
                 <div className="flex justify-between items-baseline mb-1">
-                  <span className="font-semibold text-indigo-700">{feature.name}</span>
-                  <span className="text-xs text-gray-500 font-medium bg-white px-2 py-0.5 rounded border border-gray-100">Level {feature.level}</span>
+                  <span className="font-semibold text-brand-400">{feature.name}</span>
+                  <span className="text-xs text-gray-500 font-medium bg-zinc-900 px-2 py-0.5 rounded border border-zinc-700">Level {feature.level}</span>
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -89,10 +89,10 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
 
       {/* Feature Count */}
       {!expanded && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
-          <p className="text-xs text-gray-600">
+        <div className="mt-3 pt-3 border-t border-zinc-800">
+          <p className="text-xs text-gray-500">
             <span>Features: </span>
-            <span className="text-gray-900">{subclass.features.length} total</span>
+            <span className="text-gray-300">{subclass.features.length} total</span>
           </p>
         </div>
       )}

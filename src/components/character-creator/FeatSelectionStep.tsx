@@ -38,22 +38,22 @@ export function FeatSelectionStep({
     return (
         <div>
             <div className="text-center mb-6">
-                <Sparkles className="w-12 h-12 text-amber-600 mx-auto mb-3" />
-                <h2 className="text-gray-900 text-2xl font-bold mb-2">Select Feats</h2>
-                <p className="text-gray-600">Choose feats to customize your character's abilities</p>
+                <Sparkles className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+                <h2 className="text-white text-3xl font-bold mb-2 font-serif">Select Feats</h2>
+                <p className="text-gray-400">Choose feats to customize your character's abilities</p>
                 <p className="text-sm text-gray-500 mt-2">
                     (Optional) Select feats granted by your Race, Background, or Class Level.
                 </p>
             </div>
 
             <div className="mb-6 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                 <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search feats..."
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full pl-12 pr-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-gray-500"
                 />
             </div>
 
@@ -64,20 +64,20 @@ export function FeatSelectionStep({
                         <button
                             key={feat.id}
                             onClick={() => toggleFeat(feat)}
-                            className={`text-left p-3 border-2 rounded-lg transition-all ${isSelected
-                                ? "border-amber-600 bg-amber-50 shadow-md"
-                                : "border-gray-200 hover:border-amber-300 hover:bg-gray-50"
+                            className={`text-left p-3 border rounded-lg transition-all ${isSelected
+                                ? "border-amber-500 bg-amber-900/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                                : "border-zinc-800 bg-zinc-900/40 hover:border-amber-500/50 hover:bg-zinc-800"
                                 }`}
                         >
                             <div className="flex justify-between items-start mb-1">
-                                <h4 className="text-gray-900 font-semibold">{feat.name}</h4>
+                                <h4 className={`font-semibold font-serif ${isSelected ? 'text-amber-400' : 'text-gray-200'}`}>{feat.name}</h4>
                                 <div className="flex gap-1">
-                                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                    <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded border border-zinc-700">
                                         {feat.source}
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-600 line-clamp-2">{feat.description}</p>
+                            <p className="text-sm text-gray-400 line-clamp-2">{feat.description}</p>
                         </button>
                     );
                 })}

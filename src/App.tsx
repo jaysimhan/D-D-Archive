@@ -2,8 +2,9 @@ import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Home, BookOpen, Wand2, Menu, X, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DiceRoller } from "./components/DiceRoller";
+import NProgress from "nprogress";
 
 // Lazy load pages
 const HomePage = lazy(() => import("./pages/HomePage").then(module => ({ default: module.HomePage })));
@@ -21,12 +22,12 @@ function Navigation() {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <nav className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link
             to="/"
-            className="flex items-center gap-2 text-gray-900 hover:text-purple-700 transition-colors z-50 relative"
+            className="flex items-center gap-2 text-white hover:text-brand-400 transition-colors z-50 relative"
             onClick={closeMenu}
           >
             <Home className="w-5 h-5" />
@@ -38,8 +39,8 @@ function Navigation() {
             <Link
               to="/library"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${location.pathname === "/library"
-                ? "bg-red-100 text-red-700"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                ? "bg-brand-900/50 text-brand-400"
+                : "text-gray-400 hover:text-white hover:bg-zinc-800"
                 }`}
             >
               <BookOpen className="w-5 h-5" />
@@ -49,8 +50,8 @@ function Navigation() {
             <Link
               to="/creator"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${location.pathname === "/creator"
-                ? "bg-purple-100 text-purple-700"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                ? "bg-brand-900/50 text-brand-400"
+                : "text-gray-400 hover:text-white hover:bg-zinc-800"
                 }`}
             >
               <Wand2 className="w-5 h-5" />
@@ -61,7 +62,7 @@ function Navigation() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-gray-600 hover:text-gray-900 z-50 relative"
+            className="md:hidden p-2 text-gray-400 hover:text-white z-50 relative"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -69,13 +70,13 @@ function Navigation() {
 
           {/* Mobile Navigation Overlay */}
           {isMenuOpen && (
-            <div className="fixed inset-0 bg-white z-40 md:hidden pt-20 px-4 flex flex-col gap-4 animate-in fade-in slide-in-from-top-5 duration-200">
+            <div className="fixed inset-0 bg-zinc-950 z-40 md:hidden pt-20 px-4 flex flex-col gap-4 animate-in fade-in slide-in-from-top-5 duration-200">
               <Link
                 to="/library"
                 onClick={closeMenu}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-lg transition-colors ${location.pathname === "/library"
-                  ? "bg-red-50 text-red-700"
-                  : "bg-gray-50 text-gray-700"
+                  ? "bg-brand-900/50 text-brand-400"
+                  : "bg-zinc-900 text-gray-300"
                   }`}
               >
                 <BookOpen className="w-6 h-6" />
@@ -85,8 +86,8 @@ function Navigation() {
                 to="/creator"
                 onClick={closeMenu}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-lg transition-colors ${location.pathname === "/creator"
-                  ? "bg-purple-50 text-purple-700"
-                  : "bg-gray-50 text-gray-700"
+                  ? "bg-brand-900/50 text-brand-400"
+                  : "bg-zinc-900 text-gray-300"
                   }`}
               >
                 <Wand2 className="w-6 h-6" />
@@ -101,9 +102,16 @@ function Navigation() {
 }
 
 function LoadingSpinner() {
+  useEffect(() => {
+    NProgress.start();
+    return () => {
+      NProgress.done();
+    };
+  }, []);
+
   return (
     <div className="min-h-[50vh] flex flex-col items-center justify-center text-gray-500 gap-4">
-      <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
       <p>Loading...</p>
     </div>
   );
@@ -123,7 +131,7 @@ function ContentWrapper({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-zinc-950">
         <Navigation />
 
         <ContentWrapper>

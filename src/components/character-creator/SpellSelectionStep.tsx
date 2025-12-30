@@ -253,14 +253,14 @@ export function SpellSelectionStep({
         const levels = Array.from(new Set(slots.map(s => s.level))).sort((a, b) => a - b);
 
         return (
-            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-6">
+            <div className="bg-zinc-900/40 p-6 rounded-xl border border-zinc-800 mb-6">
                 <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+                    <h3 className="text-lg font-bold text-gray-200">{title}</h3>
                     {showClassSelector && onMagicInitiateClassChange && (
                         <select
                             value={magicInitiateClass || ""}
                             onChange={(e) => onMagicInitiateClassChange(e.target.value)}
-                            className="px-3 py-1 text-sm border-2 border-purple-200 rounded-lg focus:outline-none focus:border-purple-500"
+                            className="px-3 py-1 text-sm bg-zinc-800 border-2 border-zinc-700 rounded-lg focus:outline-none focus:border-brand-500 text-gray-200"
                         >
                             <option value="" disabled>Select Class...</option>
                             <option value="bard">Bard</option>
@@ -277,7 +277,7 @@ export function SpellSelectionStep({
                     const lvlSlots = slots.filter(s => s.level === lvl);
                     return (
                         <div key={lvl} className="mb-4 last:mb-0">
-                            <h4 className="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+                            <h4 className="text-sm font-semibold text-brand-400 mb-2 uppercase tracking-wide">
                                 {lvl === 0 ? "Cantrips" : `Level ${lvl} Spells`}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -340,14 +340,14 @@ export function SpellSelectionStep({
                                     return (
                                         <div key={slot.id} className="relative group">
                                             {filledSpell ? (
-                                                <div className="p-3 bg-white border-2 border-purple-200 rounded-lg shadow-sm hover:border-red-300 transition-colors flex justify-between items-center group-hover:bg-red-50">
+                                                <div className="p-3 bg-zinc-800 border-2 border-zinc-700 rounded-lg shadow-sm hover:border-brand-500/50 transition-colors flex justify-between items-center group-hover:bg-zinc-800/80">
                                                     <div className="min-w-0">
-                                                        <div className="font-semibold text-gray-900 truncate">{filledSpell.name}</div>
+                                                        <div className="font-semibold text-gray-200 truncate">{filledSpell.name}</div>
                                                         <div className="text-xs text-gray-500">{filledSpell.school}</div>
                                                     </div>
                                                     <button
                                                         onClick={() => removeSpell(filledSpell.id)}
-                                                        className="text-gray-400 hover:text-red-600 p-1 flex-shrink-0"
+                                                        className="text-gray-500 hover:text-red-400 p-1 flex-shrink-0"
                                                     >
                                                         <User className="w-4 h-4 rotate-45" />
                                                     </button>
@@ -360,7 +360,7 @@ export function SpellSelectionStep({
                                                         source: slot.source,
                                                         choiceIndex: slot.choiceIndex
                                                     })}
-                                                    className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
+                                                    className="w-full p-3 border-2 border-dashed border-zinc-700 rounded-lg text-gray-500 hover:border-brand-500 hover:text-brand-400 hover:bg-brand-900/10 transition-all flex items-center justify-center gap-2"
                                                 >
                                                     <Plus className="w-4 h-4" />
                                                     <span>Select</span>
@@ -406,22 +406,22 @@ export function SpellSelectionStep({
         return (
             <div className="min-h-[500px]">
                 <div className="text-center mb-6">
-                    <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <h2 className="text-gray-900 text-2xl font-bold mb-2">Spells</h2>
-                    <p className="text-gray-600">Review your spellcasting abilities.</p>
+                    <Sparkles className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
+                    <h2 className="text-gray-200 text-2xl font-bold mb-2 font-serif">Spells</h2>
+                    <p className="text-gray-400">Review your spellcasting abilities.</p>
                 </div>
 
                 <div className="max-w-2xl mx-auto">
-                    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Sparkles className="w-8 h-8 text-gray-400" />
+                    <div className="bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-xl p-8 text-center">
+                        <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Sparkles className="w-8 h-8 text-zinc-500" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Spellcasting</h3>
+                        <h3 className="text-xl font-semibold text-gray-300 mb-2">No Spellcasting</h3>
                         <p className="text-gray-500 mb-4 max-w-md mx-auto">
                             Your current class, subclass, and race do not grant any spellcasting abilities.
                             You can proceed to the next step.
                         </p>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-600">
                             <p>
                                 Spellcasting can be gained through:
                             </p>
@@ -441,9 +441,9 @@ export function SpellSelectionStep({
     return (
         <div className="min-h-[500px]">
             <div className="text-center mb-6">
-                <Sparkles className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-                <h2 className="text-gray-900 text-2xl font-bold mb-2">Prepare Your Spells</h2>
-                <p className="text-gray-600">Select spells for your available slots.</p>
+                <Sparkles className="w-12 h-12 text-brand-500 mx-auto mb-3" />
+                <h2 className="text-brand-400 text-2xl font-bold mb-2 font-serif">Prepare Your Spells</h2>
+                <p className="text-gray-400">Select spells for your available slots.</p>
             </div>
 
             <div className="max-w-3xl mx-auto space-y-8">
@@ -484,11 +484,11 @@ export function SpellSelectionStep({
                     if (knownRacialSpells.length === 0) return null;
 
                     return (
-                        <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 mb-6">
+                        <div className="bg-indigo-900/20 p-6 rounded-xl border border-indigo-500/30 mb-6">
                             <div className="flex justify-between items-start mb-4">
-                                <h3 className="text-lg font-bold text-indigo-900">Racial Spells</h3>
+                                <h3 className="text-lg font-bold text-indigo-300">Racial Spells</h3>
                             </div>
-                            <p className="text-sm text-indigo-700 mb-4">
+                            <p className="text-sm text-indigo-400 mb-4">
                                 Your lineage grants you these spells automatically.
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -496,10 +496,10 @@ export function SpellSelectionStep({
                                     const spell = allSpells.find(s => s.id === known.spellId) || { name: known.name || "Unknown Spell", id: known.spellId };
                                     if (!spell) return null;
                                     return (
-                                        <div key={`race-${known.spellId}-${idx}`} className="p-3 bg-white border-2 border-indigo-300 rounded-lg opacity-90">
+                                        <div key={`race-${known.spellId}-${idx}`} className="p-3 bg-zinc-900 border border-indigo-500/50 rounded-lg">
                                             <div className="flex justify-between items-start mb-1">
-                                                <h4 className="font-semibold text-gray-900 truncate">{spell.name}</h4>
-                                                <span className="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full border border-indigo-200">Known</span>
+                                                <h4 className="font-semibold text-gray-200 truncate">{spell.name}</h4>
+                                                <span className="text-[10px] bg-indigo-900/50 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/50">Known</span>
                                             </div>
                                             <p className="text-xs text-gray-500">
                                                 {minLevelLabel(known.type || "at-will")} {known.abilityScore ? `(Ability: ${known.abilityScore})` : ''}
@@ -532,11 +532,11 @@ export function SpellSelectionStep({
                     if (knownSubclassSpells.length === 0) return null;
 
                     return (
-                        <div className="bg-purple-50 p-6 rounded-xl border border-purple-200 mb-6">
+                        <div className="bg-purple-900/20 p-6 rounded-xl border border-purple-500/30 mb-6">
                             <div className="flex justify-between items-start mb-4">
-                                <h3 className="text-lg font-bold text-purple-900">Subclass Spells</h3>
+                                <h3 className="text-lg font-bold text-purple-300">Subclass Spells</h3>
                             </div>
-                            <p className="text-sm text-purple-700 mb-4">
+                            <p className="text-sm text-purple-400 mb-4">
                                 Your subclass grants you these spells automatically.
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -544,10 +544,10 @@ export function SpellSelectionStep({
                                     const spell = allSpells.find(s => s.id === known.spellId) || { name: known.name || "Unknown Spell", id: known.spellId };
                                     if (!spell) return null;
                                     return (
-                                        <div key={`sub-${known.spellId}-${idx}`} className="p-3 bg-white border-2 border-purple-300 rounded-lg opacity-90">
+                                        <div key={`sub-${known.spellId}-${idx}`} className="p-3 bg-zinc-900 border border-purple-500/50 rounded-lg">
                                             <div className="flex justify-between items-start mb-1">
-                                                <h4 className="font-semibold text-gray-900 truncate">{spell.name}</h4>
-                                                <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">Known</span>
+                                                <h4 className="font-semibold text-gray-200 truncate">{spell.name}</h4>
+                                                <span className="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/50">Known</span>
                                             </div>
                                             <p className="text-xs text-gray-500">
                                                 {minLevelLabel(known.type || "always")} {known.abilityScore ? `(Ability: ${known.abilityScore})` : ''}
@@ -697,15 +697,15 @@ function SpellSelectionModal({
     const recommended = ["magic-missile", "shield", "cure-wounds", "healing-word", "bless", "hex", "hunter-s-mark", "fireball", "eldritch-blast", "guidance"];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden">
-                <div className="p-4 border-b flex justify-between items-center bg-gray-50 flex-wrap gap-2">
-                    <h3 className="font-bold text-lg text-gray-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden border border-zinc-800">
+                <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900 flex-wrap gap-2">
+                    <h3 className="font-bold text-lg text-gray-100">
                         Select {slotLevel === 0 ? "Cantrip" : `Level ${slotLevel} Spell`}
-                        {slotSource === "Magic Initiate" && magicInitiateClass && <span className="text-purple-600 ml-2">({magicInitiateClass})</span>}
-                        {slotSource === "Aberrant Dragonmark" && <span className="text-red-600 ml-2">(Sorcerer)</span>}
+                        {slotSource === "Magic Initiate" && magicInitiateClass && <span className="text-brand-400 ml-2">({magicInitiateClass})</span>}
+                        {slotSource === "Aberrant Dragonmark" && <span className="text-red-400 ml-2">(Sorcerer)</span>}
                     </h3>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full ml-auto">
+                    <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full ml-auto text-gray-400 hover:text-white">
                         <User className="w-5 h-5 rotate-45" />
                     </button>
                 </div>
@@ -713,22 +713,22 @@ function SpellSelectionModal({
                 {/* Divine Soul Toggle */}
                 {isDivineSoulSelection && (
                     <div className="px-4 pt-3 flex justify-center">
-                        <div className="bg-gray-100 p-1 rounded-lg flex gap-1">
+                        <div className="bg-zinc-800 p-1 rounded-lg flex gap-1">
                             <button
                                 onClick={() => setDivineSoulFilter("all")}
-                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${divineSoulFilter === "all" ? "bg-white text-indigo-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${divineSoulFilter === "all" ? "bg-zinc-700 text-brand-300 shadow-sm" : "text-gray-500 hover:text-gray-300"}`}
                             >
                                 All
                             </button>
                             <button
                                 onClick={() => setDivineSoulFilter("sorcerer")}
-                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${divineSoulFilter === "sorcerer" ? "bg-purple-100 text-purple-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${divineSoulFilter === "sorcerer" ? "bg-purple-900/50 text-purple-300 shadow-sm" : "text-gray-500 hover:text-gray-300"}`}
                             >
                                 Sorcerer
                             </button>
                             <button
                                 onClick={() => setDivineSoulFilter("cleric")}
-                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${divineSoulFilter === "cleric" ? "bg-amber-100 text-amber-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${divineSoulFilter === "cleric" ? "bg-amber-900/50 text-amber-300 shadow-sm" : "text-gray-500 hover:text-gray-300"}`}
                             >
                                 Cleric
                             </button>
@@ -736,16 +736,16 @@ function SpellSelectionModal({
                     </div>
                 )}
 
-                <div className="p-4 border-b bg-white">
+                <div className="p-4 border-b border-zinc-800 bg-zinc-900">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                         <input
                             autoFocus
                             type="text"
                             placeholder="Search spells..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            className="w-full pl-9 pr-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-white placeholder-gray-500"
                         />
                     </div>
                     {slotSource === "Magic Initiate" && !magicInitiateClass && (
@@ -755,27 +755,27 @@ function SpellSelectionModal({
                     )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 bg-gray-50 grid grid-cols-1 gap-2">
+                <div className="flex-1 overflow-y-auto p-4 bg-zinc-950/50 grid grid-cols-1 gap-2">
                     {filtered.map(spell => {
                         const isRec = recommended.includes(spell.id) || spell.name.includes("Bolt");
                         return (
                             <button
                                 key={spell.id}
                                 onClick={() => onSelect(spell)}
-                                className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-md transition-all group"
+                                className="text-left p-3 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-brand-500 hover:bg-zinc-800 transition-all group"
                             >
                                 <div className="flex justify-between items-start">
-                                    <div className="font-semibold text-gray-900 flex items-center gap-2">
+                                    <div className="font-semibold text-gray-200 flex items-center gap-2 group-hover:text-brand-400 transition-colors">
                                         {spell.name}
-                                        {isRec && <span className="text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded-full border border-yellow-200">Rec.</span>}
+                                        {isRec && <span className="text-[10px] bg-yellow-900/30 text-yellow-500 px-1.5 py-0.5 rounded-full border border-yellow-700/50">Rec.</span>}
                                     </div>
                                     <span className="text-xs text-gray-500">{spell.school}</span>
                                 </div>
-                                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{spell.description}</p>
+                                <p className="text-sm text-gray-400 mt-1 line-clamp-2">{spell.description}</p>
                                 {isDivineSoulSelection && (
                                     <div className="mt-1 flex gap-1">
-                                        {spell.classes.includes("cleric") && <span className="text-[10px] px-1 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded">Cleric</span>}
-                                        {spell.classes.includes("sorcerer") && <span className="text-[10px] px-1 py-0.5 bg-purple-50 text-purple-700 border border-purple-100 rounded">Sorcerer</span>}
+                                        {spell.classes.includes("cleric") && <span className="text-[10px] px-1 py-0.5 bg-amber-900/30 text-amber-500 border border-amber-800/50 rounded">Cleric</span>}
+                                        {spell.classes.includes("sorcerer") && <span className="text-[10px] px-1 py-0.5 bg-purple-900/30 text-purple-500 border border-purple-800/50 rounded">Sorcerer</span>}
                                     </div>
                                 )}
                             </button>

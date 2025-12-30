@@ -75,19 +75,19 @@ export function EquipmentStep({
     return (
         <div>
             <div className="text-center mb-6">
-                <h2 className="text-gray-900 text-2xl font-bold mb-2">Select Equipment</h2>
-                <p className="text-gray-600">Choose your starting gear</p>
-                <p className="text-sm text-indigo-700 mt-2 font-medium">Selected: {equipment.length} items</p>
+                <h2 className="text-white text-3xl font-bold mb-2 font-serif">Select Equipment</h2>
+                <p className="text-gray-400">Choose your starting gear</p>
+                <p className="text-sm text-brand-400 mt-2 font-medium">Selected: {equipment.length} items</p>
             </div>
 
             <div className="mb-6 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                 <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search equipment..."
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full pl-12 pr-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-gray-500"
                 />
             </div>
 
@@ -100,22 +100,22 @@ export function EquipmentStep({
                         <button
                             key={item.id}
                             onClick={() => toggleItem(item)}
-                            className={`text-left p-3 border-2 rounded-lg transition-all ${isSelected
-                                ? "border-indigo-600 bg-indigo-50 shadow-md"
-                                : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
+                            className={`text-left p-3 border rounded-lg transition-all ${isSelected
+                                ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+                                : "border-zinc-800 bg-zinc-900/40 hover:border-brand-500/50 hover:bg-zinc-800"
                                 } ${notRecommended ? "opacity-60 order-last" : ""}`}
                         >
                             <div className="flex justify-between items-start mb-1">
-                                <h4 className="text-gray-900 font-semibold flex items-center gap-2">
+                                <h4 className={`font-semibold flex items-center gap-2 font-serif ${isSelected ? 'text-brand-400' : 'text-gray-200'}`}>
                                     {item.name}
-                                    {notRecommended && <span className="text-[10px] bg-gray-200 text-gray-500 px-1 rounded">Not Rec.</span>}
+                                    {notRecommended && <span className="text-[10px] bg-zinc-800 text-gray-500 px-1 rounded border border-zinc-700">Not Rec.</span>}
                                 </h4>
-                                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded border border-zinc-700">
                                     {item.type}
                                 </span>
                             </div>
                             {item.cost && (
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-gray-400">
                                     Cost: {item.cost.amount} {item.cost.currency}
                                 </p>
                             )}

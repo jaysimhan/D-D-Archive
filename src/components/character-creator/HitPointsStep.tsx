@@ -110,48 +110,48 @@ export function HitPointsStep({
     return (
         <div className="max-w-4xl mx-auto">
             <div className="text-center mb-6">
-                <h2 className="text-gray-900 text-2xl font-bold mb-2">Hit Points</h2>
-                <p className="text-gray-600">Review your hit points per level.</p>
+                <h2 className="text-brand-400 text-2xl font-bold mb-2 font-serif">Hit Points</h2>
+                <p className="text-gray-400">Review your hit points per level.</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+            <div className="bg-zinc-900/60 p-6 rounded-xl border border-zinc-800 space-y-6">
 
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[500px]">
                         <thead>
-                            <tr className="border-b text-gray-500 text-sm uppercase tracking-wide">
+                            <tr className="border-b border-zinc-700 text-gray-400 text-sm uppercase tracking-wide">
                                 <th className="pb-3 text-center w-16">Lvl</th>
                                 <th className="pb-3 text-center">Brut HP (d{hitDie})</th>
                                 <th className="pb-3 text-center w-24">CON Bonus</th>
                                 {otherBonusPerLevel > 0 && <th className="pb-3 text-center w-24">Other</th>}
-                                <th className="pb-3 text-center w-24 font-bold text-gray-800">Final</th>
+                                <th className="pb-3 text-center w-24 font-bold text-gray-200">Final</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-zinc-800">
                             {Array.from({ length: level }).map((_, i) => {
                                 const roll = displayRolls[i] || (i === 0 ? hitDie : averageDie);
                                 const lvl = i + 1;
                                 const isFirstLevel = i === 0;
 
                                 return (
-                                    <tr key={lvl} className="hover:bg-gray-50/50">
-                                        <td className="py-4 text-center font-medium text-gray-700">{lvl}</td>
+                                    <tr key={lvl} className="hover:bg-zinc-800/50">
+                                        <td className="py-4 text-center font-medium text-gray-300">{lvl}</td>
                                         <td className="py-4 text-center">
                                             {isFirstLevel ? (
-                                                <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1.5 rounded">{roll}</span>
+                                                <span className="font-bold text-gray-100 bg-zinc-800 px-3 py-1.5 rounded">{roll}</span>
                                             ) : (
                                                 <div className="flex items-center justify-center gap-2">
                                                     <button
                                                         onClick={() => handleRollChange(i, roll - 1)}
-                                                        className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-gray-700 font-bold"
+                                                        className="w-8 h-8 flex items-center justify-center bg-zinc-700 rounded hover:bg-zinc-600 text-gray-300 font-bold disabled:opacity-50"
                                                         disabled={roll <= 1}
                                                     >
                                                         -
                                                     </button>
-                                                    <span className="w-10 text-center font-bold text-xl">{roll}</span>
+                                                    <span className="w-10 text-center font-bold text-xl text-gray-100">{roll}</span>
                                                     <button
                                                         onClick={() => handleRollChange(i, roll + 1)}
-                                                        className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-gray-700 font-bold"
+                                                        className="w-8 h-8 flex items-center justify-center bg-zinc-700 rounded hover:bg-zinc-600 text-gray-300 font-bold disabled:opacity-50"
                                                         disabled={roll >= hitDie}
                                                     >
                                                         +
@@ -159,7 +159,7 @@ export function HitPointsStep({
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="py-4 text-center text-gray-600">
+                                        <td className="py-4 text-center text-gray-400">
                                             {conMod >= 0 ? '+' : ''}{conMod}
                                         </td>
                                         {otherBonusPerLevel > 0 && (
@@ -167,22 +167,22 @@ export function HitPointsStep({
                                                 +{otherBonusPerLevel}
                                             </td>
                                         )}
-                                        <td className="py-4 text-center font-bold text-lg text-indigo-700">
+                                        <td className="py-4 text-center font-bold text-lg text-brand-400">
                                             {roll + conMod + otherBonusPerLevel}
                                         </td>
                                     </tr>
                                 );
                             })}
                         </tbody>
-                        <tfoot className="border-t-2 border-gray-200 bg-gray-50">
+                        <tfoot className="border-t-2 border-zinc-700 bg-zinc-800/50">
                             <tr>
-                                <td colSpan={otherBonusPerLevel > 0 ? 3 : 2} className="py-4 text-right pr-4 font-semibold text-gray-600 uppercase text-sm">
+                                <td colSpan={otherBonusPerLevel > 0 ? 3 : 2} className="py-4 text-right pr-4 font-semibold text-gray-400 uppercase text-sm">
                                     Total HP
                                 </td>
                                 <td className="py-4 text-center">
                                     {/* Empty for alignment if needed, or join cells */}
                                 </td>
-                                <td className={`py - 4 text - center font - bold text - 3xl text - indigo - 700`}>
+                                <td className="py-4 text-center font-bold text-3xl text-brand-400">
                                     {totalHp}
                                 </td>
                             </tr>
@@ -190,7 +190,7 @@ export function HitPointsStep({
                     </table>
                 </div>
 
-                <div className="bg-indigo-50 p-4 rounded-lg text-sm text-indigo-800 border border-indigo-100">
+                <div className="bg-brand-900/30 p-4 rounded-lg text-sm text-brand-300 border border-brand-800/50">
                     <p>
                         <strong>Note:</strong> Level 1 HP is maximized. For other levels, the average is selected by default, but you can adjust it if you rolled for HP.
                         The Constitution modifier and any racial/feat bonuses are automatically applied to every level.
