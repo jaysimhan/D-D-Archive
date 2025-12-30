@@ -108,7 +108,7 @@ export function EquipmentStep({
                             <div className="flex justify-between items-start mb-1">
                                 <h4 className={`font-semibold flex items-center gap-2 font-serif ${isSelected ? 'text-brand-400' : 'text-gray-200'}`}>
                                     {item.name}
-                                    {notRecommended && <span className="text-[10px] bg-zinc-800 text-gray-500 px-1 rounded border border-zinc-700">Not Rec.</span>}
+                                    {notRecommended && <span className="text-xs bg-zinc-800 text-gray-500 px-1 rounded border border-zinc-700">Not Rec.</span>}
                                 </h4>
                                 <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded border border-zinc-700">
                                     {item.type}

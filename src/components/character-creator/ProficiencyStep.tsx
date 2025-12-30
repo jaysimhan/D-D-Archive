@@ -11,9 +11,11 @@ export function ProficiencyStep({
     race,
     classData,
     subclass,
+    subrace,
     background,
     feats,
     abilityScores,
+    racialBonusAllocation,
 }: {
     proficiencies: {
         skills: { name: string; proficient: boolean; expertise: boolean }[];
@@ -26,9 +28,11 @@ export function ProficiencyStep({
     race?: CharacterData['race'];
     classData?: Class;
     subclass?: Subclass;
+    subrace?: CharacterData['subrace'];
     background?: Background;
     feats?: CharacterData['feats'];
     abilityScores?: CharacterData['abilityScores'];
+    racialBonusAllocation?: CharacterData['racialBonusAllocation'];
 }) {
     const SKILLS = [
         "Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History",
@@ -39,6 +43,33 @@ export function ProficiencyStep({
     // Helper to calculate modifier
     const getModifier = (score: number) => Math.floor((score - 10) / 2);
     const formatModifier = (mod: number) => mod >= 0 ? `+${mod}` : `${mod}`;
+
+    // Helper to calculate final score
+    const getFinalScore = (ability: string) => {
+        if (!abilityScores) return 10;
+        const key = ability as keyof typeof abilityScores;
+        const base = abilityScores[key] || 10;
+
+        // Racial Bonus
+        let racialBonus = 0;
+        if (race?.flexibleAbilityScores) {
+            racialBonus = racialBonusAllocation?.[key] || 0;
+        } else {
+            // Fixed bonuses
+            racialBonus = (race?.abilityScoreIncrease?.[key] || 0) +
+                (subrace?.abilityScoreIncrease?.[key] || 0);
+        }
+
+        // Feat Bonus
+        let featBonus = 0;
+        feats?.forEach(f => {
+            if (f.benefits?.abilityScoreIncrease?.[key]) {
+                featBonus += f.benefits.abilityScoreIncrease[key] || 0;
+            }
+        });
+
+        return base + racialBonus + featBonus;
+    };
 
     // Point System Logic
     // Base: 7 points. Feats: +2 points (Total 9).
@@ -209,7 +240,8 @@ export function ProficiencyStep({
                             { name: "Wisdom", key: "WIS", skills: ["Animal Handling", "Insight", "Medicine", "Perception", "Survival"] },
                             { name: "Charisma", key: "CHA", skills: ["Deception", "Intimidation", "Performance", "Persuasion"] }
                         ].map((group) => {
-                            const mod = abilityScores ? getModifier(abilityScores[group.key as keyof typeof abilityScores] || 10) : 0;
+                            const finalScore = getFinalScore(group.key);
+                            const mod = getModifier(finalScore);
                             return (
                                 <div key={group.name} className="bg-zinc-900/40 p-4 rounded-lg border border-zinc-800/50">
                                     <div className="flex items-center gap-3 mb-3 pl-1">
@@ -217,6 +249,7 @@ export function ProficiencyStep({
                                         <span className={`font-mono text-sm font-bold px-2 py-0.5 rounded border ${mod >= 0 ? "text-brand-400 bg-brand-900/20 border-brand-800/30" : "text-red-400 bg-red-900/20 border-red-800/30"}`}>
                                             {formatModifier(mod)}
                                         </span>
+
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-6">
                                         {group.skills.map(skillName => {

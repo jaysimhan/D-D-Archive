@@ -110,22 +110,22 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
         {/* Tabs */}
         <div className="bg-black/30 backdrop-blur-sm border-b border-brand-900/30 sticky top-0 z-20">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex gap-1 overflow-x-auto">
+            <div className="flex flex-wrap justify-center gap-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as LibraryTab)}
-                    className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+                    className={`flex items-center gap-2 px-3 py-3 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
                       ? "border-brand-500 text-brand-400"
                       : "border-transparent text-gray-400 hover:text-gray-200"
                       }`}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span>{tab.label}</span>
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{tab.label}</span>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${activeTab === tab.id
+                      className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === tab.id
                         ? "bg-brand-500/20 text-brand-400"
                         : "bg-white/10 text-gray-400"
                         }`}

@@ -41,11 +41,11 @@ export function RaceCard({ race }: RaceCardProps) {
     <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Image Section */}
       {race.image && (
-        <div className="w-full h-32 rounded-lg mb-3 overflow-hidden bg-black/40 border border-zinc-800">
+        <div className="w-full aspect-[3/2] rounded-lg mb-3 overflow-hidden bg-black/40 border border-zinc-800">
           <img
-            src={urlFor(race.image)?.width(400).height(200).url() || ''}
+            src={urlFor(race.image)?.width(600).height(400).url() || ''}
             alt={race.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-top"
           />
         </div>
       )}

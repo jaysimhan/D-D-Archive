@@ -314,6 +314,8 @@ export function CharacterCreator() {
                   background={characterData.background}
                   feats={characterData.feats}
                   abilityScores={characterData.abilityScores}
+                  subrace={characterData.subrace}
+                  racialBonusAllocation={characterData.racialBonusAllocation}
                   onProficienciesChange={(proficiencies: any) =>
                     setCharacterData({ ...characterData, proficiencies })
                   }

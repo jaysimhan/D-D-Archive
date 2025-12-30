@@ -343,7 +343,7 @@ export function DiceRoller() {
                           }
                         `}
                       >
-                        <div className="text-[10px] uppercase tracking-wide text-gray-500 font-semibold mb-1 z-10 relative">
+                        <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1 z-10 relative">
                           {(currentRoll.result.length === 1 && currentRoll.result[0] === currentRoll.dice)
                             ? "CRITICAL SUCCESS!"
                             : (currentRoll.result.length === 1 && currentRoll.result[0] === 1)
@@ -374,7 +374,7 @@ export function DiceRoller() {
                           {currentRoll.displayText}
                         </div>
                         {currentRoll.result.length > 1 && (
-                          <div className="text-[10px] text-gray-400 mt-1 z-10 relative">
+                          <div className="text-xs text-gray-400 mt-1 z-10 relative">
                             [{currentRoll.result.join(", ")}]
                           </div>
                         )}
@@ -394,23 +394,38 @@ export function DiceRoller() {
 
               {/* Modifier */}
               <div>
-                <label className="block text-[13.7px] text-gray-700 mb-1">Modifier</label>
+                <label className="block text-sm text-gray-700 mb-1">Modifier</label>
                 <div className="flex gap-2 items-center">
                   <button
                     onClick={() => setModifier(Math.max(-99, modifier - 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all"
+                    className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all text-gray-800"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9-]*"
                     value={modifier}
-                    onChange={(e) => setModifier(parseInt(e.target.value) || 0)}
-                    className="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-center text-lg"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '-' || val === '') {
+                        // Allow typing negative sign or clearing
+                        // We need to cast carefully for state which expects number
+                        // But since we can't store '-' in a number state, we might need a separate display state
+                        // OR just stick to simple number input but fix the styling first as priority.
+                        // For modifier, let's just fix styling and keep simple number behavior for now unless requested.
+                        // Reverting to simple number logic but with text color fix.
+                        setModifier(parseInt(val) || 0);
+                      } else {
+                        setModifier(parseInt(val) || 0);
+                      }
+                    }}
+                    className="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-center text-lg text-gray-900"
                   />
                   <button
                     onClick={() => setModifier(Math.min(99, modifier + 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all"
+                    className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all text-gray-800"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -419,7 +434,7 @@ export function DiceRoller() {
 
               {/* Roll Mode */}
               <div>
-                <label className="block text-[13.7px] text-gray-700 mb-2">Roll Mode</label>
+                <label className="block text-sm text-gray-700 mb-2">Roll Mode</label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setRollMode("normal")}
@@ -466,7 +481,7 @@ export function DiceRoller() {
                     <div className="w-full h-full flex items-center justify-center p-1.5">
                       {getDiceSvg(dice as DiceType)}
                     </div>
-                    <span className="absolute bottom-0.5 right-1 text-[9px] text-white/80 font-['Cinzel',serif] uppercase tracking-wider">
+                    <span className="absolute bottom-0.5 right-1 text-xs text-white/80 font-['Cinzel',serif] uppercase tracking-wider">
                       D{dice}
                     </span>
                   </button>
@@ -478,31 +493,35 @@ export function DiceRoller() {
                 <h3 className="text-xs font-semibold text-brand-800 uppercase tracking-wide">Custom Stat Roll (Drop Lowest)</h3>
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <label className="block text-[10px] text-gray-500 mb-1">Count</label>
+                    <label className="block text-xs text-gray-500 mb-1">Count</label>
                     <input
                       type="number"
                       value={statCount}
-                      onChange={(e) => setStatCount(parseInt(e.target.value) || 4)}
-                      className="w-full px-2 py-1 bg-white rounded text-sm border-0"
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        // Default to 0 instead of 4 to allow clearing and typing smaller numbers
+                        setStatCount(isNaN(val) ? 0 : val);
+                      }}
+                      className="w-full px-2 py-1 bg-white rounded text-sm border-0 text-gray-900"
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-[10px] text-gray-500 mb-1">Sides</label>
+                    <label className="block text-xs text-gray-500 mb-1">Sides</label>
                     <select
                       value={`d${statSides}`}
                       onChange={(e) => setStatSides(parseInt(e.target.value.slice(1)))}
-                      className="w-full px-2 py-1 bg-white rounded text-sm border-0"
+                      className="w-full px-2 py-1 bg-white rounded text-sm border-0 text-gray-900"
                     >
-                      <option>d4</option>
-                      <option>d6</option>
-                      <option>d8</option>
-                      <option>d10</option>
-                      <option>d12</option>
-                      <option>d20</option>
+                      <option className="bg-white text-gray-900">d4</option>
+                      <option className="bg-white text-gray-900">d6</option>
+                      <option className="bg-white text-gray-900">d8</option>
+                      <option className="bg-white text-gray-900">d10</option>
+                      <option className="bg-white text-gray-900">d12</option>
+                      <option className="bg-white text-gray-900">d20</option>
                     </select>
                   </div>
                   <div className="flex-1">
-                    <label className="block text-[10px] text-gray-500 mb-1">Drop</label>
+                    <label className="block text-xs text-gray-500 mb-1">Drop</label>
                     <input
                       type="number"
                       value={statDrop}
@@ -510,7 +529,7 @@ export function DiceRoller() {
                         const val = parseInt(e.target.value);
                         setStatDrop(isNaN(val) ? 0 : val);
                       }}
-                      className="w-full px-2 py-1 bg-white rounded text-sm border-0"
+                      className="w-full px-2 py-1 bg-white rounded text-sm border-0 text-gray-900"
                     />
                   </div>
                 </div>
@@ -545,7 +564,7 @@ export function DiceRoller() {
                         setRollHistory([]);
                         setCurrentRoll(null);
                       }}
-                      className="w-full text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 py-1 rounded transition-colors flex items-center justify-center gap-1 mb-2"
+                      className="w-full text-xs text-red-500 hover:text-red-700 hover:bg-red-50 py-1 rounded transition-colors flex items-center justify-center gap-1 mb-2"
                     >
                       <Trash2 className="w-3 h-3" />
                       Clear History

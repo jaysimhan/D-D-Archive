@@ -499,7 +499,7 @@ export function SpellSelectionStep({
                                         <div key={`race-${known.spellId}-${idx}`} className="p-3 bg-zinc-900 border border-indigo-500/50 rounded-lg">
                                             <div className="flex justify-between items-start mb-1">
                                                 <h4 className="font-semibold text-gray-200 truncate">{spell.name}</h4>
-                                                <span className="text-[10px] bg-indigo-900/50 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/50">Known</span>
+                                                <span className="text-xs bg-indigo-900/50 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/50">Known</span>
                                             </div>
                                             <p className="text-xs text-gray-500">
                                                 {minLevelLabel(known.type || "at-will")} {known.abilityScore ? `(Ability: ${known.abilityScore})` : ''}
@@ -547,7 +547,7 @@ export function SpellSelectionStep({
                                         <div key={`sub-${known.spellId}-${idx}`} className="p-3 bg-zinc-900 border border-purple-500/50 rounded-lg">
                                             <div className="flex justify-between items-start mb-1">
                                                 <h4 className="font-semibold text-gray-200 truncate">{spell.name}</h4>
-                                                <span className="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/50">Known</span>
+                                                <span className="text-xs bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/50">Known</span>
                                             </div>
                                             <p className="text-xs text-gray-500">
                                                 {minLevelLabel(known.type || "always")} {known.abilityScore ? `(Ability: ${known.abilityScore})` : ''}
@@ -767,15 +767,15 @@ function SpellSelectionModal({
                                 <div className="flex justify-between items-start">
                                     <div className="font-semibold text-gray-200 flex items-center gap-2 group-hover:text-brand-400 transition-colors">
                                         {spell.name}
-                                        {isRec && <span className="text-[10px] bg-yellow-900/30 text-yellow-500 px-1.5 py-0.5 rounded-full border border-yellow-700/50">Rec.</span>}
+                                        {isRec && <span className="text-xs bg-yellow-900/30 text-yellow-500 px-1.5 py-0.5 rounded-full border border-yellow-700/50">Rec.</span>}
                                     </div>
                                     <span className="text-xs text-gray-500">{spell.school}</span>
                                 </div>
                                 <p className="text-sm text-gray-400 mt-1 line-clamp-2">{spell.description}</p>
                                 {isDivineSoulSelection && (
                                     <div className="mt-1 flex gap-1">
-                                        {spell.classes.includes("cleric") && <span className="text-[10px] px-1 py-0.5 bg-amber-900/30 text-amber-500 border border-amber-800/50 rounded">Cleric</span>}
-                                        {spell.classes.includes("sorcerer") && <span className="text-[10px] px-1 py-0.5 bg-purple-900/30 text-purple-500 border border-purple-800/50 rounded">Sorcerer</span>}
+                                        {spell.classes.includes("cleric") && <span className="text-xs px-1 py-0.5 bg-amber-900/30 text-amber-500 border border-amber-800/50 rounded">Cleric</span>}
+                                        {spell.classes.includes("sorcerer") && <span className="text-xs px-1 py-0.5 bg-purple-900/30 text-purple-500 border border-purple-800/50 rounded">Sorcerer</span>}
                                     </div>
                                 )}
                             </button>

@@ -155,60 +155,60 @@ export function CharacterSheet({
             </h3>
             <div className="space-y-4">
               <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Character Name</span>
+                <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Character Name</span>
                 <p className="text-white font-medium pl-1 border-l-2 border-brand-500/50 mt-1">{character.name || 'Unnamed'}</p>
               </div>
               <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Race</span>
+                <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Race</span>
                 <p className="text-gray-300 mt-0.5">
                   {character.subrace ? `${character.subrace.name} (${character.race?.name})` : character.race?.name || 'Unknown'}
                 </p>
               </div>
               <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Class</span>
+                <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Class</span>
                 <p className="text-gray-300 mt-0.5">
                   {character.subclass ? `${character.class?.name} (${character.subclass.name})` : character.class?.name || 'Unknown'}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Level</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Level</span>
                   <p className="text-gray-300 mt-0.5">Level {character.level}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Background</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Background</span>
                   <p className="text-gray-300 mt-0.5">{character.background?.name || 'Unknown'}</p>
                 </div>
               </div>
 
               {character.details.alignment && (
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Alignment</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Alignment</span>
                   <p className="text-gray-300 mt-0.5">{character.details.alignment}</p>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-zinc-800/50">
                 {character.details.gender && (
                   <div>
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest block">Gender</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest block">Gender</span>
                     <p className="text-gray-400 text-sm">{character.details.gender}</p>
                   </div>
                 )}
                 {character.details.age && (
                   <div>
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest block">Age</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest block">Age</span>
                     <p className="text-gray-400 text-sm">{character.details.age}</p>
                   </div>
                 )}
                 {character.details.height && (
                   <div>
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest block">Height</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest block">Height</span>
                     <p className="text-gray-400 text-sm">{character.details.height}</p>
                   </div>
                 )}
                 {character.details.weight && (
                   <div>
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest block">Weight</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest block">Weight</span>
                     <p className="text-gray-400 text-sm">{character.details.weight}</p>
                   </div>
                 )}
@@ -226,23 +226,23 @@ export function CharacterSheet({
               <div className="space-y-4">
                 <div className="flex justify-between gap-4">
                   <div className="flex-1 bg-zinc-950/50 p-3 rounded-lg border border-zinc-800 text-center">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Hit Die</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest block mb-1">Hit Die</span>
                     <p className="text-white font-mono text-lg">d{character.class?.hitDie || 6}</p>
                   </div>
                   <div className="flex-1 bg-zinc-950/50 p-3 rounded-lg border border-zinc-800 text-center">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">HP (Max)</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest block mb-1">HP (Max)</span>
                     <p className="text-emerald-400 font-bold font-mono text-lg">
                       {character.class?.hitDie ? Math.floor((character.class.hitDie + getFinalScore('CON') - 10) / 2 * character.level) : 'N/A'}
                     </p>
                   </div>
                   <div className="flex-1 bg-zinc-950/50 p-3 rounded-lg border border-zinc-800 text-center">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Prof. Bonus</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest block mb-1">Prof. Bonus</span>
                     <p className="text-brand-400 font-bold font-mono text-lg">+{Math.ceil(character.level / 4) + 1}</p>
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 block">Saving Throws</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest mb-2 block">Saving Throws</span>
                   <div className="grid grid-cols-3 gap-2">
                     {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as (keyof AbilityScores)[]).map(ability => {
                       const isProficient = character.class?.savingThrows.includes(ability);
@@ -282,7 +282,7 @@ export function CharacterSheet({
 
                   return (
                     <div key={skill.name} className="flex justify-between items-center group hover:bg-zinc-800/30 rounded px-1 -mx-1 transition-colors">
-                      <span className={`text-gray-500 group-hover:text-gray-300 transition-colors ${isProficient ? 'font-medium text-brand-300' : ''}`}>{skill.name} <span className="text-[10px] text-zinc-600">({skill.ab})</span></span>
+                      <span className={`text-gray-500 group-hover:text-gray-300 transition-colors ${isProficient ? 'font-medium text-brand-300' : ''}`}>{skill.name} <span className="text-xs text-zinc-600">({skill.ab})</span></span>
                       <span className={`font-mono text-xs px-1.5 rounded ${isProficient ? 'bg-brand-900/20 text-brand-400' : 'text-zinc-600'}`}>
                         {total >= 0 ? '+' : ''}{total}
                       </span>
@@ -301,20 +301,20 @@ export function CharacterSheet({
             </h3>
             <div className="space-y-4">
               <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Speed</span>
+                <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Speed</span>
                 <p className="text-gray-200 text-lg font-mono mt-0.5">{character.race?.speed || 30} <span className="text-sm text-zinc-500">ft</span></p>
               </div>
               <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Size</span>
+                <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Size</span>
                 <p className="text-gray-200 mt-0.5">{character.race?.size || 'Medium'}</p>
               </div>
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="bg-zinc-950/50 p-3 rounded border border-zinc-800">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest block">Spells</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest block">Spells</span>
                   <p className="text-white font-medium text-xl mt-1">{allSpells.length}</p>
                 </div>
                 <div className="bg-zinc-950/50 p-3 rounded border border-zinc-800">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest block">Items</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest block">Items</span>
                   <p className="text-white font-medium text-xl mt-1">{character.equipment.length}</p>
                 </div>
               </div>
@@ -336,12 +336,12 @@ export function CharacterSheet({
 
               return (
                 <div key={ability} className="text-center p-4 border border-zinc-800 bg-zinc-950/50 rounded-lg">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-widest block mb-2">{ability}</span>
+                  <span className="text-xs text-zinc-500 uppercase tracking-widest block mb-2">{ability}</span>
                   <div className="text-3xl font-mono text-gray-100 mb-1">{modifier}</div>
                   <div className="text-xs text-gray-500">
                     Score: {finalScore}
                     {racialBonus > 0 && (
-                      <span className="text-[10px] text-brand-400 block mt-0.5">({character.abilityScores[ability]} + {racialBonus})</span>
+                      <span className="text-xs text-brand-400 block mt-0.5">({character.abilityScores[ability]} + {racialBonus})</span>
                     )}
                   </div>
                 </div>
@@ -362,12 +362,12 @@ export function CharacterSheet({
                 <div key={spell.id} className="p-4 border border-zinc-800 bg-zinc-950/30 rounded-lg hover:border-zinc-700 transition-colors">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-gray-200 font-medium">{spell.name}</h4>
-                    <span className="text-[10px] px-2 py-1 bg-zinc-800 text-gray-400 rounded-full border border-zinc-700">
+                    <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded-full border border-zinc-700">
                       {spell.level === 0 ? 'Cantrip' : `L${spell.level}`}
                     </span>
                   </div>
                   {spell.source === 'Race' && (
-                    <span className="text-[10px] inline-block px-2 py-0.5 bg-brand-900/30 text-brand-300 rounded mb-2 border border-brand-900/50">Racial</span>
+                    <span className="text-xs inline-block px-2 py-0.5 bg-brand-900/30 text-brand-300 rounded mb-2 border border-brand-900/50">Racial</span>
                   )}
                   <p className="text-xs text-gray-500 font-mono mb-2">{spell.school}</p>
                   <p className="text-sm text-gray-400 leading-relaxed">{spell.description.substring(0, 100)}...</p>

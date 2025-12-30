@@ -14,6 +14,13 @@ export default {
             },
         },
         extend: {
+            fontSize: {
+                "xs": ["15px", { lineHeight: "1.5" }],
+                "sm": ["16px", { lineHeight: "1.5" }],
+                "base": ["18px", { lineHeight: "1.6" }],
+                "lg": ["20px", { lineHeight: "1.75" }],
+                "xl": ["24px", { lineHeight: "1.75" }],
+            },
             colors: {
                 brand: {
                     50: "#ffe3ea",

@@ -118,11 +118,8 @@ function LoadingSpinner() {
 }
 
 function ContentWrapper({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-  const isHome = location.pathname === "/";
-
   return (
-    <div style={{ zoom: isHome ? "100%" : "75%" }}>
+    <div>
       {children}
     </div>
   );

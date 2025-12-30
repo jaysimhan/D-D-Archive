@@ -100,23 +100,23 @@ export function SubclassStep({
                             >
                                 <h3 className={`font-semibold text-lg mb-1 font-serif ${selectedSubclass?.id === subclass.id ? 'text-brand-400' : 'text-gray-200'}`}>{subclass.name}</h3>
                                 {subclass.edition && (
-                                    <span className="text-[10px] px-2 py-1 bg-zinc-800 text-gray-400 rounded inline-block mb-2 mr-1 border border-zinc-700">
+                                    <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded inline-block mb-2 mr-1 border border-zinc-700">
                                         {subclass.edition}
                                     </span>
                                 )}
                                 {subclass.spellcaster && (
-                                    <span className="text-[10px] px-2 py-1 bg-brand-900/50 text-brand-300 rounded inline-block mb-2 font-semibold border border-brand-700">
+                                    <span className="text-xs px-2 py-1 bg-brand-900/50 text-brand-300 rounded inline-block mb-2 font-semibold border border-brand-700">
                                         Spellcasting
                                     </span>
                                 )}
                                 {subclass.magicType && (
                                     <div className="mb-2 flex flex-col gap-1">
                                         <div className="flex flex-wrap gap-1">
-                                            <span className="text-[10px] px-2 py-1 bg-amber-900/50 text-amber-300 rounded-full font-semibold border border-amber-700">
+                                            <span className="text-xs px-2 py-1 bg-amber-900/50 text-amber-300 rounded-full font-semibold border border-amber-700">
                                                 {subclass.magicType}
                                             </span>
                                             {subclass.magicAbility && (
-                                                <span className="text-[10px] px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full font-semibold border border-blue-700">
+                                                <span className="text-xs px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full font-semibold border border-blue-700">
                                                     {subclass.magicAbility}
                                                 </span>
                                             )}
@@ -140,10 +140,10 @@ export function SubclassStep({
                 {displayedSubclass ? (
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
-                        <div className="w-full h-48 bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
+                        <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
                             {displayedSubclass?.image || displayedSubclass?.imageUrl ? (
                                 <img
-                                    src={displayedSubclass.imageUrl || (displayedSubclass.image ? urlFor(displayedSubclass.image)?.url() : '') || ''}
+                                    src={(displayedSubclass.image ? urlFor(displayedSubclass.image)?.url() : '') || displayedSubclass.imageUrl || ''}
                                     alt={displayedSubclass.name}
                                     className="w-full h-full object-cover"
                                 />

@@ -82,10 +82,10 @@ export function BackgroundStep({
                 {selected ? (
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
-                        <div className="w-full h-48 bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
+                        <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
                             {displayedBackground?.image || displayedBackground?.imageUrl ? (
                                 <img
-                                    src={displayedBackground.imageUrl || (displayedBackground.image ? urlFor(displayedBackground.image)?.url() : '') || ''}
+                                    src={(displayedBackground.image ? urlFor(displayedBackground.image)?.url() : '') || displayedBackground.imageUrl || ''}
                                     alt={displayedBackground.name}
                                     className="w-full h-full object-cover"
                                 />

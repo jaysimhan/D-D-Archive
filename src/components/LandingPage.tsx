@@ -195,7 +195,7 @@ export function LandingPage() {
               {content?.footer?.disclaimer || "Not affiliated with Wizards of the Coast"}
             </span>
             <span className="text-brand-900/50">•</span>
-            <span className="text-brand-700/40 font-serif uppercase">
+            <span className="text-brand-500/80 font-serif uppercase drop-shadow-[0_0_8px_rgba(255,0,60,0.6)]">
               {content?.footer?.credits || "Powered by React & Tailwind"}
             </span>
           </div>

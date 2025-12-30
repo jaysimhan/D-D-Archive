@@ -135,7 +135,7 @@ export function ClassStep({
                                     >
                                         <span className="font-bold text-lg mb-1 font-serif">{classData.name}</span>
                                         {classData.spellcaster && classData.spellcaster !== "None" && classData.spellcaster !== "none" && (
-                                            <span className={`text-[10px] px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
+                                            <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
                                                 {classData.spellcaster}
                                             </span>
                                         )}
@@ -151,10 +151,10 @@ export function ClassStep({
                     {selected ? (
                         <div className="animate-in fade-in duration-200">
                             {/* Image Section */}
-                            <div className="w-full h-48 bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
+                            <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
                                 {displayedClass?.image || displayedClass?.imageUrl ? (
                                     <img
-                                        src={displayedClass.imageUrl || (displayedClass.image ? urlFor(displayedClass.image)?.url() : '') || ''}
+                                        src={(displayedClass.image ? urlFor(displayedClass.image)?.url() : '') || displayedClass.imageUrl || ''}
                                         alt={displayedClass.name}
                                         className="w-full h-full object-cover"
                                     />
@@ -209,7 +209,7 @@ export function ClassStep({
                                 <div className="pt-4 border-t border-brand-900/30 mt-4">
                                     <h4 className="font-bold text-gray-200 text-sm mb-2 flex items-center justify-between">
                                         Available Subclasses
-                                        <span className="ml-2 text-[10px] font-normal text-gray-500 bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700">
+                                        <span className="ml-2 text-xs font-normal text-gray-500 bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700">
                                             Features unlock at Lv {getSubclassLevel(selected.id)}
                                         </span>
                                     </h4>
@@ -230,18 +230,18 @@ export function ClassStep({
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <h5 className={`font-serif font-semibold text-sm ${hasSpellcasting ? 'text-brand-300' : 'text-gray-300'}`}>{sub.name}</h5>
                                                         {hasSpellcasting && (
-                                                            <span className="text-[10px] px-2 py-0.5 bg-brand-900/50 text-brand-200 border border-brand-500/30 rounded-full font-semibold flex items-center gap-1 ml-auto">
+                                                            <span className="text-xs px-2 py-0.5 bg-brand-900/50 text-brand-200 border border-brand-500/30 rounded-full font-semibold flex items-center gap-1 ml-auto">
                                                                 ✨ Spellcaster
                                                             </span>
                                                         )}
                                                     </div>
                                                     {sub.magicType && (
                                                         <div className="mb-2 flex flex-wrap gap-1">
-                                                            <span className="text-[10px] px-2 py-1 bg-amber-900/20 text-amber-500 border border-amber-900/30 rounded-full font-semibold">
+                                                            <span className="text-xs px-2 py-1 bg-amber-900/20 text-amber-500 border border-amber-900/30 rounded-full font-semibold">
                                                                 {sub.magicType}
                                                             </span>
                                                             {sub.magicAbility && (
-                                                                <span className="text-[10px] px-2 py-1 bg-blue-900/20 text-blue-400 border border-blue-900/30 rounded-full font-semibold">
+                                                                <span className="text-xs px-2 py-1 bg-blue-900/20 text-blue-400 border border-blue-900/30 rounded-full font-semibold">
                                                                     {sub.magicAbility}
                                                                 </span>
                                                             )}

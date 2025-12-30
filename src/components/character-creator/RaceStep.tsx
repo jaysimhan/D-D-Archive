@@ -112,7 +112,7 @@ export function RaceStep({
                 {displayedRace ? (
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
-                        <div className="w-full h-48 bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
+                        <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
                             {(() => {
                                 const sanityUrl = displayedRace.image ? urlFor(displayedRace.image)?.url() : null;
                                 const finalSrc = sanityUrl || displayedRace.imageUrl || "https://placehold.co/600x400";
