@@ -19,6 +19,7 @@ import { PersonalityStep } from "./character-creator/PersonalityStep";
 import { FeatSelectionStep } from "./character-creator/FeatSelectionStep";
 import { ProficiencyStep } from "./character-creator/ProficiencyStep";
 import { HitPointsStep } from "./character-creator/HitPointsStep";
+import { MagicItemStep } from "./character-creator/MagicItemStep";
 
 export function CharacterCreator() {
   const [currentStep, setCurrentStep] = useState<CreationStep>("race");
@@ -30,6 +31,7 @@ export function CharacterCreator() {
     selectedSpells: [],
     feats: [],
     equipment: [],
+    magicItems: [],
     magicInitiateClass: undefined,
     personality: {},
     proficiencies: {
@@ -80,12 +82,14 @@ export function CharacterCreator() {
     }
 
     // New Steps
-    baseSteps.push("hp"); // We need to add 'hp' to CreationStep type or use a loose string for now, but better to update type. 
-    // Wait, I can't update type easily in this call. I will cast or hope TS ignores if I don't update type file? 
-    // No, I should update type file first or use "equipment" as next known.
-    // I will add "hp" to the types/character-creator.ts file in a separate call.
-    // For now let's assume I will do that.
+    baseSteps.push("hp");
     baseSteps.push("equipment");
+
+    // Magic Item Step (Level 3+)
+    if (characterData.level >= 3) {
+      baseSteps.push("magic-item");
+    }
+
     baseSteps.push("personality"); // Matches "Character Details"
 
     return baseSteps;
@@ -123,10 +127,12 @@ export function CharacterCreator() {
         return true;
       case "spells":
         return true;
-      case "hp": // New
+      case "hp":
         return true;
       case "equipment":
         return true;
+      case "magic-item":
+        return true; // Optional? Or mandatory if step exists? Usually optional or they pick one.
       case "personality": // Character Details - Check Name
         return characterData.name.trim().length > 0;
       default:
@@ -365,6 +371,13 @@ export function CharacterCreator() {
                   onEquipmentChange={(equipment) => setCharacterData({ ...characterData, equipment })}
                 />
               )}
+              {currentStep === "magic-item" && (
+                <MagicItemStep
+                  magicItem={characterData.magicItems || []}
+                  onMagicItemChange={(items) => setCharacterData({ ...characterData, magicItems: items })}
+                  level={characterData.level}
+                />
+              )}
               {currentStep === "personality" && (
                 <div className="space-y-6">
                   <div className="max-w-xl mx-auto space-y-4">
@@ -389,34 +402,67 @@ export function CharacterCreator() {
               )}
 
               {/* Navigation */}
-              <div className="sticky bottom-0 z-10 bg-black/80 backdrop-blur-sm -mx-8 -mb-8 px-8 py-6 border-t border-brand-900/30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] flex justify-between mt-8">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStepIndex === 0}
-                  className="flex items-center gap-2 px-6 py-3 bg-white/10 text-gray-300 rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium border border-white/10"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  Previous
-                </button>
+              <div className="sticky bottom-0 z-10 bg-black/80 backdrop-blur-sm -mx-8 -mb-8 px-4 md:px-8 py-4 md:py-6 border-t border-brand-900/30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] mt-8">
+                {/* Navigation Buttons Row */}
+                <div className="flex justify-between items-center relative">
+                  <button
+                    onClick={prevStep}
+                    disabled={currentStepIndex === 0}
+                    className="flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-white/10 text-gray-300 rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium border border-white/10 text-sm md:text-base"
+                  >
+                    <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+                    Previous
+                  </button>
 
-                {currentStepIndex === steps.length - 1 ? (
-                  <button
-                    onClick={completeCharacter}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-colors font-medium shadow-md border border-green-500/50"
-                  >
-                    <Check className="w-5 h-5" />
-                    Complete Character
-                  </button>
-                ) : (
-                  <button
-                    onClick={nextStep}
-                    disabled={!canProgress()}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-lg hover:from-brand-700 hover:to-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md border border-brand-500/50"
-                  >
-                    Next
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                )}
+                  {/* Desktop: Magic Item Selection Indicator (centered) */}
+                  {currentStep === "magic-item" && characterData.magicItems && characterData.magicItems.length > 0 && (
+                    <div
+                      className="hidden md:block absolute left-1/2 transform -translate-x-1/2"
+                      style={{
+                        animation: 'popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                      }}
+                    >
+                      <style>{`
+                        @keyframes popIn {
+                          0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+                          100% { opacity: 1; transform: translateX(-50%) scale(1); }
+                        }
+                      `}</style>
+                      <div className="bg-[#0a0a0a] border border-brand-600 shadow-[0_0_20px_rgba(220,38,38,0.5)] rounded-full pl-6 pr-2 py-2.5 flex items-center gap-4 min-w-[300px] justify-between">
+                        <div className="flex items-baseline gap-3">
+                          <span className="text-gray-400 text-sm font-medium">Selected:</span>
+                          <span className="text-white font-serif font-bold text-xl uppercase tracking-wide">{characterData.magicItems[0].name}</span>
+                        </div>
+                        <button
+                          onClick={() => setCharacterData({ ...characterData, magicItems: [] })}
+                          className="bg-brand-600 hover:bg-brand-500 text-white rounded-full p-1.5 transition-all shadow-lg hover:shadow-brand-500/50"
+                          title="Remove selection"
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center font-bold">✕</div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentStepIndex === steps.length - 1 ? (
+                    <button
+                      onClick={completeCharacter}
+                      className="flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-colors font-medium shadow-md border border-green-500/50 text-sm md:text-base"
+                    >
+                      <Check className="w-4 h-4 md:w-5 md:h-5" />
+                      Complete
+                    </button>
+                  ) : (
+                    <button
+                      onClick={nextStep}
+                      disabled={!canProgress()}
+                      className="flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-lg hover:from-brand-700 hover:to-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md border border-brand-500/50 text-sm md:text-base"
+                    >
+                      Next
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

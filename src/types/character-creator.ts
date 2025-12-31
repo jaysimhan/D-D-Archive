@@ -12,6 +12,7 @@ export type CreationStep =
     | "proficiencies"
     | "hp"
     | "equipment"
+    | "magic-item"
     | "personality";
 
 export interface CharacterData {
@@ -26,6 +27,7 @@ export interface CharacterData {
     selectedSpells: Spell[];
     feats: Feat[];
     equipment: Item[];
+    magicItems?: Item[];
     magicInitiateClass?: string;
     personality: {
         traits?: string;

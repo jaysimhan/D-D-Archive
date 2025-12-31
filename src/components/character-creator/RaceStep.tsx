@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
+import { ScrollArea } from "../ui/scroll-area";
 import { Race } from "../../types/dnd-types";
 import { useRaces } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
@@ -74,37 +75,41 @@ export function RaceStep({
                     </div>
                 </div>
 
-                {racesLoading ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                        {Array.from({ length: 15 }).map((_, i) => (
-                            <div key={i} className="px-4 py-3 rounded bg-zinc-900/50 animate-pulse h-[50px] flex items-center justify-center border border-zinc-800">
-                                <div className="h-4 w-16 bg-zinc-800 rounded"></div>
+                <ScrollArea className="h-[600px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                    <div className="p-4">
+                        {racesLoading ? (
+                            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                                {Array.from({ length: 15 }).map((_, i) => (
+                                    <div key={i} className="px-2 py-2 rounded bg-zinc-900/50 animate-pulse h-[40px] flex items-center justify-center border border-zinc-800">
+                                        <div className="h-3 w-12 bg-zinc-800 rounded"></div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-                        {displayRaces.map(r => {
-                            const isActive = race?.id === r.id;
+                        ) : (
+                            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                                {displayRaces.map(r => {
+                                    const isActive = race?.id === r.id;
 
-                            return (
-                                <button
-                                    key={r.id}
-                                    onClick={() => handleRaceClick(r)}
-                                    className={`
-                            px-3 py-3 md:px-5 md:py-4 rounded-lg text-sm font-bold transition-all h-full min-h-[50px] md:min-h-[60px] flex items-center justify-center text-center leading-tight
+                                    return (
+                                        <button
+                                            key={r.id}
+                                            onClick={() => handleRaceClick(r)}
+                                            className={`
+                            px-1.5 py-2 rounded text-[10px] font-bold transition-all h-full min-h-[40px] flex items-center justify-center text-center leading-tight
                             ${isActive
-                                            ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_15px_rgba(220,38,38,0.3)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
-                                            : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
-                                        }
+                                                    ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_10px_rgba(220,38,38,0.2)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
+                                                    : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
+                                                }
                         `}
-                                >
-                                    {r.name}
-                                </button>
-                            );
-                        })}
+                                        >
+                                            {r.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                )}
+                </ScrollArea>
             </div>
 
             {/* Right Column: Details Panel */}
@@ -143,6 +148,8 @@ export function RaceStep({
                         </div>
 
                         <h3 className="text-3xl font-bold text-white mb-4 text-brand-500 font-serif border-b border-brand-900/30 pb-2">{displayedRace.name}</h3>
+
+                        <p className="text-gray-300 mb-6 leading-relaxed text-sm">{displayedRace.description}</p>
 
                         <div className="space-y-4">
                             <div>
@@ -237,7 +244,7 @@ export function RaceStep({
                                 <p className="text-sm text-gray-500 italic">Source: {displayedRace.source}</p>
                             </div>
 
-                            <p className="text-gray-300 mt-4 leading-relaxed">{displayedRace.description}</p>
+
                         </div>
                     </div>
                 ) : (

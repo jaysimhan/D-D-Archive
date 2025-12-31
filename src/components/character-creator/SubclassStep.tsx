@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
+import { ScrollArea } from "../ui/scroll-area";
 import { Class, Subclass } from "../../types/dnd-types";
 import { useSubclasses } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
@@ -18,6 +19,7 @@ export function SubclassStep({
     onSelect: (subclass: Subclass) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
+    const [showNonCore, setShowNonCore] = useState(true);
 
     // Fetch subclasses from Sanity, fall back to mock data
     const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses();
@@ -59,9 +61,21 @@ export function SubclassStep({
         <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px]">
             {/* Left Column: Grid */}
             <div className="flex-1 w-full">
-                <div className="text-center lg:text-left mb-6">
-                    <h2 className="text-white text-3xl font-bold mb-2 font-serif">Choose Your {classData.name} Subclass</h2>
-                    <p className="text-gray-400">Specialize your character's abilities</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div className="text-center lg:text-left">
+                        <h2 className="text-white text-3xl font-bold mb-2 font-serif">Choose Your {classData.name} Subclass</h2>
+                        <p className="text-gray-400">Specialize your character's abilities</p>
+                    </div>
+
+                    {/* Non-core Toggle */}
+                    <label className="flex items-center cursor-pointer group">
+                        <div className="relative">
+                            <input type="checkbox" className="sr-only" checked={showNonCore} onChange={e => setShowNonCore(e.target.checked)} />
+                            <div className={`block w-10 h-6 rounded-full transition-colors ${showNonCore ? 'bg-brand-600' : 'bg-zinc-700'}`}></div>
+                            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showNonCore ? 'transform translate-x-4' : ''}`}></div>
+                        </div>
+                        <div className="ml-3 text-sm font-medium text-gray-300 group-hover:text-brand-400 transition-colors">Enable non-core options</div>
+                    </label>
                 </div>
 
                 {/* Search Bar */}
@@ -76,61 +90,129 @@ export function SubclassStep({
                     />
                 </div>
 
-                {subclassesLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="p-4 border border-zinc-800 rounded-lg animate-pulse bg-zinc-900/50">
-                                <div className="h-5 w-32 bg-zinc-800 rounded mb-2"></div>
-                                <div className="h-4 w-16 bg-zinc-800 rounded mb-3"></div>
-                                <div className="h-4 w-full bg-zinc-800 rounded mb-1"></div>
-                                <div className="h-4 w-3/4 bg-zinc-800 rounded"></div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
-                        {filteredSubclasses.map((subclass) => (
-                            <button
-                                key={subclass.id}
-                                onClick={() => onSelect(subclass)}
-                                className={`text-left p-4 border rounded-lg transition-all ${selectedSubclass?.id === subclass.id
-                                    ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
-                                    : "border-zinc-800 bg-zinc-900/40 hover:border-brand-500/50 hover:bg-zinc-800"
-                                    }`}
-                            >
-                                <h3 className={`font-semibold text-lg mb-1 font-serif ${selectedSubclass?.id === subclass.id ? 'text-brand-400' : 'text-gray-200'}`}>{subclass.name}</h3>
-                                {subclass.edition && (
-                                    <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded inline-block mb-2 mr-1 border border-zinc-700">
-                                        {subclass.edition}
-                                    </span>
-                                )}
-                                {subclass.spellcaster && (
-                                    <span className="text-xs px-2 py-1 bg-brand-900/50 text-brand-300 rounded inline-block mb-2 font-semibold border border-brand-700">
-                                        Spellcasting
-                                    </span>
-                                )}
-                                {subclass.magicType && (
-                                    <div className="mb-2 flex flex-col gap-1">
-                                        <div className="flex flex-wrap gap-1">
-                                            <span className="text-xs px-2 py-1 bg-amber-900/50 text-amber-300 rounded-full font-semibold border border-amber-700">
-                                                {subclass.magicType}
-                                            </span>
-                                            {subclass.magicAbility && (
-                                                <span className="text-xs px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full font-semibold border border-blue-700">
-                                                    {subclass.magicAbility}
+                {showNonCore ? (
+                    <ScrollArea className="h-[500px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                        <div className="p-4">
+                            {subclassesLoading ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {Array.from({ length: 4 }).map((_, i) => (
+                                        <div key={i} className="p-4 border border-zinc-800 rounded-lg animate-pulse bg-zinc-900/50">
+                                            <div className="h-5 w-32 bg-zinc-800 rounded mb-2"></div>
+                                            <div className="h-4 w-16 bg-zinc-800 rounded mb-3"></div>
+                                            <div className="h-4 w-full bg-zinc-800 rounded mb-1"></div>
+                                            <div className="h-4 w-3/4 bg-zinc-800 rounded"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {filteredSubclasses.map((subclass) => (
+                                        <button
+                                            key={subclass.id}
+                                            onClick={() => onSelect(subclass)}
+                                            className={`text-left p-4 border rounded-lg transition-all ${selectedSubclass?.id === subclass.id
+                                                ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+                                                : "border-zinc-800 bg-zinc-900/40 hover:border-brand-500/50 hover:bg-zinc-800"
+                                                }`}
+                                        >
+                                            <h3 className={`font-semibold text-lg mb-1 font-serif ${selectedSubclass?.id === subclass.id ? 'text-brand-400' : 'text-gray-200'}`}>{subclass.name}</h3>
+                                            {subclass.edition && (
+                                                <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded inline-block mb-2 mr-1 border border-zinc-700">
+                                                    {subclass.edition}
                                                 </span>
                                             )}
+                                            {subclass.spellcaster && (
+                                                <span className="text-xs px-2 py-1 bg-brand-900/50 text-brand-300 rounded inline-block mb-2 font-semibold border border-brand-700">
+                                                    Spellcasting
+                                                </span>
+                                            )}
+                                            {subclass.magicType && (
+                                                <div className="mb-2 flex flex-col gap-1">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        <span className="text-xs px-2 py-1 bg-amber-900/50 text-amber-300 rounded-full font-semibold border border-amber-700">
+                                                            {subclass.magicType}
+                                                        </span>
+                                                        {subclass.magicAbility && (
+                                                            <span className="text-xs px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full font-semibold border border-blue-700">
+                                                                {subclass.magicAbility}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {subclass.magicDescription && (
+                                                        <p className="text-xs text-amber-300/80 font-medium italic mt-1 bg-amber-900/30 p-1.5 rounded border border-amber-800">
+                                                            {subclass.magicDescription}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <p className="text-sm text-gray-400 line-clamp-2">{subclass.description}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                ) : (
+                    <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                        <div className="p-4">
+                            {subclassesLoading ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {Array.from({ length: 4 }).map((_, i) => (
+                                        <div key={i} className="p-4 border border-zinc-800 rounded-lg animate-pulse bg-zinc-900/50">
+                                            <div className="h-5 w-32 bg-zinc-800 rounded mb-2"></div>
+                                            <div className="h-4 w-16 bg-zinc-800 rounded mb-3"></div>
+                                            <div className="h-4 w-full bg-zinc-800 rounded mb-1"></div>
+                                            <div className="h-4 w-3/4 bg-zinc-800 rounded"></div>
                                         </div>
-                                        {subclass.magicDescription && (
-                                            <p className="text-xs text-amber-300/80 font-medium italic mt-1 bg-amber-900/30 p-1.5 rounded border border-amber-800">
-                                                {subclass.magicDescription}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                                <p className="text-sm text-gray-400 line-clamp-2">{subclass.description}</p>
-                            </button>
-                        ))}
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {filteredSubclasses.map((subclass) => (
+                                        <button
+                                            key={subclass.id}
+                                            onClick={() => onSelect(subclass)}
+                                            className={`text-left p-4 border rounded-lg transition-all ${selectedSubclass?.id === subclass.id
+                                                ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+                                                : "border-zinc-800 bg-zinc-900/40 hover:border-brand-500/50 hover:bg-zinc-800"
+                                                }`}
+                                        >
+                                            <h3 className={`font-semibold text-lg mb-1 font-serif ${selectedSubclass?.id === subclass.id ? 'text-brand-400' : 'text-gray-200'}`}>{subclass.name}</h3>
+                                            {subclass.edition && (
+                                                <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded inline-block mb-2 mr-1 border border-zinc-700">
+                                                    {subclass.edition}
+                                                </span>
+                                            )}
+                                            {subclass.spellcaster && (
+                                                <span className="text-xs px-2 py-1 bg-brand-900/50 text-brand-300 rounded inline-block mb-2 font-semibold border border-brand-700">
+                                                    Spellcasting
+                                                </span>
+                                            )}
+                                            {subclass.magicType && (
+                                                <div className="mb-2 flex flex-col gap-1">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        <span className="text-xs px-2 py-1 bg-amber-900/50 text-amber-300 rounded-full font-semibold border border-amber-700">
+                                                            {subclass.magicType}
+                                                        </span>
+                                                        {subclass.magicAbility && (
+                                                            <span className="text-xs px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full font-semibold border border-blue-700">
+                                                                {subclass.magicAbility}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {subclass.magicDescription && (
+                                                        <p className="text-xs text-amber-300/80 font-medium italic mt-1 bg-amber-900/30 p-1.5 rounded border border-amber-800">
+                                                            {subclass.magicDescription}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <p className="text-sm text-gray-400 line-clamp-2">{subclass.description}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

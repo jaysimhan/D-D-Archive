@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, ChevronDown, Minus, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -17,7 +17,23 @@ interface Roll {
   mode: RollMode;
 }
 
+// Custom hook for responsive positioning
+function useIsLargeScreen(breakpoint: number = 1410) {
+  const [isLarge, setIsLarge] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= breakpoint : true
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsLarge(window.innerWidth >= breakpoint);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [breakpoint]);
+
+  return isLarge;
+}
+
 export function DiceRoller() {
+  const isLargeScreen = useIsLargeScreen(1410);
   const [isOpen, setIsOpen] = useState(false);
   const [modifier, setModifier] = useState(0);
   const [rollMode, setRollMode] = useState<RollMode>("normal");
@@ -273,8 +289,17 @@ export function DiceRoller() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-8 right-8 w-20 h-20 hover:scale-110 transition-all z-50 group"
-          style={{ filter: 'drop-shadow(0 20px 25px rgba(124, 51, 6, 0.5))' }}
+          className="fixed z-50 group hover:scale-110 transition-all"
+          style={{
+            bottom: isLargeScreen ? '32px' : '16px',
+            ...(isLargeScreen
+              ? { right: '32px', left: 'auto' }
+              : { left: '0', right: '0', marginLeft: 'auto', marginRight: 'auto' }
+            ),
+            width: isLargeScreen ? '80px' : '64px',
+            height: isLargeScreen ? '80px' : '64px',
+            filter: 'drop-shadow(0 20px 25px rgba(124, 51, 6, 0.5))'
+          }}
         >
           <div className="relative w-full h-full group-hover:rotate-12 transition-transform">
             {/* Retaining the original complex floating button SVG as it was working and intricate */}
@@ -303,7 +328,16 @@ export function DiceRoller() {
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            className="fixed bottom-8 right-8 w-[320px] bg-white rounded-lg shadow-2xl z-50 overflow-hidden"
+            className="fixed bg-white rounded-lg shadow-2xl z-50 overflow-hidden"
+            style={{
+              bottom: isLargeScreen ? '32px' : '80px',
+              ...(isLargeScreen
+                ? { right: '32px', left: 'auto' }
+                : { left: '0', right: '0', marginLeft: 'auto', marginRight: 'auto' }
+              ),
+              width: '320px',
+              maxWidth: 'calc(100vw - 32px)'
+            }}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-4 py-4 flex items-center justify-between">
@@ -318,7 +352,7 @@ export function DiceRoller() {
               </div>
             </div>
 
-            <div className="p-4 space-y-3">
+            <div className="p-3 sm:p-4 space-y-3">
               {/* Result Display - MOVED TO TOP */}
               <div className="min-h-[0px] flex items-center justify-center">
                 <AnimatePresence mode="wait">
@@ -398,7 +432,7 @@ export function DiceRoller() {
                 <div className="flex gap-2 items-center">
                   <button
                     onClick={() => setModifier(Math.max(-99, modifier - 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all text-gray-800"
+                    className="px-3 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all text-gray-800"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
@@ -421,11 +455,11 @@ export function DiceRoller() {
                         setModifier(parseInt(val) || 0);
                       }
                     }}
-                    className="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-center text-lg text-gray-900"
+                    className="flex-1 min-w-0 px-2 h-8 py-0 bg-white border border-gray-300 rounded text-center text-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                   <button
                     onClick={() => setModifier(Math.min(99, modifier + 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all text-gray-800"
+                    className="px-3 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded transition-all text-gray-800"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -481,7 +515,7 @@ export function DiceRoller() {
                     <div className="w-full h-full flex items-center justify-center p-1.5">
                       {getDiceSvg(dice as DiceType)}
                     </div>
-                    <span className="absolute bottom-0.5 right-1 text-xs text-white/80 font-['Cinzel',serif] uppercase tracking-wider">
+                    <span className="absolute bottom-0.5 right-1 text-[13px] text-white/80 font-['Cinzel',serif] uppercase tracking-wider">
                       D{dice}
                     </span>
                   </button>

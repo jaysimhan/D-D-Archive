@@ -1,4 +1,4 @@
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Coins, Weight, Plus, Minus } from "lucide-react";
 import { SearchFilters, Edition, Source, SpellSchool } from "../types/dnd-types";
 
 interface SearchBarProps {
@@ -6,6 +6,8 @@ interface SearchBarProps {
   onFiltersChange: (filters: SearchFilters) => void;
   showSpellFilters?: boolean;
   showClassFilters?: boolean;
+  showEquipmentFilters?: boolean;
+  showMagicItemFilters?: boolean;
 }
 
 export function SearchBar({
@@ -13,7 +15,66 @@ export function SearchBar({
   onFiltersChange,
   showSpellFilters = false,
   showClassFilters = false,
+  showEquipmentFilters = false,
+  showMagicItemFilters = false,
 }: SearchBarProps) {
+
+  // Helper for Counter Input UI
+  const CounterInput = ({
+    value,
+    onChange,
+    min,
+    max,
+    step = 1,
+    placeholder = "-"
+  }: {
+    value: number | undefined,
+    onChange: (val: number | undefined) => void,
+    min?: number,
+    max?: number,
+    step?: number,
+    placeholder?: string
+  }) => {
+    const safeValue = value ?? (min ?? 0);
+
+    const handleIncrement = () => {
+      const next = (value ?? (min ?? 0)) + step;
+      if (max !== undefined && next > max) return;
+      onChange(next);
+    };
+
+    const handleDecrement = () => {
+      const next = (value ?? (min ?? 0)) - step;
+      if (min !== undefined && next < min) {
+        // If we go below min, maybe clear it? Or just stay at min?
+        // For filters, maybe going below 0 clears it?
+        // Let's stick to min.
+        if (next < min) return;
+      }
+      onChange(next);
+    };
+
+    return (
+      <div className="flex items-center w-full bg-zinc-900/50 border border-zinc-700 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-transparent">
+        <button
+          onClick={handleDecrement}
+          className="px-3 py-2 text-gray-400 hover:bg-zinc-800 hover:text-white transition-colors"
+        >
+          <Minus className="w-4 h-4" />
+        </button>
+        <div className="flex-1 text-center py-2 text-sm font-semibold text-white border-l border-r border-zinc-700/50 min-w-[3rem]">
+          {value !== undefined ? value : <span className="text-gray-600">{placeholder}</span>}
+        </div>
+        <button
+          onClick={handleIncrement}
+          className="px-3 py-2 text-gray-400 hover:bg-zinc-800 hover:text-white transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Search Input */}
@@ -69,6 +130,132 @@ export function SearchBar({
             <option value="Unofficial">Unofficial</option>
           </select>
         </div>
+
+        {/* Equipment specific filters */}
+        {showEquipmentFilters && (
+          <>
+            {/* Cost Filter */}
+            <div className="flex-1 min-w-[200px]">
+              <div className="flex items-center gap-2 mb-1">
+                <Coins className="w-3.5 h-3.5 text-yellow-500" />
+                <label className="text-sm text-gray-400">Cost (gp)</label>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <CounterInput
+                    value={filters.minCost}
+                    onChange={(val) => onFiltersChange({ ...filters, minCost: val })}
+                    min={0}
+                    step={10}
+                    placeholder="Min"
+                  />
+                </div>
+                <div className="flex-1">
+                  <CounterInput
+                    value={filters.maxCost}
+                    onChange={(val) => onFiltersChange({ ...filters, maxCost: val })}
+                    min={0}
+                    step={50}
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Weight Filter */}
+            <div className="flex-1 min-w-[200px]">
+              <div className="flex items-center gap-2 mb-1">
+                <Weight className="w-3.5 h-3.5 text-gray-400" />
+                <label className="text-sm text-gray-400">Weight (lb)</label>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <CounterInput
+                    value={filters.minWeight}
+                    onChange={(val) => onFiltersChange({ ...filters, minWeight: val })}
+                    min={0}
+                    step={1}
+                    placeholder="Min"
+                  />
+                </div>
+                <div className="flex-1">
+                  <CounterInput
+                    value={filters.maxWeight}
+                    onChange={(val) => onFiltersChange({ ...filters, maxWeight: val })}
+                    min={0}
+                    step={5}
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Magic Item specific filters */}
+        {showMagicItemFilters && (
+          <>
+            {/* Rarity */}
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-sm mb-1 text-gray-400">Rarity</label>
+              <select
+                value={filters.rarity || ""}
+                onChange={(e) => onFiltersChange({ ...filters, rarity: e.target.value || undefined })}
+                className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 text-white"
+              >
+                <option value="">Any Rarity</option>
+                <option value="Common">Common</option>
+                <option value="Uncommon">Uncommon</option>
+                <option value="Rare">Rare</option>
+                <option value="Very Rare">Very Rare</option>
+                <option value="Legendary">Legendary</option>
+                <option value="Artifact">Artifact</option>
+              </select>
+            </div>
+
+            {/* Attunement */}
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-sm mb-1 text-gray-400">Attunement</label>
+              <select
+                value={filters.attunement === undefined ? "" : (filters.attunement ? "yes" : "no")}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  onFiltersChange({
+                    ...filters,
+                    attunement: val === "" ? undefined : (val === "yes")
+                  });
+                }}
+                className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 text-white"
+              >
+                <option value="">Any</option>
+                <option value="yes">Required</option>
+                <option value="no">Not Required</option>
+              </select>
+            </div>
+
+            {/* Magic Bonus */}
+            <div className="flex-none">
+              <label className="block text-sm mb-1 text-gray-400">Magic Bonus</label>
+              <div className="flex gap-1 bg-zinc-900/50 border border-zinc-700 rounded-lg p-1">
+                {[1, 2, 3].map((bonus) => (
+                  <button
+                    key={bonus}
+                    onClick={() => onFiltersChange({
+                      ...filters,
+                      magicBonus: filters.magicBonus === bonus ? undefined : bonus
+                    })}
+                    className={`w-8 h-8 rounded flex items-center justify-center font-bold text-sm transition-colors ${filters.magicBonus === bonus
+                      ? "bg-brand-600 text-white"
+                      : "text-gray-400 hover:bg-zinc-800 hover:text-white"
+                      }`}
+                  >
+                    +{bonus}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Spell-specific filters */}
         {showSpellFilters && (
@@ -262,7 +449,14 @@ export function SearchBar({
           filters.source ||
           filters.level !== undefined ||
           filters.school ||
-          filters.spellcaster !== undefined) && (
+          filters.spellcaster !== undefined ||
+          filters.minCost !== undefined ||
+          filters.maxCost !== undefined ||
+          filters.minWeight !== undefined ||
+          filters.maxWeight !== undefined ||
+          filters.rarity ||
+          filters.attunement !== undefined ||
+          filters.magicBonus !== undefined) && (
             <div className="flex items-end">
               <button
                 onClick={() =>
@@ -273,6 +467,13 @@ export function SearchBar({
                     level: undefined,
                     school: undefined,
                     spellcaster: undefined,
+                    minCost: undefined,
+                    maxCost: undefined,
+                    minWeight: undefined,
+                    maxWeight: undefined,
+                    rarity: undefined,
+                    attunement: undefined,
+                    magicBonus: undefined,
                   })
                 }
                 className="px-4 py-2 text-sm text-gray-400 hover:text-brand-400 underline transition-colors"

@@ -27,7 +27,7 @@ export default {
             type: 'string',
             options: {
                 list: [
-                    'Weapon', 'Armor', 'Potion', 'Scroll', 'Wondrous Item',
+                    'Weapon', 'Armor', 'Tool', 'Potion', 'Scroll', 'Wondrous Item',
                     'Ring', 'Rod', 'Staff', 'Wand', 'Adventuring Gear'
                 ],
             },
@@ -52,6 +52,13 @@ export default {
             title: 'Magical',
             type: 'boolean',
             initialValue: false,
+        },
+        {
+            name: 'magicBonus',
+            title: 'Magic Bonus',
+            type: 'number',
+            description: 'The numerical bonus of the magic item (e.g., 1, 2, 3), if applicable.',
+            hidden: ({ document }: any) => !document?.magical,
         },
         {
             name: 'rarity',
@@ -94,6 +101,20 @@ export default {
             title: 'Properties',
             type: 'array',
             of: [{ type: 'string' }],
+        },
+        {
+            name: 'toolCategory',
+            title: 'Tool Category',
+            type: 'string',
+            hidden: ({ document }: any) => document?.type !== 'Tool',
+            options: {
+                list: [
+                    "Artisan's Tools",
+                    "Gaming Set",
+                    "Musical Instrument",
+                    "Other",
+                ],
+            },
         },
         sourceField,
         editionField,

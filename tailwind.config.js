@@ -14,6 +14,9 @@ export default {
             },
         },
         extend: {
+            screens: {
+                '3xl': '1410px',
+            },
             fontSize: {
                 "xs": ["15px", { lineHeight: "1.5" }],
                 "sm": ["16px", { lineHeight: "1.5" }],

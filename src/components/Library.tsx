@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchBar } from "./SearchBar";
 import { SpellCard } from "./SpellCard";
 import { ClassCard } from "./ClassCard";
@@ -17,10 +17,10 @@ import {
 } from "../utils/search-utils";
 import { FeatCard } from "./FeatCard";
 import { SearchFilters } from "../types/dnd-types";
-import { BookOpen, Sparkles, Users, Package, Scroll, Shield, Award, Crown, ArrowLeft } from "lucide-react";
+import { BookOpen, Sparkles, Users, Package, Scroll, Shield, Award, Crown, ArrowLeft, Sword, Gem } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type LibraryTab = "spells" | "classes" | "subclasses" | "races" | "items" | "backgrounds" | "feats";
+type LibraryTab = "spells" | "classes" | "subclasses" | "races" | "equipment" | "magic-items" | "backgrounds" | "feats";
 
 interface LibraryProps {
   spells: Spell[];
@@ -38,9 +38,21 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
     query: "",
   });
 
+  // Automatically set the itemCategory filter based on the active tab
+  useEffect(() => {
+    if (activeTab === "equipment") {
+      setFilters(prev => ({ ...prev, itemCategory: "Equipment" }));
+    } else if (activeTab === "magic-items") {
+      setFilters(prev => ({ ...prev, itemCategory: "Magic Items" }));
+    } else {
+      setFilters(prev => ({ ...prev, itemCategory: undefined }));
+    }
+  }, [activeTab]);
+
   const filteredSpells = searchSpells(spells, filters);
   const filteredClasses = searchClasses(classes, filters);
   const filteredRaces = searchRaces(races, filters);
+  // Both equipment and magic items use the same searchItems utility, but the filter.itemCategory determines what's returned
   const filteredItems = searchItems(items, filters);
   const filteredBackgrounds = searchBackgrounds(backgrounds, filters);
   const filteredFeats = searchFeats(feats, filters);
@@ -48,8 +60,18 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
   // Filter subclasses
   const filteredSubclasses = searchSubclasses(subclasses, filters);
 
-  // Ensure unique IDs by adding index if needed
-  const getUniqueKey = (id: string, index: number) => `${id}-${index}`;
+  // We need to calculate counts for tabs separately if we want accurate badges even when not active
+  // But for simple "filtered count" it's tricky because filters change per tab.
+  // For now, let's just use the current filteredItems count for whichever item tab is active, 
+  // or 0 if we assume they are mutually exclusive in view.
+  // Actually, standard behavior is to show count of items matching *current* filters.
+  // So if I am on Spells, searching "Fire", the Equipment tab might show 0 if I applied "Fire" to it?
+  // Our search utils apply all filters.
+  // Let's assume the counts should reflect what YOU WOULD SEE if you clicked the tab with CURRENT filters.
+  // That requires running searchItems with "Equipment" override.
+  const equipmentCount = searchItems(items, { ...filters, itemCategory: "Equipment" }).length;
+  const magicItemsCount = searchItems(items, { ...filters, itemCategory: "Magic Items" }).length;
+
 
   const tabs = [
     { id: "spells", label: "Spells", icon: Sparkles, count: filteredSpells.length },
@@ -57,7 +79,8 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
     { id: "subclasses", label: "Subclasses", icon: Shield, count: filteredSubclasses.length },
     { id: "races", label: "Races", icon: Users, count: filteredRaces.length },
     { id: "feats", label: "Feats", icon: Award, count: filteredFeats.length },
-    { id: "items", label: "Items", icon: Package, count: filteredItems.length },
+    { id: "equipment", label: "Equipment", icon: Sword, count: equipmentCount },
+    { id: "magic-items", label: "Magic Items", icon: Gem, count: magicItemsCount },
     {
       id: "backgrounds",
       label: "Backgrounds",
@@ -141,13 +164,16 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 py-8">
+
           {/* Search Bar */}
           <div className="mb-8">
             <SearchBar
               filters={filters}
               onFiltersChange={setFilters}
               showSpellFilters={activeTab === "spells"}
-              showClassFilters={activeTab === "classes"}
+              showClassFilters={activeTab === "classes" || activeTab === "subclasses"}
+              showEquipmentFilters={activeTab === "equipment"}
+              showMagicItemFilters={activeTab === "magic-items"}
             />
           </div>
 
@@ -169,7 +195,7 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
             {activeTab === "races" &&
               filteredRaces.map((race) => <RaceCard key={race.id} race={race} />)}
 
-            {activeTab === "items" &&
+            {(activeTab === "equipment" || activeTab === "magic-items") &&
               filteredItems.map((item) => <ItemCard key={item.id} item={item} />)}
 
             {activeTab === "feats" &&
@@ -179,7 +205,7 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
               filteredBackgrounds.map((background) => (
                 <div
                   key={background.id}
-                  className="border border-brand-900/30 rounded-lg p-4 hover:border-brand-700/50 transition-all bg-black/40 backdrop-blur-sm"
+                  className="border border-zinc-700 rounded-lg p-4 transition-all bg-zinc-900 hover:border-brand-500/50"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
@@ -213,7 +239,7 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
             (activeTab === "classes" && filteredClasses.length === 0) ||
             (activeTab === "subclasses" && filteredSubclasses.length === 0) ||
             (activeTab === "races" && filteredRaces.length === 0) ||
-            (activeTab === "items" && filteredItems.length === 0) ||
+            ((activeTab === "equipment" || activeTab === "magic-items") && filteredItems.length === 0) ||
             (activeTab === "backgrounds" && filteredBackgrounds.length === 0) ||
             (activeTab === "feats" && filteredFeats.length === 0)) && (
               <div className="text-center py-12">

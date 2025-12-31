@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
+import { ScrollArea } from "../ui/scroll-area";
 import { Class } from "../../types/dnd-types";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
@@ -74,14 +75,25 @@ export function ClassStep({
                             <label className="block text-gray-300 font-medium mb-2">
                                 Character Level (Beginner: 1-3)
                             </label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="3"
-                                value={level}
-                                onChange={(e) => onLevelChange(Math.max(1, Math.min(3, parseInt(e.target.value) || 1)))}
-                                className="w-full px-4 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-center text-lg font-semibold text-white"
-                            />
+                            <div className="flex items-center w-full bg-zinc-900/50 border border-zinc-700 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-transparent">
+                                <button
+                                    onClick={() => onLevelChange(Math.max(1, level - 1))}
+                                    disabled={level <= 1}
+                                    className={`px-4 py-2 text-xl font-bold transition-colors ${level <= 1 ? 'text-zinc-600 cursor-not-allowed' : 'text-gray-300 hover:bg-zinc-800 hover:text-white'}`}
+                                >
+                                    -
+                                </button>
+                                <div className="flex-1 text-center py-2 text-lg font-semibold text-white border-l border-r border-zinc-700/50">
+                                    {level}
+                                </div>
+                                <button
+                                    onClick={() => onLevelChange(Math.min(3, level + 1))}
+                                    disabled={level >= 3}
+                                    className={`px-4 py-2 text-xl font-bold transition-colors ${level >= 3 ? 'text-zinc-600 cursor-not-allowed' : 'text-gray-300 hover:bg-zinc-800 hover:text-white'}`}
+                                >
+                                    +
+                                </button>
+                            </div>
                             <p className="text-xs text-gray-500 mt-1">Limited to levels 1-3 for beginner characters</p>
                         </div>
 
@@ -108,40 +120,87 @@ export function ClassStep({
                         />
                     </div>
 
-                    {classesLoading ? (
-                        <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                            {Array.from({ length: 9 }).map((_, i) => (
-                                <div key={i} className="px-2 py-3 rounded-lg bg-zinc-900/50 animate-pulse h-24 flex flex-col items-center justify-center gap-2 border border-zinc-800">
-                                    <div className="h-5 w-20 bg-zinc-800 rounded"></div>
-                                    <div className="h-4 w-14 bg-zinc-800 rounded-full"></div>
-                                </div>
-                            ))}
-                        </div>
+                    {showNonCore ? (
+                        <ScrollArea className="h-[500px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                            <div className="p-4">
+                                {classesLoading ? (
+                                    <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                                        {Array.from({ length: 9 }).map((_, i) => (
+                                            <div key={i} className="px-2 py-3 rounded-lg bg-zinc-900/50 animate-pulse h-24 flex flex-col items-center justify-center gap-2 border border-zinc-800">
+                                                <div className="h-5 w-20 bg-zinc-800 rounded"></div>
+                                                <div className="h-4 w-14 bg-zinc-800 rounded-full"></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                                        {filteredClasses.map((classData) => {
+                                            const isActive = selected?.id === classData.id;
+                                            return (
+                                                <button
+                                                    key={classData.id}
+                                                    onClick={() => onSelect(classData)}
+                                                    className={`
+                        px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
+                        ${isActive
+                                                            ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_15px_rgba(220,38,38,0.3)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
+                                                            : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
+                                                        }
+                      `}
+                                                >
+                                                    <span className="font-bold text-lg mb-1 font-serif">{classData.name}</span>
+                                                    {classData.spellcaster && classData.spellcaster !== "None" && classData.spellcaster !== "none" && (
+                                                        <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
+                                                            {classData.spellcaster}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </ScrollArea>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                            {filteredClasses.map((classData) => {
-                                const isActive = selected?.id === classData.id;
-                                return (
-                                    <button
-                                        key={classData.id}
-                                        onClick={() => onSelect(classData)}
-                                        className={`
-                    px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
-                    ${isActive
-                                                ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_15px_rgba(220,38,38,0.3)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
-                                                : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
-                                            }
-                  `}
-                                    >
-                                        <span className="font-bold text-lg mb-1 font-serif">{classData.name}</span>
-                                        {classData.spellcaster && classData.spellcaster !== "None" && classData.spellcaster !== "none" && (
-                                            <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
-                                                {classData.spellcaster}
-                                            </span>
-                                        )}
-                                    </button>
-                                );
-                            })}
+                        <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                            <div className="p-4">
+                                {classesLoading ? (
+                                    <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                                        {Array.from({ length: 9 }).map((_, i) => (
+                                            <div key={i} className="px-2 py-3 rounded-lg bg-zinc-900/50 animate-pulse h-24 flex flex-col items-center justify-center gap-2 border border-zinc-800">
+                                                <div className="h-5 w-20 bg-zinc-800 rounded"></div>
+                                                <div className="h-4 w-14 bg-zinc-800 rounded-full"></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                                        {filteredClasses.map((classData) => {
+                                            const isActive = selected?.id === classData.id;
+                                            return (
+                                                <button
+                                                    key={classData.id}
+                                                    onClick={() => onSelect(classData)}
+                                                    className={`
+                        px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
+                        ${isActive
+                                                            ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_15px_rgba(220,38,38,0.3)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
+                                                            : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
+                                                        }
+                      `}
+                                                >
+                                                    <span className="font-bold text-lg mb-1 font-serif">{classData.name}</span>
+                                                    {classData.spellcaster && classData.spellcaster !== "None" && classData.spellcaster !== "none" && (
+                                                        <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
+                                                            {classData.spellcaster}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

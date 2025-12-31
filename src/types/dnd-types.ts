@@ -273,6 +273,7 @@ export type ItemRarity =
 export type ItemType =
   | "Weapon"
   | "Armor"
+  | "Tool"
   | "Potion"
   | "Scroll"
   | "Wondrous Item"
@@ -289,6 +290,7 @@ export interface Item {
   description: string;
   image?: SanityImage;
   magical: boolean;
+  magicBonus?: number;
   rarity?: ItemRarity;
   requiresAttunement: boolean;
   cost?: {
@@ -296,6 +298,7 @@ export interface Item {
     currency: "cp" | "sp" | "ep" | "gp" | "pp";
   };
   weight?: number;
+  toolCategory?: string;
   properties?: string[];
   source: Source;
   edition: Edition;
@@ -412,6 +415,16 @@ export interface SearchFilters {
   concentration?: boolean;
   ritual?: boolean;
   components?: ("verbal" | "somatic" | "material")[];
+  // Item specific
+  minCost?: number;
+  maxCost?: number;
+  minWeight?: number;
+  maxWeight?: number;
+  itemCategory?: "Equipment" | "Magic Items";
+  // Magic Item specific
+  magicBonus?: number; // 1, 2, 3
+  rarity?: string;
+  attunement?: boolean; // undefined = all, true = yes, false = no
 }
 
 // ===== Spell Slot Progression Tables =====

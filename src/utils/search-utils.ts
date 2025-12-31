@@ -159,6 +159,66 @@ export function searchItems(items: Item[], filters: SearchFilters): Item[] {
       return false;
     }
 
+    // Category Filter
+    if (filters.itemCategory) {
+      const isEquipment = ["Weapon", "Armor", "Tool", "Adventuring Gear"].includes(item.type);
+      const isMagicItem = ["Potion", "Scroll", "Wondrous Item", "Ring", "Rod", "Staff", "Wand"].includes(item.type);
+
+      if (filters.itemCategory === "Equipment") {
+        if (!isEquipment) return false;
+      } else if (filters.itemCategory === "Magic Items") {
+        if (!isMagicItem) return false;
+      }
+    }
+
+    // Cost Filter
+    if (item.cost) {
+      const itemCost = item.cost.amount;
+      const getGoldValue = (amt: number, currency: string) => {
+        if (currency === "gp") return amt;
+        if (currency === "pp") return amt * 10;
+        if (currency === "ep") return amt * 0.5;
+        if (currency === "sp") return amt * 0.1;
+        if (currency === "cp") return amt * 0.01;
+        return 0;
+      };
+      const goldValue = getGoldValue(item.cost.amount, item.cost.currency);
+
+      if (filters.minCost !== undefined && goldValue < filters.minCost) return false;
+      if (filters.maxCost !== undefined && goldValue > filters.maxCost) return false;
+    } else {
+      if (filters.minCost !== undefined && filters.minCost > 0) return false;
+    }
+
+    // Weight Filter
+    if (item.weight !== undefined) {
+      if (filters.minWeight !== undefined && item.weight < filters.minWeight) return false;
+      if (filters.maxWeight !== undefined && item.weight > filters.maxWeight) return false;
+    } else {
+      if (filters.minWeight !== undefined && filters.minWeight > 0) return false;
+    }
+
+    // --- Magic Item Filters ---
+
+    // Rarity Filter
+    if (filters.rarity) {
+      if (!item.rarity || item.rarity !== filters.rarity) return false;
+    }
+
+    // Magic Bonus Filter
+    if (filters.magicBonus !== undefined) {
+      // If searching for +1, item must have magicBonus === 1
+      if (item.magicBonus !== filters.magicBonus) return false;
+    }
+
+    // Attunement Filter
+    if (filters.attunement !== undefined) {
+      // defined true means "requires attunement"
+      // defined false means "does NOT require attunement"
+      if (filters.attunement === true && !item.requiresAttunement) return false;
+      if (filters.attunement === false && item.requiresAttunement) return false;
+    }
+
     return true;
   });
 }

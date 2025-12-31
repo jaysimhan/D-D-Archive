@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Search } from "lucide-react";
 import { CharacterData } from "../../types/character-creator";
 import { Class, Subclass, Background, ProficiencyRule } from "../../types/dnd-types";
-import { SRD_PROFICIENCIES } from "../../data/srd-proficiencies";
+import { useItems } from "../../hooks/useSanityData";
 
 // Proficiency Step
 export function ProficiencyStep({
@@ -72,10 +72,6 @@ export function ProficiencyStep({
     };
 
     // Point System Logic
-    // Base: 7 points. Feats: +2 points (Total 9).
-    // Proficiency = 1 point. Expertise = 1 point (total 2).
-
-    // Calculate Total Points
     const totalPoints = useMemo(() => {
         const hasFeats = feats && feats.length > 0;
         return hasFeats ? 9 : 7;
@@ -102,9 +98,6 @@ export function ProficiencyStep({
 
         if (type === 'proficient') {
             if (targetSkill.proficient) {
-                // Removing Proficiency
-                // Refund 1 point. If had expertise, refund 2.
-                // Logic: just set both to false.
                 const updated = currentSkills.map(s => {
                     if (s.name === skillName) {
                         return { ...s, proficient: false, expertise: false };
@@ -113,11 +106,10 @@ export function ProficiencyStep({
                 });
                 onProficienciesChange({ ...proficiencies, skills: updated });
             } else {
-                // Adding Proficiency (Cost 1)
                 if (remainingPoints >= 1) {
                     const updated = currentSkills.map(s => {
                         if (s.name === skillName) {
-                            return { ...s, proficient: true }; // Expertise remains false
+                            return { ...s, proficient: true };
                         }
                         return s;
                     });
@@ -126,7 +118,6 @@ export function ProficiencyStep({
             }
         } else if (type === 'expertise') {
             if (targetSkill.expertise) {
-                // Removing Expertise (Refund 1)
                 const updated = currentSkills.map(s => {
                     if (s.name === skillName) {
                         return { ...s, expertise: false };
@@ -135,8 +126,6 @@ export function ProficiencyStep({
                 });
                 onProficienciesChange({ ...proficiencies, skills: updated });
             } else {
-                // Adding Expertise (Cost 1)
-                // Must be proficient first
                 if (targetSkill.proficient && remainingPoints >= 1) {
                     const updated = currentSkills.map(s => {
                         if (s.name === skillName) {
@@ -153,13 +142,10 @@ export function ProficiencyStep({
     const [newLang, setNewLang] = useState("");
     const addLanguage = () => {
         if (!newLang) return;
-
-        // Prevent adding languages known from Race
         if (race?.languages?.includes(newLang)) {
-            setNewLang(""); // Just clear it, essentially blocking the add
+            setNewLang("");
             return;
         }
-
         if (!proficiencies.languages?.includes(newLang)) {
             onProficienciesChange({
                 ...proficiencies,
@@ -176,15 +162,31 @@ export function ProficiencyStep({
     };
 
     // Item Search Logic
+    const { data: allItems, loading: itemsLoading } = useItems();
     const [searchTerm, setSearchTerm] = useState("");
     const [searchType, setSearchType] = useState<"tools" | "armor" | "weapons">("tools");
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     const filteredOptions = useMemo(() => {
-        const options = SRD_PROFICIENCIES[searchType];
-        if (!searchTerm) return options;
-        return options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
-    }, [searchType, searchTerm]);
+        if (!allItems) return [];
+
+        let typeFilter = "";
+        if (searchType === "tools") typeFilter = "Tool";
+        if (searchType === "armor") typeFilter = "Armor";
+        if (searchType === "weapons") typeFilter = "Weapon";
+
+        const typeFiltered = allItems.filter(item => item.type === typeFilter);
+
+        if (!searchTerm) {
+            // Limit to first 20 if no search term to avoid huge lists
+            return typeFiltered.slice(0, 20).map(i => i.name);
+        }
+
+        return typeFiltered
+            .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+            .map(item => item.name)
+            .slice(0, 20); // Limit results
+    }, [searchType, searchTerm, allItems]);
 
     const addItem = (item: string) => {
         const list = proficiencies[searchType] || [];
@@ -204,9 +206,6 @@ export function ProficiencyStep({
             [type]: (proficiencies[type] || []).filter(i => i !== item)
         });
     };
-
-    // Ensure we have a renderable list even if props are undefined
-    const skillList = (proficiencies.skills?.length ? proficiencies.skills : SKILLS.map(s => ({ name: s, proficient: false, expertise: false })));
 
     return (
         <div>
@@ -253,10 +252,7 @@ export function ProficiencyStep({
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-6">
                                         {group.skills.map(skillName => {
-                                            // Find the skill object or create a dummy one if missing
                                             const skill = proficiencies.skills?.find(s => s.name === skillName) || { name: skillName, proficient: false, expertise: false };
-
-                                            // Disabled logic
                                             const profDisabled = !skill.proficient && remainingPoints < 1;
                                             const expDisabled = !skill.proficient || (!skill.expertise && remainingPoints < 1);
 
@@ -299,7 +295,6 @@ export function ProficiencyStep({
                 <div className="bg-zinc-900/60 p-6 rounded-xl border border-zinc-800">
                     <h3 className="text-lg font-bold text-gray-200 mb-4 border-b border-zinc-700 pb-2">Languages</h3>
 
-                    {/* Racial Languages */}
                     {race && race.languages && race.languages.length > 0 && (
                         <div className="mb-4">
                             <h4 className="font-semibold text-gray-400 mb-2 text-sm uppercase">Known from Race ({race.name})</h4>
@@ -385,17 +380,19 @@ export function ProficiencyStep({
                                         setIsSearchOpen(true);
                                     }}
                                     onFocus={() => setIsSearchOpen(true)}
-                                    // Blur needs delay to allow click
                                     onBlur={() => setTimeout(() => setIsSearchOpen(false), 200)}
-                                    placeholder={`Search ${searchType}...`}
-                                    className="w-full pl-9 pr-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 text-white placeholder-gray-500"
+                                    placeholder={itemsLoading ? "Loading..." : `Search ${searchType}...`}
+                                    disabled={itemsLoading}
+                                    className="w-full pl-9 pr-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 text-white placeholder-gray-500 disabled:opacity-50"
                                 />
                             </div>
 
                             {/* Dropdown */}
-                            {isSearchOpen && searchTerm && (
+                            {isSearchOpen && (searchTerm || filteredOptions.length > 0) && (
                                 <div className="absolute top-full left-0 w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50">
-                                    {filteredOptions.length > 0 ? (
+                                    {itemsLoading ? (
+                                        <div className="px-4 py-2 text-gray-500 text-sm">Loading items...</div>
+                                    ) : filteredOptions.length > 0 ? (
                                         filteredOptions.map(option => (
                                             <button
                                                 key={option}

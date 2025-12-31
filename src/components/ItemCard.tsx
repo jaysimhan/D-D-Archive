@@ -4,10 +4,16 @@ import { useState } from "react";
 
 interface ItemCardProps {
   item: Item;
+  isSelected?: boolean;
+  onClick?: () => void;
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
   const [expanded, setExpanded] = useState(false);
+
+  const displaySource = (item.source === "Tasha's Cauldron of Everything" || item.source === "Tasha's Cauldron of Everythings")
+    ? "Unofficial"
+    : item.source;
 
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
@@ -18,6 +24,7 @@ export function ItemCard({ item }: ItemCardProps) {
       case "Unofficial":
         return "bg-zinc-800 text-gray-400 border border-zinc-700";
       default:
+        // Default to Unofficial style for mapped sources like Tasha's if they fall through, or unknown
         return "bg-zinc-800 text-gray-400 border border-zinc-700";
     }
   };
@@ -42,20 +49,26 @@ export function ItemCard({ item }: ItemCardProps) {
   };
 
   return (
-    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
+    <div
+      onClick={onClick}
+      className={`border rounded-lg p-5 transition-all ${isSelected
+        ? "border-brand-500 bg-brand-900/20 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+        : "border-zinc-800 bg-zinc-900/60 hover:shadow-lg hover:shadow-brand-900/20 hover:border-zinc-600"
+        } ${onClick ? "cursor-pointer" : ""}`}
+    >
       {/* Header */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="text-gray-100 mb-1 font-serif">{item.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span className="flex items-center gap-1">
-              <Package className="w-4 h-4" />
-              {item.type}
+      <div className="flex justify-between items-start mb-3 gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-gray-100 mb-1 font-serif text-[18px] line-clamp-2 pr-2 leading-tight">{item.name}</h3>
+          <div className="flex items-center gap-2 text-sm text-gray-400 whitespace-nowrap overflow-hidden">
+            <span className="flex items-center gap-1 min-w-0 flex-shrink">
+              <Package className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">{item.type}</span>
             </span>
             {item.magical && (
               <>
-                <span>•</span>
-                <span className="flex items-center gap-1">
+                <span className="flex-shrink-0">•</span>
+                <span className="flex items-center gap-1 flex-shrink-0">
                   <Star className={`w-4 h-4 ${getRarityColor(item.rarity)}`} />
                   <span className={getRarityColor(item.rarity)}>{item.rarity}</span>
                 </span>
@@ -63,15 +76,15 @@ export function ItemCard({ item }: ItemCardProps) {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <span
-            className={`text-xs px-2 py-1 rounded-full ${getSourceBadgeColor(
-              item.source
+            className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getSourceBadgeColor(
+              displaySource
             )}`}
           >
-            {item.source}
+            {displaySource}
           </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 whitespace-nowrap">
             {item.edition}
           </span>
         </div>
@@ -110,7 +123,10 @@ export function ItemCard({ item }: ItemCardProps) {
 
       {item.description.length > 120 && (
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(!expanded);
+          }}
           className="text-sm text-brand-400 hover:text-brand-300 mb-3"
         >
           {expanded ? "Show Less" : "Show More"}

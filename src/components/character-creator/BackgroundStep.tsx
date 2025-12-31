@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
+import { ScrollArea } from "../ui/scroll-area";
 import { Background } from "../../types/dnd-types";
 import { useBackgrounds } from "../../hooks/useSanityData";
 import { urlFor } from "../../lib/sanity";
@@ -13,6 +14,7 @@ export function BackgroundStep({
     onSelect: (background: Background) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
+    const [showNonCore, setShowNonCore] = useState(true);
 
     // Fetch backgrounds from Sanity
     const { data: sanityBackgrounds, loading: backgroundsLoading } = useBackgrounds();
@@ -31,9 +33,21 @@ export function BackgroundStep({
         <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px]">
             {/* Left Column: Grid */}
             <div className="flex-1 w-full">
-                <div className="text-center lg:text-left mb-6">
-                    <h2 className="text-white text-3xl font-bold mb-2 font-serif">Choose Your Background</h2>
-                    <p className="text-gray-400">Your character's history and skills</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div className="text-center lg:text-left">
+                        <h2 className="text-white text-3xl font-bold mb-2 font-serif">Choose Your Background</h2>
+                        <p className="text-gray-400">Your character's history and skills</p>
+                    </div>
+
+                    {/* Non-core Toggle */}
+                    <label className="flex items-center cursor-pointer group">
+                        <div className="relative">
+                            <input type="checkbox" className="sr-only" checked={showNonCore} onChange={e => setShowNonCore(e.target.checked)} />
+                            <div className={`block w-10 h-6 rounded-full transition-colors ${showNonCore ? 'bg-brand-600' : 'bg-zinc-700'}`}></div>
+                            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showNonCore ? 'transform translate-x-4' : ''}`}></div>
+                        </div>
+                        <div className="ml-3 text-sm font-medium text-gray-300 group-hover:text-brand-400 transition-colors">Enable non-core options</div>
+                    </label>
                 </div>
 
                 {/* Search Bar */}
@@ -48,31 +62,69 @@ export function BackgroundStep({
                     />
                 </div>
 
-                {backgroundsLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="p-4 border border-zinc-800 rounded-lg animate-pulse bg-zinc-900/50">
-                                <div className="h-5 w-28 bg-zinc-800 rounded mb-2"></div>
-                                <div className="h-4 w-full bg-zinc-800 rounded mb-1"></div>
-                                <div className="h-4 w-2/3 bg-zinc-800 rounded"></div>
-                            </div>
-                        ))}
-                    </div>
+                {showNonCore ? (
+                    <ScrollArea className="h-[500px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                        <div className="p-4">
+                            {backgroundsLoading ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <div key={i} className="p-4 border border-zinc-800 rounded-lg animate-pulse bg-zinc-900/50">
+                                            <div className="h-5 w-28 bg-zinc-800 rounded mb-2"></div>
+                                            <div className="h-4 w-full bg-zinc-800 rounded mb-1"></div>
+                                            <div className="h-4 w-2/3 bg-zinc-800 rounded"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {filteredBackgrounds.map((background) => (
+                                        <button
+                                            key={background.id}
+                                            onClick={() => onSelect(background)}
+                                            className={`text-left p-4 border rounded-lg transition-all ${selected?.id === background.id
+                                                ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+                                                : "border-zinc-700 bg-zinc-900 hover:border-brand-500/50 hover:bg-zinc-800"
+                                                }`}
+                                        >
+                                            <h3 className={`font-semibold text-lg mb-1 font-serif ${selected?.id === background.id ? 'text-brand-400' : 'text-gray-200'}`}>{background.name}</h3>
+                                            <p className="text-sm text-gray-400 line-clamp-2">{background.description}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
-                        {filteredBackgrounds.map((background) => (
-                            <button
-                                key={background.id}
-                                onClick={() => onSelect(background)}
-                                className={`text-left p-4 border rounded-lg transition-all ${selected?.id === background.id
-                                    ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
-                                    : "border-zinc-800 bg-zinc-900/40 hover:border-brand-500/50 hover:bg-zinc-800"
-                                    }`}
-                            >
-                                <h3 className={`font-semibold text-lg mb-1 font-serif ${selected?.id === background.id ? 'text-brand-400' : 'text-gray-200'}`}>{background.name}</h3>
-                                <p className="text-sm text-gray-400 line-clamp-2">{background.description}</p>
-                            </button>
-                        ))}
+                    <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                        <div className="p-4">
+                            {backgroundsLoading ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <div key={i} className="p-4 border border-zinc-800 rounded-lg animate-pulse bg-zinc-900/50">
+                                            <div className="h-5 w-28 bg-zinc-800 rounded mb-2"></div>
+                                            <div className="h-4 w-full bg-zinc-800 rounded mb-1"></div>
+                                            <div className="h-4 w-2/3 bg-zinc-800 rounded"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {filteredBackgrounds.map((background) => (
+                                        <button
+                                            key={background.id}
+                                            onClick={() => onSelect(background)}
+                                            className={`text-left p-4 border rounded-lg transition-all ${selected?.id === background.id
+                                                ? "border-brand-500 bg-brand-900/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+                                                : "border-zinc-700 bg-zinc-900 hover:border-brand-500/50 hover:bg-zinc-800"
+                                                }`}
+                                        >
+                                            <h3 className={`font-semibold text-lg mb-1 font-serif ${selected?.id === background.id ? 'text-brand-400' : 'text-gray-200'}`}>{background.name}</h3>
+                                            <p className="text-sm text-gray-400 line-clamp-2">{background.description}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
