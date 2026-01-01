@@ -106,10 +106,16 @@ export function AbilityScoreStep({
         onRacialBonusChange?.(alloc);
     };
 
+    // --- Feat Logic State ---
+    const flexibleFeats = useMemo(() => feats?.filter(f => f.benefits?.flexibleAbilityIncrease) || [], [feats]);
+    const [featAllocations, setFeatAllocations] = useState<Record<string, AbilityKey>>({});
+
+    // Initialize defaults for feats if needed (or just leave empty)
+
+
+
     // Calculate total allocated points
     const totalAllocated = assignments.filter(a => a !== null).length;
-    const maxPoints = 3;
-    const remainingPoints = maxPoints - totalAllocated;
 
     // Get racial bonus for an ability
     const getRacialBonus = (ability: AbilityKey): number => {
@@ -124,11 +130,24 @@ export function AbilityScoreStep({
     // Get feat bonus for an ability
     const getFeatBonus = (ability: AbilityKey): number => {
         let bonus = 0;
+
+        // Fixed bonuses
         feats?.forEach(feat => {
             if (feat.benefits?.abilityScoreIncrease?.[ability]) {
                 bonus += feat.benefits.abilityScoreIncrease[ability] || 0;
             }
         });
+
+        // Flexible bonuses
+        Object.entries(featAllocations).forEach(([featId, allocatedAbility]) => {
+            if (allocatedAbility === ability) {
+                // Find feat to get amount, default 1
+                const feat = feats?.find(f => f.id === featId);
+                const amount = feat?.benefits?.flexibleAbilityIncrease?.amount || 1;
+                bonus += amount;
+            }
+        });
+
         return bonus;
     };
 
@@ -155,10 +174,25 @@ export function AbilityScoreStep({
             return;
         }
 
-        // Action: Assign column to this ability (Steals from other if occupied - "One column can only get one dot")
+        // Action: Assign column to this ability (Steals from other if occupied)
         newAssignments[colIndex] = ability;
         setAssignments(newAssignments);
         updateParent(newAssignments);
+    };
+
+    // Handle Feat Toggle
+    const handleFeatToggle = (ability: AbilityKey, featId: string) => {
+        setFeatAllocations(prev => {
+            const current = prev[featId];
+            const newAlloc = { ...prev };
+
+            if (current === ability) {
+                delete newAlloc[featId]; // Toggle off
+            } else {
+                newAlloc[featId] = ability; // Switch to this ability
+            }
+            return newAlloc;
+        });
     };
 
     // Handle score increment/decrement
@@ -241,7 +275,6 @@ export function AbilityScoreStep({
                                 {[0, 1, 2].map((colIndex) => {
                                     // Status for this cell
                                     const assignedToSelf = assignments[colIndex] === ability;
-                                    const assignedToOther = assignments[colIndex] !== null && !assignedToSelf;
                                     const isClickable = isFlexible;
 
                                     // Row Cap Check: If we select this, do we exceed 2?
@@ -279,8 +312,36 @@ export function AbilityScoreStep({
                             </div>
 
                             {/* Feat Bonus */}
-                            <div className="text-center font-medium text-gray-400">
-                                {featBonus > 0 ? `+${featBonus}` : '-'}
+                            <div className="flex flex-col items-center justify-center gap-1">
+                                {featBonus > 0 && <span className="font-medium text-amber-400">+{featBonus}</span>}
+                                {featBonus === 0 && <span className="text-gray-600">-</span>}
+
+                                {/* Flexible Feat Bubbles */}
+                                <div className="flex gap-1 mt-1">
+                                    {flexibleFeats.map((feat, idx) => {
+                                        const isSelected = featAllocations[feat.id] === ability;
+
+                                        // Check if this ability is allowed options
+                                        const options = feat.benefits?.flexibleAbilityIncrease?.options; // array of AbilityKey
+                                        const isAllowed = !options || options.length === 0 || options.includes(ability);
+
+                                        return (
+                                            <button
+                                                key={feat.id}
+                                                onClick={() => isAllowed && handleFeatToggle(ability, feat.id)}
+                                                disabled={!isAllowed}
+                                                className={`
+                                                    w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center transition-all
+                                                    ${isSelected ? 'bg-amber-500 border-amber-500' : 'bg-transparent'}
+                                                    ${!isAllowed ? 'opacity-20 cursor-not-allowed border-gray-800 bg-gray-900' : 'cursor-pointer hover:border-amber-400'}
+                                                `}
+                                                title={feat.name + (!isAllowed ? " (Not available for this stat)" : "")}
+                                            >
+                                                {/* Optional: Small indicator? */}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
                             </div>
 
                             {/* Final Score with Modifier */}
@@ -298,10 +359,10 @@ export function AbilityScoreStep({
             </div>
 
             {/* Feat bonuses summary if any */}
-            {feats && feats.some(f => f.benefits?.abilityScoreIncrease) && (
+            {(flexibleFeats.length > 0) && (
                 <div className="mt-4 pt-4 border-t border-zinc-800">
                     <p className="text-sm text-amber-400">
-                        ✨ Feat bonuses are included in final scores
+                        ✨ Select circles in "Feat Bonus" to assign flexible increases from your feats.
                     </p>
                 </div>
             )}

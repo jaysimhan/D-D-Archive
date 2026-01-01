@@ -3,7 +3,7 @@ import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Background } from "../../types/dnd-types";
 import { useBackgrounds } from "../../hooks/useSanityData";
-import { urlFor } from "../../lib/sanity";
+import SanityImage from "../SanityImage";
 
 // Background Step
 export function BackgroundStep({
@@ -135,25 +135,25 @@ export function BackgroundStep({
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
                         <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
-                            {displayedBackground?.image || displayedBackground?.imageUrl ? (
+                            {displayedBackground?.image ? (
+                                <SanityImage
+                                    imageAsset={displayedBackground.image}
+                                    alt={displayedBackground.name}
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : displayedBackground?.imageUrl ? (
                                 <img
-                                    src={(displayedBackground.image ? urlFor(displayedBackground.image)?.url() : '') || displayedBackground.imageUrl || ''}
+                                    src={displayedBackground.imageUrl}
                                     alt={displayedBackground.name}
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <>
-                                    <div className="text-center p-4">
-                                        <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
-                                        <span className="text-xs text-zinc-600">Background Scene</span>
-                                    </div>
-                                    <img
-                                        src={`/images/backgrounds/${selected.id}.jpg`}
-                                        alt={selected.name}
-                                        className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
-                                        onError={(e) => (e.currentTarget.style.display = 'none')}
-                                    />
-                                </>
+                                <div className="text-center p-4">
+                                    <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
+                                    <span className="text-xs text-zinc-600">Background Scene</span>
+                                </div>
                             )}
                         </div>
 

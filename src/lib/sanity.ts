@@ -12,18 +12,36 @@ export const sanityClient = createClient({
 // Image URL builder
 const builder = imageUrlBuilder(sanityClient);
 
-// Sanity image reference type
+// Sanity image reference type with metadata for optimized loading
+export interface SanityImageAsset {
+    _id?: string;
+    _ref?: string;
+    _type?: 'reference';
+    url?: string;
+    metadata?: {
+        lqip?: string; // Low Quality Image Placeholder (base64)
+        dimensions?: {
+            width: number;
+            height: number;
+            aspectRatio: number;
+        };
+    };
+}
+
 export interface SanityImage {
     _type: 'image';
-    asset: {
-        _ref: string;
-        _type: 'reference';
-    };
+    asset: SanityImageAsset;
     hotspot?: {
         x: number;
         y: number;
         height: number;
         width: number;
+    };
+    crop?: {
+        top: number;
+        bottom: number;
+        left: number;
+        right: number;
     };
 }
 

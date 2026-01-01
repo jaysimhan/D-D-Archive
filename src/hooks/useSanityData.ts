@@ -47,7 +47,10 @@ export function useClasses() {
         "id": slug.current,
         name,
         description,
-        image,
+        image {
+            ...,
+            asset->{ _id, url, metadata { lqip, dimensions } }
+        },
         hitDie,
         primaryAbility,
         savingThrows,
@@ -67,7 +70,10 @@ export function useSubclasses() {
         "id": slug.current,
         name,
         description,
-        image,
+        image {
+            ...,
+            asset->{ _id, url, metadata { lqip, dimensions } }
+        },
         parentClassId,
         features,
         traits[]->{name, description},
@@ -91,7 +97,10 @@ export function useSubclasses() {
                 range,
                 duration,
                 description,
-                image
+                image {
+                    ...,
+                    asset->{ _id, url, metadata { lqip, dimensions } }
+                }
             },
             ability,
             recharge,
@@ -109,7 +118,10 @@ export function useSubclassesByClass(classId: string) {
             "id": slug.current,
             name,
             description,
-            image,
+            image {
+                ...,
+                asset->{ _id, url, metadata { lqip, dimensions } }
+            },
             parentClassId,
             features,
             traits[]->{name, description},
@@ -133,7 +145,10 @@ export function useSubclassesByClass(classId: string) {
                     range,
                     duration,
                     description,
-                    image
+                    image {
+                        ...,
+                        asset->{ _id, url, metadata { lqip, dimensions } }
+                    }
                 },
                 ability,
                 recharge,
@@ -153,7 +168,10 @@ export function useRaces() {
         "id": slug.current,
         name,
         description,
-        image,
+        image {
+            ...,
+            asset->{ _id, url, metadata { lqip, dimensions } }
+        },
         abilityScoreIncrease,
         flexibleAbilityScores,
         size,
@@ -175,7 +193,10 @@ export function useRaces() {
                 range,
                 duration,
                 description,
-                image
+                image {
+                    ...,
+                    asset->{ _id, url, metadata { lqip, dimensions } }
+                }
             },
             ability,
             recharge,
@@ -196,7 +217,10 @@ export function useBackgrounds() {
         "id": slug.current,
         name,
         description,
-        image,
+        image {
+            ...,
+            asset->{ _id, url, metadata { lqip, dimensions } }
+        },
         skillProficiencies,
         toolProficiencies,
         traits[]->{name, description},
@@ -243,7 +267,10 @@ export function useHomepage() {
         heroTitleLine1,
         heroTitleLine2,
         subtitle,
-        heroImage,
+        heroImage {
+            ...,
+            asset->{ _id, url, metadata { lqip, dimensions } }
+        },
         features,
         footer
     }`);

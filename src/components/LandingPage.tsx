@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Swords, BookOpen, Flame, Crown } from "lucide-react";
 import { useHomepage } from "../hooks/useSanityData";
-import { urlFor } from "../lib/sanity";
+import SanityImage from "./SanityImage";
 
 
 
@@ -15,8 +15,8 @@ export function LandingPage() {
         {/* Deep gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-brand-950/20 to-zinc-950">
           {content && content.heroImage && (
-            <img
-              src={urlFor(content.heroImage!)?.url()}
+            <SanityImage
+              imageAsset={content.heroImage}
               alt="Hero Background"
               className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
             />

@@ -3,7 +3,7 @@ import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Class } from "../../types/dnd-types";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
-import { urlFor } from "../../lib/sanity";
+import SanityImage from "../SanityImage";
 
 
 // Class Step with Search - Limited to Level 1-3
@@ -211,25 +211,25 @@ export function ClassStep({
                         <div className="animate-in fade-in duration-200">
                             {/* Image Section */}
                             <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
-                                {displayedClass?.image || displayedClass?.imageUrl ? (
+                                {displayedClass?.image ? (
+                                    <SanityImage
+                                        imageAsset={displayedClass.image}
+                                        alt={displayedClass.name}
+                                        width={600}
+                                        height={400}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : displayedClass?.imageUrl ? (
                                     <img
-                                        src={(displayedClass.image ? urlFor(displayedClass.image)?.url() : '') || displayedClass.imageUrl || ''}
+                                        src={displayedClass.imageUrl}
                                         alt={displayedClass.name}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <>
-                                        <div className="text-center p-4">
-                                            <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
-                                            <span className="text-xs text-zinc-600">Class Icon</span>
-                                        </div>
-                                        <img
-                                            src={`/images/classes/${selected.id}.jpg`}
-                                            alt={selected.name}
-                                            className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
-                                            onError={(e) => (e.currentTarget.style.display = 'none')}
-                                        />
-                                    </>
+                                    <div className="text-center p-4">
+                                        <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
+                                        <span className="text-xs text-zinc-600">Class Icon</span>
+                                    </div>
                                 )}
                             </div>
 

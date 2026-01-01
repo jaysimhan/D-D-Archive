@@ -27,26 +27,27 @@ export function SpellCard({ spell }: SpellCardProps) {
   return (
     <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Header */}
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex-1">
-          <h3 className="text-gray-100 mb-1 font-serif">{spell.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span>{levelText}</span>
-            <span>•</span>
-            <span>{spell.school}</span>
+      <div className="flex flex-col gap-2 mb-2">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h3 className="text-gray-100 mb-1 font-serif">{spell.name}</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span>{levelText}</span>
+              <span>•</span>
+              <span>{spell.school}</span>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <span
-            className={`text-xs px-2 py-1 rounded-full ${getSourceBadgeColor(
-              spell.source
-            )}`}
-          >
-            {spell.source}
-          </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
             {spell.edition}
           </span>
+        </div>
+        {/* Source badge - separate row to accommodate long text */}
+        <div
+          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
+            spell.source
+          )} w-full`}
+        >
+          <span>{spell.source}</span>
         </div>
       </div>
 

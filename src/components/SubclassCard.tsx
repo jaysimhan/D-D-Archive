@@ -25,29 +25,30 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
   return (
     <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Header */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="text-gray-100 mb-1 font-serif">{subclass.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span className="flex items-center gap-1">
-              <Sparkles className="w-4 h-4 text-brand-400" />
-              {subclass.parentClassId.charAt(0).toUpperCase() +
-                subclass.parentClassId.slice(1)}{" "}
-              Subclass
-            </span>
+      <div className="flex flex-col gap-2 mb-3">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h3 className="text-gray-100 mb-1 font-serif">{subclass.name}</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span className="flex items-center gap-1">
+                <Sparkles className="w-4 h-4 text-brand-400" />
+                {subclass.parentClassId.charAt(0).toUpperCase() +
+                  subclass.parentClassId.slice(1)}{" "}
+                Subclass
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <span
-            className={`text-xs px-2 py-1 rounded-full ${getSourceBadgeColor(
-              subclass.source
-            )}`}
-          >
-            {subclass.source}
-          </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
             {subclass.edition}
           </span>
+        </div>
+        {/* Source badge - separate row to accommodate long text */}
+        <div
+          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
+            subclass.source
+          )} w-full`}
+        >
+          <span>{subclass.source}</span>
         </div>
       </div>
 

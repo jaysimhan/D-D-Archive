@@ -3,7 +3,7 @@ import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Class, Subclass } from "../../types/dnd-types";
 import { useSubclasses } from "../../hooks/useSanityData";
-import { urlFor } from "../../lib/sanity";
+import SanityImage from "../SanityImage";
 
 
 // Subclass Step
@@ -223,25 +223,25 @@ export function SubclassStep({
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
                         <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
-                            {displayedSubclass?.image || displayedSubclass?.imageUrl ? (
+                            {displayedSubclass?.image ? (
+                                <SanityImage
+                                    imageAsset={displayedSubclass.image}
+                                    alt={displayedSubclass.name}
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : displayedSubclass?.imageUrl ? (
                                 <img
-                                    src={(displayedSubclass.image ? urlFor(displayedSubclass.image)?.url() : '') || displayedSubclass.imageUrl || ''}
+                                    src={displayedSubclass.imageUrl}
                                     alt={displayedSubclass.name}
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <>
-                                    <div className="text-center p-4">
-                                        <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
-                                        <span className="text-xs text-zinc-600">Subclass Icon</span>
-                                    </div>
-                                    <img
-                                        src={`/images/subclasses/${displayedSubclass.id}.jpg`}
-                                        alt={displayedSubclass.name}
-                                        className="absolute inset-0 w-full h-full object-cover opacity-0 hover:opacity-100 transition-opacity duration-300"
-                                        onError={(e) => (e.currentTarget.style.display = 'none')}
-                                    />
-                                </>
+                                <div className="text-center p-4">
+                                    <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
+                                    <span className="text-xs text-zinc-600">Subclass Icon</span>
+                                </div>
                             )}
                         </div>
 

@@ -1,7 +1,7 @@
 import { Race } from "../types/dnd-types";
 import { Users, Gauge, Languages } from "lucide-react";
 import { useState } from "react";
-import { urlFor } from "../lib/sanity";
+import SanityImage from "./SanityImage";
 
 interface RaceCardProps {
   race: Race;
@@ -42,41 +42,44 @@ export function RaceCard({ race }: RaceCardProps) {
       {/* Image Section */}
       {race.image && (
         <div className="w-full aspect-[3/2] rounded-lg mb-3 overflow-hidden bg-black/40 border border-zinc-800">
-          <img
-            src={urlFor(race.image)?.width(600).height(400).url() || ''}
+          <SanityImage
+            imageAsset={race.image}
             alt={race.name}
+            width={600}
+            height={400}
             className="w-full h-full object-cover object-top"
           />
         </div>
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="text-gray-100 mb-1 font-serif">{race.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span className="flex items-center gap-1">
-              <Users className="w-4 h-4" />
-              {race.size}
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              <Gauge className="w-4 h-4" />
-              {race.speed} ft
-            </span>
+      <div className="flex flex-col gap-2 mb-3">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h3 className="text-gray-100 mb-1 font-serif">{race.name}</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                {race.size}
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <Gauge className="w-4 h-4" />
+                {race.speed} ft
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <span
-            className={`text-xs px-2 py-1 rounded-full ${getSourceBadgeColor(
-              race.source
-            )}`}
-          >
-            {race.source}
-          </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
             {race.edition}
           </span>
+        </div>
+        {/* Source badge - separate row to accommodate long text */}
+        <div
+          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
+            race.source
+          )} w-full`}
+        >
+          <span>{race.source}</span>
         </div>
       </div>
 

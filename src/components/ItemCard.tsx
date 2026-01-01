@@ -57,36 +57,37 @@ export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
         } ${onClick ? "cursor-pointer" : ""}`}
     >
       {/* Header */}
-      <div className="flex justify-between items-start mb-3 gap-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-gray-100 mb-1 font-serif text-[18px] line-clamp-2 pr-2 leading-tight">{item.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400 whitespace-nowrap overflow-hidden">
-            <span className="flex items-center gap-1 min-w-0 flex-shrink">
-              <Package className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">{item.type}</span>
-            </span>
-            {item.magical && (
-              <>
-                <span className="flex-shrink-0">•</span>
-                <span className="flex items-center gap-1 flex-shrink-0">
-                  <Star className={`w-4 h-4 ${getRarityColor(item.rarity)}`} />
-                  <span className={getRarityColor(item.rarity)}>{item.rarity}</span>
-                </span>
-              </>
-            )}
+      <div className="flex flex-col gap-2 mb-3">
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-gray-100 mb-1 font-serif text-[18px] line-clamp-2 pr-2 leading-tight">{item.name}</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-400 whitespace-nowrap overflow-hidden">
+              <span className="flex items-center gap-1 min-w-0 flex-shrink">
+                <Package className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{item.type}</span>
+              </span>
+              {item.magical && (
+                <>
+                  <span className="flex-shrink-0">•</span>
+                  <span className="flex items-center gap-1 flex-shrink-0">
+                    <Star className={`w-4 h-4 ${getRarityColor(item.rarity)}`} />
+                    <span className={getRarityColor(item.rarity)}>{item.rarity}</span>
+                  </span>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2 flex-shrink-0">
-          <span
-            className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getSourceBadgeColor(
-              displaySource
-            )}`}
-          >
-            {displaySource}
-          </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 whitespace-nowrap">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 whitespace-nowrap shrink-0">
             {item.edition}
           </span>
+        </div>
+        {/* Source badge - separate row to accommodate long text */}
+        <div
+          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
+            displaySource
+          )} w-full`}
+        >
+          <span>{displaySource}</span>
         </div>
       </div>
 

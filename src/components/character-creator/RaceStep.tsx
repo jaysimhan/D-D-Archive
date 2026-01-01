@@ -3,7 +3,7 @@ import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Race } from "../../types/dnd-types";
 import { useRaces } from "../../hooks/useSanityData";
-import { urlFor } from "../../lib/sanity";
+import SanityImage from "../SanityImage";
 
 // Race Selection Step
 export function RaceStep({
@@ -118,33 +118,23 @@ export function RaceStep({
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
                         <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
-                            {(() => {
-                                const sanityUrl = displayedRace.image ? urlFor(displayedRace.image)?.url() : null;
-                                const finalSrc = sanityUrl || displayedRace.imageUrl || "https://placehold.co/600x400";
-
-                                return (
-                                    <>
-                                        <img
-                                            src={finalSrc}
-                                            alt={displayedRace.name}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display = 'none';
-                                                const iconContainer = e.currentTarget.nextElementSibling;
-                                                if (iconContainer) {
-                                                    (iconContainer as HTMLElement).style.display = 'flex';
-                                                }
-                                            }}
-                                        />
-                                        <div
-                                            className="absolute inset-0 flex items-center justify-center -z-10"
-                                            style={{ display: 'none' }}
-                                        >
-                                            <User className="w-12 h-12 text-zinc-700" />
-                                        </div>
-                                    </>
-                                );
-                            })()}
+                            {displayedRace.image ? (
+                                <SanityImage
+                                    imageAsset={displayedRace.image}
+                                    alt={displayedRace.name}
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : displayedRace.imageUrl ? (
+                                <img
+                                    src={displayedRace.imageUrl}
+                                    alt={displayedRace.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <User className="w-12 h-12 text-zinc-700" />
+                            )}
                         </div>
 
                         <h3 className="text-3xl font-bold text-white mb-4 text-brand-500 font-serif border-b border-brand-900/30 pb-2">{displayedRace.name}</h3>

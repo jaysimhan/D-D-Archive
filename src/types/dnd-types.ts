@@ -4,18 +4,37 @@
 export type Edition = "2014" | "2024" | "Both" | "5e" | string;
 export type Source = "Official" | "Homebrew" | "Unofficial" | string;
 
+// Sanity Image asset with metadata for optimized loading
+export interface SanityImageAsset {
+  _id?: string;
+  _ref?: string;
+  _type?: 'reference';
+  url?: string;
+  metadata?: {
+    lqip?: string; // Low Quality Image Placeholder (base64)
+    dimensions?: {
+      width: number;
+      height: number;
+      aspectRatio: number;
+    };
+  };
+}
+
 // Sanity Image type for CMS images
 export interface SanityImage {
   _type: 'image';
-  asset: {
-    _ref: string;
-    _type: 'reference';
-  };
+  asset: SanityImageAsset;
   hotspot?: {
     x: number;
     y: number;
     height: number;
     width: number;
+  };
+  crop?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
   };
 }
 
@@ -256,6 +275,10 @@ export interface Feat {
   spells?: SpellGrant[];
   benefits: {
     abilityScoreIncrease?: Partial<AbilityScores>;
+    flexibleAbilityIncrease?: {
+      amount: number;
+      options: AbilityScore[];
+    };
     spells?: string[]; // Spell IDs granted by this feat
     features?: string[];
   };

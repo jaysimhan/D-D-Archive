@@ -1,7 +1,7 @@
 import { Class } from "../types/dnd-types";
-import { Sword, Sparkles, Heart, Shield, User } from "lucide-react";
+import { Sword, Sparkles, Heart, Shield } from "lucide-react";
 import { useState } from "react";
-import { urlFor } from "../lib/sanity";
+import SanityImage from "./SanityImage";
 
 interface ClassCardProps {
   classData: Class;
@@ -28,46 +28,49 @@ export function ClassCard({ classData }: ClassCardProps) {
       {/* Image Section */}
       {classData.image && (
         <div className="w-full aspect-[3/2] rounded-lg mb-3 overflow-hidden bg-black/40 border border-zinc-800">
-          <img
-            src={urlFor(classData.image)?.width(600).height(400).url() || ''}
+          <SanityImage
+            imageAsset={classData.image}
             alt={classData.name}
+            width={600}
+            height={400}
             className="w-full h-full object-cover object-top"
           />
         </div>
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="text-gray-100 mb-1 font-serif">{classData.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            {classData.spellcaster && (
-              <span className="flex items-center gap-1">
-                <Sparkles className="w-4 h-4 text-brand-400" />
-                {classData.spellcaster.charAt(0).toUpperCase() +
-                  classData.spellcaster.slice(1)}{" "}
-                Caster
-              </span>
-            )}
-            {!classData.spellcaster && (
-              <span className="flex items-center gap-1">
-                <Sword className="w-4 h-4 text-gray-500" />
-                Martial
-              </span>
-            )}
+      <div className="flex flex-col gap-2 mb-3">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h3 className="text-gray-100 mb-1 font-serif">{classData.name}</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              {classData.spellcaster && (
+                <span className="flex items-center gap-1">
+                  <Sparkles className="w-4 h-4 text-brand-400" />
+                  {classData.spellcaster.charAt(0).toUpperCase() +
+                    classData.spellcaster.slice(1)}{" "}
+                  Caster
+                </span>
+              )}
+              {!classData.spellcaster && (
+                <span className="flex items-center gap-1">
+                  <Sword className="w-4 h-4 text-gray-500" />
+                  Martial
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <span
-            className={`text-xs px-2 py-1 rounded-full ${getSourceBadgeColor(
-              classData.source
-            )}`}
-          >
-            {classData.source}
-          </span>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
+          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
             {classData.edition}
           </span>
+        </div>
+        {/* Source badge - separate row to accommodate long text */}
+        <div
+          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
+            classData.source
+          )} w-full`}
+        >
+          <span>{classData.source}</span>
         </div>
       </div>
 

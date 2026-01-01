@@ -87,6 +87,36 @@ export default {
                     ],
                 },
                 {
+                    name: 'flexibleAbilityIncrease',
+                    title: 'Flexible Ability Increase',
+                    type: 'object',
+                    fields: [
+                        {
+                            name: 'amount',
+                            title: 'Amount',
+                            type: 'number',
+                            initialValue: 1,
+                        },
+                        {
+                            name: 'options',
+                            title: 'Allowed Ability Options',
+                            description: 'Leave empty for "Any Ability Score"',
+                            type: 'array',
+                            of: [{ type: 'string' }],
+                            options: {
+                                list: [
+                                    { title: 'Strength', value: 'STR' },
+                                    { title: 'Dexterity', value: 'DEX' },
+                                    { title: 'Constitution', value: 'CON' },
+                                    { title: 'Intelligence', value: 'INT' },
+                                    { title: 'Wisdom', value: 'WIS' },
+                                    { title: 'Charisma', value: 'CHA' },
+                                ],
+                            },
+                        },
+                    ],
+                },
+                {
                     name: 'spells',
                     title: 'Spells (IDs)',
                     type: 'array',

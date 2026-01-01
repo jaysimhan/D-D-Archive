@@ -17,14 +17,13 @@ export function FeatCard({ feat }: FeatCardProps) {
                         <Book className="w-5 h-5 text-amber-500" />
                         {feat.name}
                     </h3>
-                    <div className="flex gap-2 mt-2">
-                        <span className={`text-xs px-2 py-1 rounded-full border ${feat.source === "Official" ? "bg-green-900/50 text-green-300 border-green-700" : "bg-yellow-900/50 text-yellow-300 border-yellow-700"
-                            }`}>
-                            {feat.source}
-                        </span>
-                        <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700">
+                    <div className="flex flex-col gap-2 mt-2">
+                        <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 w-fit">
                             {feat.edition} Edition
                         </span>
+                        <div className={`text-xs px-3 py-2 rounded-lg ${feat.source === "Official" ? "bg-blue-900/50 text-blue-300 border border-blue-700" : "bg-zinc-800 text-gray-400 border border-zinc-700"}`}>
+                            {feat.source}
+                        </div>
                     </div>
                 </div>
                 <button className="text-gray-500 hover:text-gray-300">
@@ -89,9 +88,15 @@ export function FeatCard({ feat }: FeatCardProps) {
 
             {/* Short Description when collapsed */}
             {!isExpanded && (
-                <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                    {feat.description}
-                </p>
+                <div onClick={() => setIsExpanded(true)} className="cursor-pointer group">
+                    <p className="text-sm text-gray-500 mt-2 line-clamp-2 group-hover:text-gray-400 transition-colors">
+                        {feat.description}
+                    </p>
+                    <div className="flex items-center gap-1 mt-2 text-brand-400 text-xs font-medium uppercase tracking-wide group-hover:text-brand-300 transition-colors">
+                        <span>Show Details</span>
+                        <ChevronDown className="w-3 h-3" />
+                    </div>
+                </div>
             )}
         </div>
     );

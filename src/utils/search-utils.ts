@@ -161,8 +161,10 @@ export function searchItems(items: Item[], filters: SearchFilters): Item[] {
 
     // Category Filter
     if (filters.itemCategory) {
-      const isEquipment = ["Weapon", "Armor", "Tool", "Adventuring Gear"].includes(item.type);
-      const isMagicItem = ["Potion", "Scroll", "Wondrous Item", "Ring", "Rod", "Staff", "Wand"].includes(item.type);
+      // Magic items include: inherently magical types OR any item with magical: true
+      const isMagicItem = item.magical || ["Potion", "Scroll", "Wondrous Item", "Ring", "Rod", "Staff", "Wand"].includes(item.type);
+      // Equipment includes non-magical weapons, armor, tools, and gear
+      const isEquipment = !item.magical && ["Weapon", "Armor", "Tool", "Adventuring Gear"].includes(item.type);
 
       if (filters.itemCategory === "Equipment") {
         if (!isEquipment) return false;
