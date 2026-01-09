@@ -36,10 +36,12 @@ export function SubclassStep({
     }, [classData.id, sanitySubclasses]);
 
     const filteredSubclasses = useMemo(() => {
-        return availableSubclasses.filter((subclass) =>
-            subclass.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [availableSubclasses, searchTerm]);
+        return availableSubclasses.filter((subclass) => {
+            const matchesSearch = subclass.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSource = showNonCore || subclass.source === "Official";
+            return matchesSearch && matchesSource;
+        });
+    }, [availableSubclasses, searchTerm, showNonCore]);
 
     // Use the subclass from availableSubclasses to ensure we have Sanity image data
     const displayedSubclass = selectedSubclass ? availableSubclasses.find(sc => sc.id === selectedSubclass.id) || selectedSubclass : undefined;
@@ -58,7 +60,7 @@ export function SubclassStep({
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px]">
+        <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Left Column: Grid */}
             <div className="flex-1 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

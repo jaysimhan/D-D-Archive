@@ -108,7 +108,7 @@ export function HitPointsStep({
     };
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-6">
                 <h2 className="text-brand-400 text-2xl font-bold mb-2 font-serif">Hit Points</h2>
                 <p className="text-gray-400">Review your hit points per level.</p>

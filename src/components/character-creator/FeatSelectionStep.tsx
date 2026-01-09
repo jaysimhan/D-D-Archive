@@ -36,7 +36,7 @@ export function FeatSelectionStep({
     };
 
     return (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-6">
                 <Sparkles className="w-12 h-12 text-amber-500 mx-auto mb-3" />
                 <h2 className="text-white text-3xl font-bold mb-2 font-serif">Select Feats</h2>

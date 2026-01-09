@@ -208,7 +208,7 @@ export function ProficiencyStep({
     };
 
     return (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-6">
                 <h2 className="text-brand-400 text-2xl font-bold mb-2 font-serif">Proficiencies & Languages</h2>
                 <p className="text-gray-400">Manage your skills, languages, and tool proficiencies.</p>

@@ -404,7 +404,7 @@ export function SpellSelectionStep({
     // If no slots to display AND no fixed spells, show the "No Spellcasting" message
     if (totalSlots === 0 && !hasFixedSpells) {
         return (
-            <div className="min-h-[500px]">
+            <div className="min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center mb-6">
                     <Sparkles className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
                     <h2 className="text-gray-200 text-2xl font-bold mb-2 font-serif">Spells</h2>
@@ -439,7 +439,7 @@ export function SpellSelectionStep({
     }
 
     return (
-        <div className="min-h-[500px]">
+        <div className="min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-6">
                 <Sparkles className="w-12 h-12 text-brand-500 mx-auto mb-3" />
                 <h2 className="text-brand-400 text-2xl font-bold mb-2 font-serif">Prepare Your Spells</h2>

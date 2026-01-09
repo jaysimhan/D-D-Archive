@@ -59,7 +59,7 @@ export function ClassStep({
     const displayedClass = selected ? allClasses.find(c => c.id === selected.id) || selected : undefined;
 
     return (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-6">
                 <h2 className="text-white text-3xl font-bold mb-2 font-serif">Choose Your Class</h2>
                 <p className="text-gray-400">Select your character's profession and level (1-3)</p>

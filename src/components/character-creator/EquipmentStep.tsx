@@ -73,7 +73,7 @@ export function EquipmentStep({
     };
 
     return (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-6">
                 <h2 className="text-white text-3xl font-bold mb-2 font-serif">Select Equipment</h2>
                 <p className="text-gray-400">Choose your starting gear</p>

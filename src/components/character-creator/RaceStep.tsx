@@ -45,7 +45,7 @@ export function RaceStep({
     };
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[600px]">
+        <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Left Column: Grid */}
             <div className="flex-1 w-full">
                 <div className="flex flex-col gap-4 mb-4">

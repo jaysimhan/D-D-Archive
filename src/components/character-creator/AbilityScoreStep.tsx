@@ -206,7 +206,7 @@ export function AbilityScoreStep({
     };
 
     return (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-6">
                 <h2 className="text-3xl font-bold text-white mb-1 font-serif">Ability Scores</h2>
                 <p className="text-gray-400">Assign the 6 Ability Scores.</p>

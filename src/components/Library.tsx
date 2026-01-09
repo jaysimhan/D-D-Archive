@@ -5,6 +5,7 @@ import { ClassCard } from "./ClassCard";
 import { SubclassCard } from "./SubclassCard";
 import { RaceCard } from "./RaceCard";
 import { ItemCard } from "./ItemCard";
+import { BackgroundCard } from "./BackgroundCard";
 import type { Race, Class, Spell, Item, Background, Subclass, Feat } from "../types/dnd-types";
 import {
   searchSpells,
@@ -203,34 +204,7 @@ export function Library({ spells, classes, subclasses, races, items, backgrounds
 
             {activeTab === "backgrounds" &&
               filteredBackgrounds.map((background) => (
-                <div
-                  key={background.id}
-                  className="border border-zinc-700 rounded-lg p-4 transition-all bg-zinc-900 hover:border-brand-500/50"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-white mb-1 font-medium">{background.name}</h3>
-                      <p className="text-sm text-gray-400">
-                        Skills: {background.skillProficiencies.join(", ")}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-brand-500/20 text-brand-400">
-                        {background.source}
-                      </span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-400">
-                        {background.edition}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-300 mb-3">{background.description}</p>
-                  <div className="pt-3 border-t border-brand-900/30">
-                    <p className="text-sm text-white">{background.feature.name}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {background.feature.description.substring(0, 100)}...
-                    </p>
-                  </div>
-                </div>
+                <BackgroundCard key={background.id} background={background} />
               ))}
           </div>
 

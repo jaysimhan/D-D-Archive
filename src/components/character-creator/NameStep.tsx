@@ -11,7 +11,7 @@ export function NameStep({
     setCharacterData: (data: CharacterData) => void;
 }) {
     return (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-8">
                 <User className="w-16 h-16 text-brand-500 mx-auto mb-4" />
                 <h2 className="text-brand-400 text-2xl font-bold mb-2 font-serif">Name Your Character</h2>

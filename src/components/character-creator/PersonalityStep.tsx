@@ -13,7 +13,7 @@ export function PersonalityStep({
     onPersonalityChange: (personality: any) => void;
 }) {
     return (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-6">
                 <h2 className="text-brand-400 text-2xl font-bold mb-2 font-serif">Define Your Personality</h2>
                 <p className="text-gray-400">Bring your character to life (optional)</p>

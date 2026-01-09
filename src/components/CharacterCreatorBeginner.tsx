@@ -262,7 +262,7 @@ export function CharacterCreator() {
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-8">
           <div className="bg-black/40 backdrop-blur-sm rounded-xl shadow-lg border border-brand-900/30">
-            <div className="p-4 md:p-8">
+            <div className="p-4 md:p-8 min-h-[600px]">
               {/* Step Content */}
 
               {currentStep === "race" && (
@@ -413,36 +413,6 @@ export function CharacterCreator() {
                     <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
                     Previous
                   </button>
-
-                  {/* Desktop: Magic Item Selection Indicator (centered) */}
-                  {currentStep === "magic-item" && characterData.magicItems && characterData.magicItems.length > 0 && (
-                    <div
-                      className="hidden md:block absolute left-1/2 transform -translate-x-1/2"
-                      style={{
-                        animation: 'popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
-                      }}
-                    >
-                      <style>{`
-                        @keyframes popIn {
-                          0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
-                          100% { opacity: 1; transform: translateX(-50%) scale(1); }
-                        }
-                      `}</style>
-                      <div className="bg-[#0a0a0a] border border-brand-600 shadow-[0_0_20px_rgba(220,38,38,0.5)] rounded-full pl-6 pr-2 py-2.5 flex items-center gap-4 min-w-[300px] justify-between">
-                        <div className="flex items-baseline gap-3">
-                          <span className="text-gray-400 text-sm font-medium">Selected:</span>
-                          <span className="text-white font-serif font-bold text-xl uppercase tracking-wide">{characterData.magicItems[0].name}</span>
-                        </div>
-                        <button
-                          onClick={() => setCharacterData({ ...characterData, magicItems: [] })}
-                          className="bg-brand-600 hover:bg-brand-500 text-white rounded-full p-1.5 transition-all shadow-lg hover:shadow-brand-500/50"
-                          title="Remove selection"
-                        >
-                          <div className="w-5 h-5 flex items-center justify-center font-bold">✕</div>
-                        </button>
-                      </div>
-                    </div>
-                  )}
 
                   {currentStepIndex === steps.length - 1 ? (
                     <button

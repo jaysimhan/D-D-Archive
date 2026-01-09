@@ -14,23 +14,25 @@ export function BackgroundStep({
     onSelect: (background: Background) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
-    const [showNonCore, setShowNonCore] = useState(true);
+    const [showNonCore, setShowNonCore] = useState(false);
 
     // Fetch backgrounds from Sanity
     const { data: sanityBackgrounds, loading: backgroundsLoading } = useBackgrounds();
     const allBackgrounds = sanityBackgrounds || [];
 
     const filteredBackgrounds = useMemo(() => {
-        return allBackgrounds.filter((bg) =>
-            bg.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [searchTerm, allBackgrounds]);
+        return allBackgrounds.filter((bg) => {
+            const matchesSearch = bg.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSource = showNonCore || bg.source === "Official";
+            return matchesSearch && matchesSource;
+        });
+    }, [searchTerm, allBackgrounds, showNonCore]);
 
     // Use the background from allBackgrounds to ensure we have Sanity image data
     const displayedBackground = selected ? allBackgrounds.find(bg => bg.id === selected.id) || selected : undefined;
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px]">
+        <div className="flex flex-col lg:flex-row gap-8 items-start min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Left Column: Grid */}
             <div className="flex-1 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
