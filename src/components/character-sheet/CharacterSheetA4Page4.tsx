@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import type { Spell } from "../../types/dnd-types";
+import type { SpellcastingSummary } from "./CharacterSheetA4";
 import {
     Icon,
     SPELL_BLOCK,
@@ -8,6 +10,8 @@ import {
     SpellColumn,
     SpellPage,
     spellAsset,
+    spellSlotsAt,
+    useSpellsByLevel,
 } from "./CharacterSheetA4Page3";
 import "./character-sheet.css";
 
@@ -55,16 +59,45 @@ function ProsePanel({
     );
 }
 
-export function CharacterSheetA4Page4() {
+export function CharacterSheetA4Page4({
+    spellcasting,
+    spells,
+}: { spellcasting?: SpellcastingSummary; spells?: Spell[] } = {}) {
+    const spellsAt = useSpellsByLevel(spells);
+    const slotsAt = spellSlotsAt(spellcasting);
     return (
-        <SpellPage>
+        <SpellPage spellcasting={spellcasting}>
             <SpellColumn>
-                <SpellBlock title="Level 6" height={SPELL_BLOCK_TOP} />
-                <SpellBlock title="Level 7" height={SPELL_BLOCK} />
-                <SpellBlock title="Level 8" height={SPELL_BLOCK} />
+                <SpellBlock
+                    title="Level 6"
+                    level={6}
+                    height={SPELL_BLOCK_TOP}
+                    slotTotal={slotsAt(6)}
+                    spells={spellsAt(6)}
+                />
+                <SpellBlock
+                    title="Level 7"
+                    level={7}
+                    height={SPELL_BLOCK}
+                    slotTotal={slotsAt(7)}
+                    spells={spellsAt(7)}
+                />
+                <SpellBlock
+                    title="Level 8"
+                    level={8}
+                    height={SPELL_BLOCK}
+                    slotTotal={slotsAt(8)}
+                    spells={spellsAt(8)}
+                />
             </SpellColumn>
             <SpellColumn>
-                <SpellBlock title="Level 9" height={SPELL_BLOCK_TOP} />
+                <SpellBlock
+                    title="Level 9"
+                    level={9}
+                    height={SPELL_BLOCK_TOP}
+                    slotTotal={slotsAt(9)}
+                    spells={spellsAt(9)}
+                />
                 <ProsePanel
                     label="Appearance"
                     height={1240}

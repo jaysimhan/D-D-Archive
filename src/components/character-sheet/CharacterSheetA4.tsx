@@ -1,6 +1,22 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+    memo,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+} from "react";
 import { useSheetSuggestions } from "../../hooks/useSheetSuggestions";
+import { useMenuPlacement } from "./useMenuPlacement";
 import type { CharacterData } from "../../types/character-creator";
+import { spellSlotsByLevel, type SpellSlots } from "./spell-slots";
+import {
+    classGrantsSpells,
+    speciesGrantsSpells,
+    spellGrantingSources,
+    subclassGrantsSpells,
+} from "./spellcasting-sources";
 import "./character-sheet.css";
 
 /**
@@ -102,7 +118,7 @@ function useFitText<T extends HTMLElement>(text: string) {
 }
 
 /** An automatic value that becomes a temporary manual override when edited. */
-function useEditableAutoValue(automatic: string) {
+export function useEditableAutoValue(automatic: string) {
     const [override, setOverride] = useState<{ source: string; value: string } | null>(null);
 
     // Prevent an old override from reappearing if the inputs later return to a
@@ -446,6 +462,17 @@ function ColumnRule({ src, edge = "-2px" }: { src: string; edge?: string }) {
 
 const MAX_SUGGESTIONS = 8;
 
+/** A menu row: 12px of padding either side of a 28px line at 1.25. */
+const MENU_ROW_HEIGHT = 59;
+
+/**
+ * The menu's usual height, in design px, before the page edge trims it: every
+ * row it can hold, plus its own 8px padding, 3px borders and a little slack —
+ * landing exactly on the content height would raise a scrollbar on a rounding
+ * error alone.
+ */
+const MENU_HEIGHT = MAX_SUGGESTIONS * MENU_ROW_HEIGHT + 24;
+
 /**
  * Class and Subclass accept a list so a multiclassed character fits on one
  * line, e.g. "Fighter / Wizard". Entries are separated by a slash.
@@ -519,24 +546,39 @@ const ALIGNMENTS = [
  * only an accelerator — and it renders inside the sheet's coordinate space so
  * the menu scales with the page.
  */
-function SuggestInput({
+export function SuggestInput({
     label,
     options,
     className,
+    wrapperClassName = "relative min-w-[1px] flex-[1_0_0]",
     value,
     onValueChange,
     multiple = false,
     initialValue = "",
+    suggestWhenTyped = false,
+    renderOption,
 }: {
     label: string;
     options: string[];
     className: string;
+    /** The positioning of the field within its box; the menu hangs off it. */
+    wrapperClassName?: string;
     /** Provide both to lift state (Class drives the Subclass list). */
     value?: string;
     onValueChange?: (value: string) => void;
     /** Accept several entries, separated by a slash — used for multiclassing. */
     multiple?: boolean;
     initialValue?: string;
+    /**
+     * Hold the menu back until something is typed. For a field the sheet fills
+     * in itself, where an unprompted list of everything would only be noise.
+     */
+    suggestWhenTyped?: boolean;
+    /**
+     * Draw a menu row as something richer than its own text — the spellbook
+     * hangs each spell's school off it. The option is still what gets picked.
+     */
+    renderOption?: (option: string) => ReactNode;
 }) {
     const [internal, setInternal] = useState(initialValue);
     const current = value ?? internal;
@@ -548,6 +590,7 @@ function SuggestInput({
 
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(-1);
+    const wrapperRef = useRef<HTMLSpanElement>(null);
 
     // In multiple mode only the entry after the last slash is being edited;
     // every segment before that slash is already committed. Work from the raw
@@ -566,7 +609,7 @@ function SuggestInput({
         const taken = new Set(committed.map((entry) => entry.toLowerCase()));
         const pool = options.filter((option) => !taken.has(option.toLowerCase()));
         const query = pending.toLowerCase();
-        if (!query) return pool.slice(0, MAX_SUGGESTIONS);
+        if (!query) return suggestWhenTyped ? [] : pool.slice(0, MAX_SUGGESTIONS);
         const starts: string[] = [];
         const contains: string[] = [];
         for (const option of pool) {
@@ -576,9 +619,10 @@ function SuggestInput({
             else if (lower.includes(query)) contains.push(option);
         }
         return [...starts, ...contains].slice(0, MAX_SUGGESTIONS);
-    }, [options, pending, current, multiple]);
+    }, [options, pending, current, multiple, suggestWhenTyped]);
 
     const visible = open && matches.length > 0;
+    const menu = useMenuPlacement(wrapperRef, visible, MENU_HEIGHT);
 
     const choose = (option: string) => {
         if (multiple) {
@@ -616,7 +660,7 @@ function SuggestInput({
     };
 
     return (
-        <span className="relative min-w-[1px] flex-[1_0_0]">
+        <span ref={wrapperRef} className={wrapperClassName}>
             <input
                 ref={inputRef}
                 type="text"
@@ -645,7 +689,10 @@ function SuggestInput({
                 <ul
                     role="listbox"
                     aria-label={`${label} suggestions`}
-                    className="absolute left-0 top-full z-50 mt-[10px] w-full min-w-[420px] overflow-hidden rounded-[18px] border-[3px] border-solid border-black bg-white py-[8px] shadow-[0_18px_48px_rgba(0,0,0,0.28)]"
+                    className={`absolute left-0 z-50 w-full min-w-[420px] overflow-y-auto rounded-[18px] border-[3px] border-solid border-black bg-white py-[8px] shadow-[0_18px_48px_rgba(0,0,0,0.28)] ${
+                        menu.side === "above" ? "bottom-full mb-[10px]" : "top-full mt-[10px]"
+                    }`}
+                    style={{ maxHeight: `${menu.maxHeight}px` }}
                 >
                     {matches.map((option, i) => (
                         <li key={option} role="option" aria-selected={i === active}>
@@ -659,7 +706,7 @@ function SuggestInput({
                                     i === active ? "bg-black/10" : ""
                                 }`}
                             >
-                                {option}
+                                {renderOption ? renderOption(option) : option}
                             </button>
                         </li>
                     ))}
@@ -668,14 +715,6 @@ function SuggestInput({
         </span>
     );
 }
-
-/**
- * The suggestion menu's own geometry, in design px, so a field can tell
- * whether the menu still fits below it: eight rows of `MENU_ROW_HEIGHT` plus
- * the list's padding, borders and offset.
- */
-const MENU_ROW_HEIGHT = 59;
-const MENU_CHROME_HEIGHT = 32;
 
 /**
  * Weapons / Tools — the same Archive suggestions as SuggestInput, over a block
@@ -701,7 +740,6 @@ function SuggestTextArea({
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(-1);
     const [caretLine, setCaretLine] = useState(0);
-    const [placement, setPlacement] = useState<"below" | "above">("below");
     const areaRef = useRef<HTMLTextAreaElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
     /** Set when a pick rewrites the value, so the caret can follow it. */
@@ -730,6 +768,9 @@ function SuggestTextArea({
     }, [options, value, caretLine]);
 
     const visible = open && matches.length > 0;
+    // These blocks sit at the foot of a tall column, where the page edge is
+    // usually closer than the menu is tall.
+    const menu = useMenuPlacement(wrapperRef, visible, MENU_HEIGHT);
 
     useLayoutEffect(() => {
         const caret = caretAfterPick.current;
@@ -737,20 +778,6 @@ function SuggestTextArea({
         caretAfterPick.current = null;
         areaRef.current?.setSelectionRange(caret, caret);
     }, [value]);
-
-    // These blocks sit at the foot of a tall column, so the menu often has no
-    // room below. The sheet is one uniformly scaled coordinate space, so the
-    // menu's design height converts with the same factor the page is drawn at.
-    useLayoutEffect(() => {
-        const wrapper = wrapperRef.current;
-        const sheet = wrapper?.closest(".cs-root");
-        if (!visible || !wrapper || !sheet) return;
-        const field = wrapper.getBoundingClientRect();
-        const page = sheet.getBoundingClientRect();
-        const scale = page.height / SHEET_HEIGHT;
-        const needed = (MENU_CHROME_HEIGHT + matches.length * MENU_ROW_HEIGHT) * scale;
-        setPlacement(page.bottom - field.bottom < needed ? "above" : "below");
-    }, [visible, matches.length]);
 
     const syncCaret = (element: HTMLTextAreaElement) => {
         const upto = element.value.slice(0, element.selectionStart ?? 0);
@@ -838,11 +865,10 @@ function SuggestTextArea({
                 <ul
                     role="listbox"
                     aria-label={`${label} suggestions`}
-                    className={`absolute left-0 z-50 w-full min-w-[420px] overflow-hidden rounded-[18px] border-[3px] border-solid border-black bg-white py-[8px] shadow-[0_18px_48px_rgba(0,0,0,0.28)] ${
-                        placement === "above"
-                            ? "bottom-full mb-[10px]"
-                            : "top-full mt-[10px]"
+                    className={`absolute left-0 z-50 w-full min-w-[420px] overflow-y-auto rounded-[18px] border-[3px] border-solid border-black bg-white py-[8px] shadow-[0_18px_48px_rgba(0,0,0,0.28)] ${
+                        menu.side === "above" ? "bottom-full mb-[10px]" : "top-full mt-[10px]"
                     }`}
+                    style={{ maxHeight: `${menu.maxHeight}px` }}
                 >
                     {matches.map((option, i) => (
                         <li key={option} role="option" aria-selected={i === active}>
@@ -1008,11 +1034,14 @@ function SkillRow({
     modifier,
     proficiencyBonus,
     initialLevel = 0,
+    onLevelChange,
 }: {
     skill: SkillDef;
     modifier: number | null;
     proficiencyBonus: number | null;
     initialLevel?: ProficiencyLevel;
+    /** Reports the ring, for a skill another page derives a value from. */
+    onLevelChange?: (level: ProficiencyLevel) => void;
 }) {
     const [proficiencyLevel, setProficiencyLevel] = useState<ProficiencyLevel>(initialLevel);
     const total =
@@ -1025,7 +1054,10 @@ function SkillRow({
             <ProfRing
                 label={skill.label}
                 level={proficiencyLevel}
-                onLevelChange={setProficiencyLevel}
+                onLevelChange={(level) => {
+                    setProficiencyLevel(level);
+                    onLevelChange?.(level);
+                }}
                 allowExpertise
             />
             <Icon src={skill.icon} w={skill.w} h={skill.h} />
@@ -1046,12 +1078,15 @@ function AbilityCard({
     ability,
     proficiencyBonus,
     onModifierChange,
+    onSkillLevelChange,
     initialScore,
     initialSkillLevels,
 }: {
     ability: AbilityDef;
     proficiencyBonus: number | null;
     onModifierChange?: (ability: string, modifier: number | null) => void;
+    /** The card names the ability: the sheet lists Perception under two. */
+    onSkillLevelChange?: (ability: string, skill: string, level: ProficiencyLevel) => void;
     initialScore?: number;
     initialSkillLevels?: Record<string, ProficiencyLevel>;
 }) {
@@ -1113,6 +1148,13 @@ function AbilityCard({
                                     modifier={modifier}
                                     proficiencyBonus={proficiencyBonus}
                                     initialLevel={initialSkillLevels?.[skill.label] ?? 0}
+                                    onLevelChange={(level) =>
+                                        onSkillLevelChange?.(
+                                            abbr.toUpperCase(),
+                                            skill.label,
+                                            level,
+                                        )
+                                    }
                                 />
                             ))}
                         </>
@@ -1375,7 +1417,76 @@ function ActionRow({ index, initial }: { index: number; initial?: ActionValue })
 /* Sheet                                                               */
 /* ------------------------------------------------------------------ */
 
-export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: CharacterData }) {
+/**
+ * What the spellbook pages fill their header row in from. Every field is a
+ * list, appended with the sheet's usual " / ", so a multiclassed caster keeps
+ * one entry per source rather than losing all but the first.
+ *
+ * Page 1 reports Class, Sub-class and Species and the numbers they derive;
+ * page 2 adds the feats, and CharacterSheetPage appends the two.
+ */
+export type SpellcastingSummary = {
+    /** "Wizard / Evocation / High Elf". */
+    sources: string;
+    /** "INT / WIS". */
+    ability: string;
+    /** "15", or "15 / 13" when two classes cast off different abilities. */
+    saveDc: string;
+    /** "+7", or "+7 / +5". */
+    attackBonus: string;
+    /**
+     * Slots by spell level, indexed 1-9, or null while the classes behind them
+     * are unknown — which leaves the spellbook blocks as they are drawn.
+     */
+    slots: SpellSlots | null;
+};
+
+export const EMPTY_SPELLCASTING: SpellcastingSummary = {
+    sources: "",
+    ability: "",
+    saveDc: "",
+    attackBonus: "",
+    slots: null,
+};
+
+/**
+ * Appended into one list, blanks and repeats dropped. Entries may themselves
+ * be lists, so two of these can be appended again without nesting.
+ */
+export function appendList(entries: (string | undefined)[]): string {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const entry of entries.flatMap((value) => splitList(value ?? ""))) {
+        const key = entry.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(entry);
+    }
+    return out.join(" / ");
+}
+
+/**
+ * Memoised: the page host now re-renders whenever page 2's feats change, and
+ * this page — the largest of the four — has no part in that.
+ */
+export const CharacterSheetA4 = memo(function CharacterSheetA4({
+    initialCharacter,
+    onSpellcastingChange,
+    onSpeciesChange,
+    onPerceptionModifierChange,
+}: {
+    initialCharacter?: CharacterData;
+    /** Reports what pages 3 and 4 fill their Spell Casting header row with. */
+    onSpellcastingChange?: (summary: SpellcastingSummary) => void;
+    /** Reports the Species page 2 looks its Species Traits up from. */
+    onSpeciesChange?: (species: string) => void;
+    /**
+     * Reports the Perception modifier this page derives — page 2's Passive
+     * Perception is 10 plus it. Null while the Wisdom score is blank, so that
+     * page keeps a blank of its own rather than showing a bare 10.
+     */
+    onPerceptionModifierChange?: (modifier: number | null) => void;
+}) {
     const suggestions = useSheetSuggestions();
     const [characterName, setCharacterName] = useState(initialCharacter?.name ?? "");
     const [characterClass, setCharacterClass] = useState(initialCharacter?.class?.name ?? "");
@@ -1397,6 +1508,14 @@ export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: Char
                 abilityModifier(score),
             ]),
         );
+    });
+    // Every other skill ring is the row's own business; Perception's is read
+    // back because page 2's Passive Perception is derived from it.
+    const [perceptionLevel, setPerceptionLevel] = useState<ProficiencyLevel>(() => {
+        const perception = initialCharacter?.proficiencies?.skills.find(
+            (skill) => skill.name.trim().toLowerCase() === "perception",
+        );
+        return perception?.expertise ? 2 : perception?.proficient ? 1 : 0;
     });
     const [hitDieOverride, setHitDieOverride] = useState<{
         source: string;
@@ -1559,6 +1678,113 @@ export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: Char
         typeof selectedSpecies?.speed === "number" ? `${selectedSpecies.speed}` : "";
     const [speed, setSpeed] = useEditableAutoValue(automaticSpeed);
 
+    // The spellbook pages head every page with where the character's magic
+    // comes from and the numbers it sets, so report both upward as they are
+    // entered here. Classes and subclasses are the only sources the Archive
+    // records a casting ability for; a species or feat that grants spells is
+    // still listed, and its ability typed in on the spellbook page.
+    const castingAbilities: string[] = [];
+    for (const source of [
+        ...selectedClasses.map((item) => item.spellcastingAbility),
+        ...selectedSubclassDocs.map((item) => item.spellcastingAbility ?? item.magicAbility),
+    ]) {
+        const ability = normalizeAbilityKey(source);
+        if (ability && !castingAbilities.includes(ability)) castingAbilities.push(ability);
+    }
+    const castingModifiers = castingAbilities
+        .map((ability) => abilityModifiers[ability])
+        .filter((modifier): modifier is number => typeof modifier === "number");
+    const spellcastingSources = appendList([
+        ...spellGrantingSources(
+            splitList(characterClass),
+            suggestions.classes,
+            classGrantsSpells,
+        ),
+        ...spellGrantingSources(
+            splitList(characterSubclass),
+            suggestions.subclasses,
+            subclassGrantsSpells,
+        ),
+        ...spellGrantingSources(splitList(species), suggestions.species, speciesGrantsSpells),
+    ]);
+    const spellcastingAbility = appendList(castingAbilities);
+    const spellcastingSaveDc =
+        parsedProficiencyBonus === null
+            ? ""
+            : appendList(
+                  castingModifiers.map(
+                      (modifier) => `${8 + parsedProficiencyBonus + modifier}`,
+                  ),
+              );
+    const spellcastingAttackBonus =
+        parsedProficiencyBonus === null
+            ? ""
+            : appendList(
+                  castingModifiers.map((modifier) =>
+                      formatModifier(parsedProficiencyBonus + modifier),
+                  ),
+              );
+
+    // The slots each spellbook block is headed with, from the class levels held
+    // here. Memoised: pages 3 and 4 read the array itself, and a fresh one on
+    // every keystroke would put all ten blocks through a re-render.
+    const spellSlots = useMemo(() => {
+        // Only a subclass casting off spell slots of its own adds to them —
+        // Eldritch Knight and Arcane Trickster, not a monk's ki spells.
+        const slotCastingClassIds = new Set(
+            splitList(characterSubclass)
+                .map((name) =>
+                    suggestions.subclasses.find(
+                        (item) => item.name.toLowerCase() === name.toLowerCase(),
+                    ),
+                )
+                .filter((item) => item?.magicType?.toLowerCase().includes("spell slot"))
+                .map((item) => item?.parentClassId?.toLowerCase()),
+        );
+
+        return spellSlotsByLevel(
+            selectedClasses.map((item, index) => ({
+                progression: item.spellcaster,
+                id: item.id,
+                level: hitDieClassLevels[index],
+                subclassCasts: slotCastingClassIds.has(item.id.toLowerCase()),
+            })),
+        );
+    }, [selectedClasses, hitDieClassLevels, suggestions.subclasses, characterSubclass]);
+
+    // Page 2 fills its Species Traits panel from the Species named here, and
+    // its Passive Perception from the Perception modifier this page derives.
+    const wisdomModifier = abilityModifiers.WIS;
+    const perceptionModifier =
+        typeof wisdomModifier === "number"
+            ? wisdomModifier + (parsedProficiencyBonus ?? 0) * perceptionLevel
+            : null;
+
+    useEffect(() => {
+        onSpeciesChange?.(species);
+    }, [onSpeciesChange, species]);
+
+    useEffect(() => {
+        onPerceptionModifierChange?.(perceptionModifier);
+    }, [onPerceptionModifierChange, perceptionModifier]);
+
+    useEffect(() => {
+        onSpellcastingChange?.({
+            sources: spellcastingSources,
+            ability: spellcastingAbility,
+            saveDc: spellcastingSaveDc,
+            attackBonus: spellcastingAttackBonus,
+            slots: spellSlots,
+        });
+    }, [
+        onSpellcastingChange,
+        spellSlots,
+        spellcastingSources,
+        spellcastingAbility,
+        spellcastingSaveDc,
+        spellcastingAttackBonus,
+    ]);
+
     const dexterityModifier = abilityModifiers.DEX;
     const automaticArmorClass =
         typeof dexterityModifier === "number" ? `${10 + dexterityModifier}` : "";
@@ -1673,6 +1899,16 @@ export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: Char
 
     const handleAbilityModifierChange = (ability: string, modifier: number | null) => {
         setAbilityModifiers((current) => ({ ...current, [ability]: modifier }));
+    };
+
+    // The sheet prints a Perception row under Charisma as well as Wisdom; only
+    // the Wisdom one is the skill Passive Perception is derived from.
+    const handleSkillLevelChange = (
+        ability: string,
+        skill: string,
+        level: ProficiencyLevel,
+    ) => {
+        if (ability === "WIS" && skill === "Perception") setPerceptionLevel(level);
     };
 
     const classOptions = useMemo(
@@ -1826,6 +2062,7 @@ export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: Char
                                             ability={ability}
                                             proficiencyBonus={parsedProficiencyBonus}
                                             onModifierChange={handleAbilityModifierChange}
+                                            onSkillLevelChange={handleSkillLevelChange}
                                             initialScore={initialAbilityScore(ability.abbr)}
                                             initialSkillLevels={initialSkillLevels}
                                         />
@@ -1839,6 +2076,7 @@ export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: Char
                                             ability={ability}
                                             proficiencyBonus={parsedProficiencyBonus}
                                             onModifierChange={handleAbilityModifierChange}
+                                            onSkillLevelChange={handleSkillLevelChange}
                                             initialScore={initialAbilityScore(ability.abbr)}
                                             initialSkillLevels={initialSkillLevels}
                                         />
@@ -2269,4 +2507,4 @@ export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: Char
             </div>
         </div>
     );
-}
+});

@@ -1,5 +1,30 @@
-import type { ReactNode } from "react";
-import { SHEET_HEIGHT, SHEET_WIDTH } from "./CharacterSheetA4";
+import {
+    createContext,
+    memo,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+    type RefObject,
+} from "react";
+import {
+    useSheetSpells,
+    useSheetSuggestions,
+    type SheetSpell,
+} from "../../hooks/useSheetSuggestions";
+import type { Spell } from "../../types/dnd-types";
+import {
+    EMPTY_SPELLCASTING,
+    SHEET_HEIGHT,
+    SHEET_WIDTH,
+    SuggestInput,
+    useEditableAutoValue,
+    type SpellcastingSummary,
+} from "./CharacterSheetA4";
+import { useMenuPlacement } from "./useMenuPlacement";
 import "./character-sheet.css";
 
 /**
@@ -20,6 +45,8 @@ export const spellAsset = (name: string) => `/character-sheet/spells/${name}.svg
 
 /** Spell blocks are outlined red; the header tiles and prose panels blue. */
 const RED = "#d40000";
+/** A spell level the character has no slots for keeps the outline, greyed. */
+const INACTIVE = "#c2c2c2";
 export const SPELL_BLUE = "#0090ff";
 
 /** Block heights straight from Figma: the top block in a column is taller. */
@@ -35,6 +62,141 @@ const COMPONENTS_CELL = 146.225;
 const CELL_GAP = 14.281;
 
 const SPELL_ROWS = 10;
+
+/** Shared, so a block with nothing written in it holds no set of its own. */
+const EMPTY_ROWS: ReadonlySet<number> = new Set();
+
+/* ------------------------------------------------------------------ */
+/* The Archive's spells                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * School colours, each with the abbreviation the row tag carries.
+ *
+ * The letters do the work where the colour cannot — a printed sheet, or a
+ * reader who cannot tell two hues apart — so the tag is never colour alone.
+ */
+const SCHOOLS: Record<string, { color: string; short: string }> = {
+    abjuration: { color: "#2563eb", short: "Abj" },
+    conjuration: { color: "#ca8a04", short: "Con" },
+    divination: { color: "#0891b2", short: "Div" },
+    enchantment: { color: "#db2777", short: "Enc" },
+    evocation: { color: "#dc2626", short: "Evo" },
+    illusion: { color: "#7c3aed", short: "Ill" },
+    necromancy: { color: "#16a34a", short: "Nec" },
+    transmutation: { color: "#ea580c", short: "Tra" },
+};
+
+const UNKNOWN_SCHOOL = "#4b5563";
+
+/** A spell's school, as a small colour-coded tag. */
+function SchoolTag({
+    school,
+    full = false,
+    className = "",
+}: {
+    school?: string;
+    /** Spell out the school. The menu has the room for it; a row has not. */
+    full?: boolean;
+    className?: string;
+}) {
+    if (!school) return null;
+    const known = SCHOOLS[school.trim().toLowerCase()];
+    const color = known?.color ?? UNKNOWN_SCHOOL;
+    return (
+        <span
+            title={school}
+            className={`relative shrink-0 whitespace-nowrap rounded-full border-2 border-solid px-[10px] py-[1px] font-semibold leading-[1.35] ${className}`}
+            style={{ borderColor: color, color, backgroundColor: `${color}1f` }}
+        >
+            {full ? school : (known?.short ?? school.slice(0, 3))}
+        </span>
+    );
+}
+
+/**
+ * Time and Range are two of the narrowest cells on the sheet, and the Archive
+ * writes them out in full ("1 bonus action", "1 reaction, which you take
+ * when…"). These cut each to the part that identifies it; the hover card over
+ * the row still carries the whole thing.
+ */
+function shortCastingTime(value?: string): string {
+    const text = value?.trim().toLowerCase();
+    if (!text) return "";
+    if (text.startsWith("instant")) return "Instant";
+    if (text.includes("bonus action")) return "Bonus";
+    if (text.includes("reaction")) return "Reaction";
+    if (text.includes("action")) return "Action";
+    const period = text.match(/^(\d+)\s*(round|minute|hour|day)/);
+    if (period) {
+        const [, count, unit] = period;
+        const short = { round: "rnd", minute: "min", hour: "hr", day: "day" }[unit] ?? unit;
+        return `${count} ${short}`;
+    }
+    return value!.trim();
+}
+
+/**
+ * A handful of the Archive's spells have the opening of their description run
+ * into the duration ("1 minute This spell causes your anatomy to become…"),
+ * from an earlier import. The card reads the duration up to the unit it ends
+ * on, so the stray sentence does not run through the details line; the
+ * description below still carries it.
+ */
+function shortDuration(value?: string): string {
+    const text = value?.trim();
+    if (!text) return "";
+    const unit = text.match(
+        /^.*?\b(rounds?|minutes?|hours?|days?|instantaneous|dispelled|special)\b\)?/i,
+    );
+    return unit ? unit[0] : text;
+}
+
+function shortRange(value?: string): string {
+    const text = value?.trim();
+    if (!text) return "";
+    if (text.toLowerCase().startsWith("instant")) return "Instant";
+    // "Self (15-foot cone)" — the shape matters more here than its size does.
+    const self = text.match(/^self\s*\((.*)\)$/i);
+    if (self) {
+        const shape = self[1].match(/cone|cube|line|radius|sphere|square/i);
+        return shape ? `Self ${shape[0].toLowerCase()}` : "Self";
+    }
+    return text.replace(/\s*(?:feet|foot|ft\b\.?)/i, " ft").replace(/\s*miles?\b/i, " mi");
+}
+
+/**
+ * The Archive's spells, arranged for the blanks: the names each block offers,
+ * and every spell by name so a chosen one can fill its row in.
+ */
+interface SpellIndex {
+    namesByLevel: Map<number, string[]>;
+    byName: Map<string, SheetSpell>;
+}
+
+const EMPTY_INDEX: SpellIndex = { namesByLevel: new Map(), byName: new Map() };
+const NO_NAMES: string[] = [];
+
+/**
+ * Read once per page and handed down, rather than fetched per block: sixty
+ * blanks share the one library.
+ */
+const SpellIndexContext = createContext<SpellIndex>(EMPTY_INDEX);
+
+function useSpellIndex(): SpellIndex {
+    const spells = useSheetSpells();
+    return useMemo(() => {
+        const namesByLevel = new Map<number, string[]>();
+        const byName = new Map<string, SheetSpell>();
+        for (const spell of spells) {
+            const names = namesByLevel.get(spell.level);
+            if (names) names.push(spell.name);
+            else namesByLevel.set(spell.level, [spell.name]);
+            byName.set(spell.name.toLowerCase(), spell);
+        }
+        return { namesByLevel, byName };
+    }, [spells]);
+}
 
 /* ------------------------------------------------------------------ */
 /* Primitives                                                          */
@@ -75,22 +237,38 @@ export function Icon({
 /* Header row                                                          */
 /* ------------------------------------------------------------------ */
 
-/** Spell Casting Class / Spell Casting Ability — icon, label, wide blank. */
+/**
+ * Spell Casting Class / Spell Casting Ability — icon, label, wide blank.
+ *
+ * The blank is filled in from pages 1 and 2 and stays editable, as every
+ * derived field on the sheet does. Given options it also suggests entries from
+ * the Archive, but only once something is typed: the sheet has usually written
+ * the answer already, so an unbidden list of every class would only be noise.
+ */
 function LabelledTile({
     width,
     label,
     fieldClassName,
+    autoValue = "",
+    options,
 }: {
     width: number;
     label: string;
     fieldClassName: string;
+    autoValue?: string;
+    options?: string[];
 }) {
+    const [value, setValue] = useEditableAutoValue(autoValue);
+    const fieldClass = `font-medium not-italic leading-[normal] text-black ${fieldClassName}`;
+
     return (
         <div
             className="relative flex h-full shrink-0 items-start rounded-[22.914px] border-[4.14px] border-solid p-[10.873px]"
             style={{ borderColor: SPELL_BLUE, width: `${width}px` }}
         >
-            <div className="relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-start justify-center gap-[20.831px] overflow-clip rounded-[16.665px] bg-[#f8f8f8] p-[12.499px]">
+            {/* Unclipped: the suggestion menu opens past the tile, as page 2's
+                magic item rows do. */}
+            <div className="relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-start justify-center gap-[20.831px] rounded-[16.665px] bg-[#f8f8f8] p-[12.499px]">
                 <div className="relative flex shrink-0 items-center gap-[16.665px]">
                     <Icon src={spellAsset("spell-casting")} w={39.526} h={39.526} />
                     <p className="relative shrink-0 whitespace-nowrap text-[31.064px] font-normal not-italic leading-[normal] text-black">
@@ -98,11 +276,26 @@ function LabelledTile({
                     </p>
                 </div>
                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-center rounded-[9.319px] border-2 border-solid border-black bg-white px-[15.532px] py-[12.426px]">
-                    <input
-                        type="text"
-                        aria-label={label}
-                        className={`relative h-full w-full font-medium not-italic leading-[normal] text-black ${fieldClassName}`}
-                    />
+                    {options ? (
+                        <SuggestInput
+                            label={label}
+                            options={options}
+                            value={value}
+                            onValueChange={setValue}
+                            multiple
+                            suggestWhenTyped
+                            wrapperClassName="relative block h-full w-full"
+                            className={`h-full ${fieldClass}`}
+                        />
+                    ) : (
+                        <input
+                            type="text"
+                            aria-label={label}
+                            value={value}
+                            onChange={(event) => setValue(event.target.value)}
+                            className={`relative h-full w-full ${fieldClass}`}
+                        />
+                    )}
                 </div>
             </div>
         </div>
@@ -110,7 +303,8 @@ function LabelledTile({
 }
 
 /** Spell Save DC / Spell Attack Bonus — a square blank beside its label. */
-function NumericTile({ label }: { label: string }) {
+function NumericTile({ label, autoValue = "" }: { label: string; autoValue?: string }) {
+    const [value, setValue] = useEditableAutoValue(autoValue);
     return (
         <div
             className="relative flex h-full min-w-[1px] flex-[1_0_0] items-start rounded-[24.156px] border-[4.14px] border-solid p-[11.462px]"
@@ -121,6 +315,8 @@ function NumericTile({ label }: { label: string }) {
                     <input
                         type="text"
                         aria-label={label}
+                        value={value}
+                        onChange={(event) => setValue(event.target.value)}
                         className="relative h-full w-full text-center text-[76.411px] font-medium not-italic leading-[normal] text-black"
                     />
                 </div>
@@ -132,18 +328,42 @@ function NumericTile({ label }: { label: string }) {
     );
 }
 
-/** The four blue tiles that top both spellbook pages. */
-function SpellHeaderRow() {
+/**
+ * The four blue tiles that top both spellbook pages, filled in from what pages
+ * 1 and 2 hold: every source of the character's magic, appended, and the
+ * ability and numbers those sources set.
+ */
+function SpellHeaderRow({ spellcasting }: { spellcasting: SpellcastingSummary }) {
+    const suggestions = useSheetSuggestions();
+    // Anything that can grant spellcasting is a valid source to add by hand.
+    const sourceOptions = useMemo(
+        () =>
+            [
+                ...suggestions.classes,
+                ...suggestions.subclasses,
+                ...suggestions.species,
+                ...suggestions.feats,
+            ].map((item) => item.name),
+        [suggestions],
+    );
+
     return (
         <div className="relative flex h-[217px] w-full shrink-0 items-start justify-center gap-[20.831px]">
             <LabelledTile
                 width={821}
                 label="Spell Casting Class,Sub-class, Race, Feat"
                 fieldClassName="text-[44px]"
+                autoValue={spellcasting.sources}
+                options={sourceOptions}
             />
-            <LabelledTile width={493} label="Spell Casting Ability" fieldClassName="text-[56px]" />
-            <NumericTile label="Spell Save DC" />
-            <NumericTile label="Spell Attack Bonus" />
+            <LabelledTile
+                width={493}
+                label="Spell Casting Ability"
+                fieldClassName="text-[56px]"
+                autoValue={spellcasting.ability}
+            />
+            <NumericTile label="Spell Save DC" autoValue={spellcasting.saveDc} />
+            <NumericTile label="Spell Attack Bonus" autoValue={spellcasting.attackBonus} />
         </div>
     );
 }
@@ -171,20 +391,60 @@ function CellDivider() {
     );
 }
 
-/**
- * The C/R and V/S/M markers a player rings by hand. Each is a single exported
- * glyph, as on page 1's death saves, so they are drawn rather than interactive.
- */
-function Markers({ names }: { names: string[] }) {
+type MarkerName = "c" | "r" | "v" | "s" | "m";
+
+const MARKER_LABELS: Record<MarkerName, string> = {
+    c: "Concentration",
+    r: "Ritual",
+    v: "Verbal component",
+    s: "Somatic component",
+    m: "Material component",
+};
+
+/** A spell marker whose automatic value can still be changed by hand. */
+function SpellMarker({ name, automatic }: { name: MarkerName; automatic: boolean }) {
+    const [selectedValue, setSelectedValue] = useEditableAutoValue(String(automatic));
+    const selected = selectedValue === "true";
+    const label = MARKER_LABELS[name];
+    const selectedAsset =
+        name === "c" || name === "r" ? "component-active-7" : "component-active-6";
+    // "C" is exported a shade larger than the rest.
+    const size = name === "c" ? 40.041 : 39.089;
+
+    return (
+        <button
+            type="button"
+            aria-label={label}
+            aria-pressed={selected}
+            title={`${label}: ${selected ? "yes" : "no"}`}
+            onClick={() => setSelectedValue(String(!selected))}
+            className="relative shrink-0 cursor-pointer rounded-full focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-black"
+            style={{ width: `${size}px`, height: `${size}px` }}
+        >
+            <img
+                alt=""
+                src={selected ? spellAsset(selectedAsset) : spellAsset(`component-${name}`)}
+                className="absolute inset-0 block size-full max-w-none"
+            />
+        </button>
+    );
+}
+
+function TypeMarkers({ spell }: { spell?: SheetSpell }) {
     return (
         <div className="relative flex shrink-0 items-center gap-[14.479px]">
-            {names.map((name) => {
-                // "C" is exported a shade larger than the rest.
-                const size = name === "c" ? 40.041 : 39.089;
-                return (
-                    <Icon key={name} src={spellAsset(`component-${name}`)} w={size} h={size} />
-                );
-            })}
+            <SpellMarker name="c" automatic={Boolean(spell?.concentration)} />
+            <SpellMarker name="r" automatic={Boolean(spell?.ritual)} />
+        </div>
+    );
+}
+
+function ComponentMarkers({ spell }: { spell?: SheetSpell }) {
+    return (
+        <div className="relative flex shrink-0 items-center gap-[14.479px]">
+            <SpellMarker name="v" automatic={Boolean(spell?.components?.verbal)} />
+            <SpellMarker name="s" automatic={Boolean(spell?.components?.somatic)} />
+            <SpellMarker name="m" automatic={Boolean(spell?.components?.material)} />
         </div>
     );
 }
@@ -206,7 +466,16 @@ function BlockTitle({ title }: { title: string }) {
 }
 
 /** One of the two slot counters in a level header. */
-function SlotBox({ label, width }: { label: string; width: number }) {
+function SlotBox({
+    label,
+    width,
+    autoValue = "",
+}: {
+    label: string;
+    width: number;
+    autoValue?: string;
+}) {
+    const [value, setValue] = useEditableAutoValue(autoValue);
     return (
         <div
             className="relative flex h-[64.13px] shrink-0 flex-col items-center rounded-[5.3px] border-2 border-solid border-black bg-white px-[8.834px] py-[7.067px]"
@@ -215,14 +484,20 @@ function SlotBox({ label, width }: { label: string; width: number }) {
             <input
                 type="text"
                 aria-label={label}
+                value={value}
+                onChange={(event) => setValue(event.target.value)}
                 className="relative h-full w-full text-center text-[41.224px] font-medium not-italic leading-[normal] text-black"
             />
         </div>
     );
 }
 
-/** Level headers carry "__ of __" slot counters; the cantrip header does not. */
-function BlockHeader({ title, slots }: { title: string; slots: boolean }) {
+/**
+ * Level headers carry "__ of __" slot counters; the cantrip header does not.
+ * The total is filled in from the class levels page 1 holds, leaving the player
+ * only the expended count to keep — the one number no sheet can derive.
+ */
+function BlockHeader({ title, slots, total }: { title: string; slots: boolean; total: string }) {
     if (!slots) {
         return (
             <div className="relative flex h-[58.419px] w-full shrink-0 items-center justify-center rounded-[29.993px] border border-solid border-black bg-[#f8f8f8] px-[18.13px]">
@@ -242,7 +517,11 @@ function BlockHeader({ title, slots }: { title: string; slots: boolean }) {
                     <p className="relative shrink-0 whitespace-nowrap text-[40.504px] font-normal not-italic leading-[normal] text-black">
                         of
                     </p>
-                    <SlotBox label={`${title} slots total`} width={113.817} />
+                    <SlotBox
+                        label={`${title} slots total`}
+                        width={113.817}
+                        autoValue={total}
+                    />
                 </div>
             </div>
         </div>
@@ -282,51 +561,210 @@ function ColumnLabels({ height }: { height: number }) {
     );
 }
 
-const CELL_FIELD =
-    "relative h-[40.041px] shrink-0 text-center text-[24px] font-medium not-italic leading-[normal] text-black";
+/**
+ * Time and Range are not blanks: the Archive fills them in from the spell in
+ * the row's name, and nothing else belongs in them. `leading` centres the one
+ * line in the box the blanks used to occupy.
+ */
+const CELL_TEXT =
+    "relative h-[40.041px] shrink-0 overflow-hidden whitespace-nowrap text-center text-[24px] font-medium not-italic leading-[40.041px] text-black";
 
-/** One spell: a prepared marker, three blanks, and the two marker groups. */
+/** The prepared/in-use circle, initially selected for spells from the creator list. */
+function PreparedMarker({ automatic, row }: { automatic: boolean; row: string }) {
+    const [selectedValue, setSelectedValue] = useEditableAutoValue(String(automatic));
+    const selected = selectedValue === "true";
+
+    return (
+        <button
+            type="button"
+            aria-label={`Spell in use, ${row}`}
+            aria-pressed={selected}
+            title={`Spell in use: ${selected ? "yes" : "no"}`}
+            onClick={() => setSelectedValue(String(!selected))}
+            className="relative h-[23.857px] w-[23.857px] shrink-0 cursor-pointer rounded-full focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-black"
+        >
+            <span className="absolute -inset-[4.99%]">
+                <img
+                    alt=""
+                    src={spellAsset(selected ? "prepared-active" : "prepared")}
+                    className="block size-full max-w-none"
+                />
+            </span>
+        </button>
+    );
+}
+
+/** How tall the hover card would like to be, in design px. */
+const DETAILS_HEIGHT = 620;
+
+/** As much of a description as the card can hold before it is cut. */
+const DETAILS_CHARS = 700;
+
+/**
+ * A spell's own entry, shown while the pointer rests on a filled row: what the
+ * two abbreviated cells had to cut, and the spell's text.
+ *
+ * It is drawn inside the sheet's coordinate space, as the suggestion menus
+ * are, so it scales with the page — and it never takes the pointer, so moving
+ * onto it cannot make it flicker away.
+ */
+function SpellDetails({
+    spell,
+    anchorRef,
+    open,
+}: {
+    spell: SheetSpell;
+    anchorRef: RefObject<HTMLDivElement | null>;
+    open: boolean;
+}) {
+    const placement = useMenuPlacement(anchorRef, open, DETAILS_HEIGHT);
+    if (!open) return null;
+
+    const components = [
+        spell.components?.verbal && "V",
+        spell.components?.somatic && "S",
+        spell.components?.material && "M",
+    ]
+        .filter(Boolean)
+        .join(", ");
+
+    const details = [
+        spell.level === 0 ? "Cantrip" : `Level ${spell.level}`,
+        spell.castingTime && `Casting Time: ${spell.castingTime}`,
+        spell.range && `Range: ${spell.range}`,
+        spell.duration && `Duration: ${shortDuration(spell.duration)}`,
+        components && `Components: ${components}`,
+        spell.concentration && "Concentration",
+        spell.ritual && "Ritual",
+    ].filter(Boolean) as string[];
+
+    const description =
+        spell.description && spell.description.length > DETAILS_CHARS
+            ? `${spell.description.slice(0, DETAILS_CHARS).trimEnd()}…`
+            : spell.description;
+
+    return (
+        <div
+            role="tooltip"
+            className={`pointer-events-none absolute left-0 z-40 w-[760px] overflow-hidden rounded-[18px] border-[3px] border-solid border-black bg-white p-[24px] shadow-[0_18px_48px_rgba(0,0,0,0.28)] ${
+                placement.side === "above" ? "bottom-full mb-[10px]" : "top-full mt-[10px]"
+            }`}
+            style={{ maxHeight: `${placement.maxHeight}px` }}
+        >
+            <div className="flex items-center gap-[14px]">
+                <p className="min-w-[1px] flex-[1_0_0] truncate text-[32px] font-semibold leading-[1.2] text-black">
+                    {spell.name}
+                </p>
+                <SchoolTag school={spell.school} full className="text-[20px]" />
+            </div>
+            <p className="mt-[8px] text-[22px] font-medium leading-[1.4] text-black/60">
+                {details.join(" · ")}
+            </p>
+            {description && (
+                <p className="mt-[12px] whitespace-pre-wrap text-[23px] font-normal leading-[1.4] text-black">
+                    {description}
+                </p>
+            )}
+        </div>
+    );
+}
+
+/**
+ * One spell: a prepared marker, the searchable name, and the cells the Archive
+ * fills in from it.
+ *
+ * The row follows whatever name the blank holds rather than the spell it was
+ * opened with — pick another, or type one out, and the time, range and markers
+ * follow it. The two marker groups are keyed on that spell so a marker toggled
+ * by hand belongs to the spell it was toggled for, and does not carry over.
+ */
 function SpellRow({
     title,
     index,
     prepared,
+    spell,
+    options,
+    byName,
+    renderOption,
+    onFilledChange,
 }: {
     title: string;
     index: number;
     prepared: boolean;
+    spell?: Spell;
+    /** The Archive's spells at this block's level. */
+    options: string[];
+    byName: Map<string, SheetSpell>;
+    renderOption: (option: string) => ReactNode;
+    /** Tells the block whether this row holds a spell; see `inactive` there. */
+    onFilledChange: (row: number, filled: boolean) => void;
 }) {
     const row = `${title}, row ${index + 1}`;
+    const [name, setName] = useEditableAutoValue(spell?.name ?? "");
+    const nameRef = useRef<HTMLDivElement>(null);
+    const [hovered, setHovered] = useState(false);
+    const [editing, setEditing] = useState(false);
+
+    const filled = Boolean(name.trim());
+    useEffect(() => onFilledChange(index, filled), [onFilledChange, index, filled]);
+
+    const key = name.trim().toLowerCase();
+    const resolved: SheetSpell | undefined =
+        byName.get(key) ??
+        (key && key === spell?.name.trim().toLowerCase() ? spell : undefined);
+
     return (
         <div
-            className="relative flex min-h-[1px] w-full flex-[1_0_0] items-center overflow-hidden rounded-[25.946px] bg-white px-[23.802px]"
+            className="relative flex min-h-[1px] w-full flex-[1_0_0] items-center rounded-[25.946px] bg-white px-[23.802px]"
             style={{ gap: `${CELL_GAP}px` }}
         >
             {prepared && (
-                <Icon src={spellAsset("prepared")} w={23.857} h={23.857} inset="-4.99%" />
+                <PreparedMarker automatic={Boolean(spell)} row={row} />
             )}
-            <input
-                type="text"
-                aria-label={`Spell name, ${row}`}
-                className="relative h-[40.041px] min-w-[1px] flex-[1_0_0] text-[28px] font-medium not-italic leading-[normal] text-black"
-            />
+            <div
+                ref={nameRef}
+                className="relative flex h-[40.041px] min-w-[1px] flex-[1_0_0] items-center gap-[12px]"
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                onFocus={() => setEditing(true)}
+                onBlur={() => setEditing(false)}
+            >
+                <SuggestInput
+                    label={`Spell name, ${row}`}
+                    options={options}
+                    value={name}
+                    onValueChange={setName}
+                    renderOption={renderOption}
+                    wrapperClassName="relative block h-full min-w-[1px] flex-[1_0_0]"
+                    className="h-full text-[28px] font-medium not-italic leading-[normal] text-black"
+                />
+                <SchoolTag school={resolved?.school} className="text-[19px]" />
+                {resolved && (
+                    // Held back while the blank is being typed into, so the
+                    // card never sits over its own suggestions.
+                    <SpellDetails
+                        spell={resolved}
+                        anchorRef={nameRef}
+                        open={hovered && !editing}
+                    />
+                )}
+            </div>
             <CellDivider />
-            <input
-                type="text"
-                aria-label={`Casting time, ${row}`}
-                className={CELL_FIELD}
+            <p
+                className={CELL_TEXT}
                 style={{ width: `${CELL}px` }}
-            />
+                title={resolved?.castingTime}
+            >
+                {shortCastingTime(resolved?.castingTime)}
+            </p>
             <CellDivider />
-            <input
-                type="text"
-                aria-label={`Range, ${row}`}
-                className={CELL_FIELD}
-                style={{ width: `${CELL}px` }}
-            />
+            <p className={CELL_TEXT} style={{ width: `${CELL}px` }} title={resolved?.range}>
+                {shortRange(resolved?.range)}
+            </p>
             <CellDivider />
-            <Markers names={["c", "r"]} />
+            <TypeMarkers key={`type:${resolved?.name ?? ""}`} spell={resolved} />
             <CellDivider />
-            <Markers names={["v", "s", "m"]} />
+            <ComponentMarkers key={`components:${resolved?.name ?? ""}`} spell={resolved} />
         </div>
     );
 }
@@ -335,38 +773,140 @@ function SpellRow({
  * A red-outlined spell table. The ten spell rows are flex-grown so the block
  * always fills its declared height exactly, which is what keeps the two
  * columns tiling to the page — the same fix page 1's actions table needed.
+ *
+ * Memoised: the header row above it now re-renders as pages 1 and 2 are typed
+ * into, and sixty spell rows have no reason to follow.
  */
-export function SpellBlock({
+export const SpellBlock = memo(function SpellBlock({
     title,
+    level,
     height,
     slots = true,
+    slotTotal,
+    spells = [],
 }: {
     title: string;
+    /** Which of the Archive's spells this block's blanks offer. */
+    level: number;
     height: number;
     /** Cantrips have no slot counters, and their rows have no prepared marker. */
     slots?: boolean;
+    /**
+     * The slots the character has at this level, from page 1. Undefined while
+     * the classes behind them are unknown, which leaves the block as drawn;
+     * zero greys it out, as a level they cannot yet cast at.
+     */
+    slotTotal?: number;
+    /** Selected spells for this level, filled from the creator in row order. */
+    spells?: Spell[];
 }) {
+    // A memoised component still follows the context it reads, so the blanks
+    // come alive as soon as the Archive answers.
+    const index = useContext(SpellIndexContext);
+    const options = index.namesByLevel.get(level) ?? NO_NAMES;
+
+    // The menu has room to spell the school out where a row has not.
+    const renderOption = useMemo(
+        () => (option: string) => (
+            <span className="flex items-center gap-[18px]">
+                <span className="min-w-[1px] flex-[1_0_0] truncate">{option}</span>
+                <SchoolTag
+                    school={index.byName.get(option.toLowerCase())?.school}
+                    full
+                    className="text-[20px]"
+                />
+            </span>
+        ),
+        [index],
+    );
+
+    // A level the character has no slots for is dimmed rather than disabled:
+    // the sheet is writable throughout, and a block they will grow into should
+    // still take a spell they are keeping an eye on. Writing one in brings the
+    // block back — a species or feat grants its spells without a slot to spend,
+    // and the level holding them is anything but inactive.
+    const [filledRows, setFilledRows] = useState<ReadonlySet<number>>(EMPTY_ROWS);
+    const noteFilled = useCallback((row: number, filled: boolean) => {
+        setFilledRows((current) => {
+            if (current.has(row) === filled) return current;
+            const next = new Set(current);
+            if (filled) next.add(row);
+            else next.delete(row);
+            return next;
+        });
+    }, []);
+    const inactive = slotTotal === 0 && filledRows.size === 0;
+
     return (
         <div
             className="relative flex w-full shrink-0 items-start rounded-[19.87px] border-[4.14px] border-solid p-[12.645px]"
-            style={{ borderColor: RED, height: `${height}px` }}
+            style={{ borderColor: inactive ? INACTIVE : RED, height: `${height}px` }}
         >
-            <div className="relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-start justify-center overflow-clip rounded-[15.516px] bg-[#f8f8f8] p-[19.394px]">
+            {/* Unclipped: the rows' suggestion menus and hover cards open past
+                the block, as page 2's magic item rows do. */}
+            <div
+                className={`relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-start justify-center rounded-[15.516px] bg-[#f8f8f8] p-[19.394px] ${
+                    inactive ? "opacity-45" : ""
+                }`}
+            >
                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-start gap-[9.998px]">
-                    <BlockHeader title={title} slots={slots} />
+                    <BlockHeader
+                        title={title}
+                        slots={slots}
+                        total={slotTotal ? `${slotTotal}` : ""}
+                    />
                     <ColumnLabels height={slots ? 59.94 : 67.23} />
-                    {Array.from({ length: SPELL_ROWS }, (_, index) => (
-                        <SpellRow key={index} title={title} index={index} prepared={slots} />
+                    {Array.from({ length: SPELL_ROWS }, (_, row) => (
+                        <SpellRow
+                            key={row}
+                            title={title}
+                            index={row}
+                            prepared={slots}
+                            spell={spells[row]}
+                            options={options}
+                            byName={index.byName}
+                            renderOption={renderOption}
+                            onFilledChange={noteFilled}
+                        />
                     ))}
                 </div>
             </div>
         </div>
     );
-}
+});
 
 /* ------------------------------------------------------------------ */
 /* Page shell                                                          */
 /* ------------------------------------------------------------------ */
+
+const NO_SPELLS: Spell[] = [];
+
+/**
+ * The character's spells, bucketed by level for the blocks that hold them.
+ *
+ * Kept stable across renders — the header row above these blocks re-renders as
+ * pages 1 and 2 are typed into, and a fresh array per level on every one of
+ * those renders would put all sixty spell rows through it too.
+ */
+export function useSpellsByLevel(spells: Spell[] | undefined) {
+    return useMemo(() => {
+        const byLevel = new Map<number, Spell[]>();
+        for (const spell of spells ?? NO_SPELLS) {
+            const bucket = byLevel.get(spell.level);
+            if (bucket) bucket.push(spell);
+            else byLevel.set(spell.level, [spell]);
+        }
+        return (level: number) => byLevel.get(level) ?? NO_SPELLS;
+    }, [spells]);
+}
+
+/**
+ * The slots a spellbook block heads its level with, or undefined where page 1
+ * has not said — a sheet with no class on it greys nothing out.
+ */
+export function spellSlotsAt(spellcasting?: SpellcastingSummary) {
+    return (level: number) => spellcasting?.slots?.[level];
+}
 
 /** One of the two block columns filling the page body. */
 export function SpellColumn({ children }: { children: ReactNode }) {
@@ -378,19 +918,28 @@ export function SpellColumn({ children }: { children: ReactNode }) {
 }
 
 /** The A4 canvas, header row and two-column body shared by pages 3 and 4. */
-export function SpellPage({ children }: { children: ReactNode }) {
+export function SpellPage({
+    children,
+    spellcasting = EMPTY_SPELLCASTING,
+}: {
+    children: ReactNode;
+    spellcasting?: SpellcastingSummary;
+}) {
+    const spellIndex = useSpellIndex();
     return (
         <div
             className="cs-root relative flex justify-center bg-white px-[125.5px] pt-[160px]"
             style={{ width: `${SHEET_WIDTH}px`, height: `${SHEET_HEIGHT}px` }}
         >
             <div className="relative flex w-full shrink-0 flex-col items-start gap-[25px]">
-                <SpellHeaderRow />
+                <SpellHeaderRow spellcasting={spellcasting} />
                 <div
                     className="relative flex w-full shrink-0 items-start gap-[19.14px]"
                     style={{ height: `${SPELL_BODY_HEIGHT}px` }}
                 >
-                    {children}
+                    <SpellIndexContext.Provider value={spellIndex}>
+                        {children}
+                    </SpellIndexContext.Provider>
                 </div>
             </div>
         </div>
@@ -401,18 +950,59 @@ export function SpellPage({ children }: { children: ReactNode }) {
 /* Sheet                                                               */
 /* ------------------------------------------------------------------ */
 
-export function CharacterSheetA4Page3() {
+export function CharacterSheetA4Page3({
+    spellcasting,
+    spells,
+}: { spellcasting?: SpellcastingSummary; spells?: Spell[] } = {}) {
+    const spellsAt = useSpellsByLevel(spells);
+    const slotsAt = spellSlotsAt(spellcasting);
     return (
-        <SpellPage>
+        <SpellPage spellcasting={spellcasting}>
             <SpellColumn>
-                <SpellBlock title="Cantrips" height={SPELL_BLOCK_TOP} slots={false} />
-                <SpellBlock title="Level 1" height={SPELL_BLOCK} />
-                <SpellBlock title="Level 2" height={SPELL_BLOCK} />
+                <SpellBlock
+                    title="Cantrips"
+                    level={0}
+                    height={SPELL_BLOCK_TOP}
+                    slots={false}
+                    spells={spellsAt(0)}
+                />
+                <SpellBlock
+                    title="Level 1"
+                    level={1}
+                    height={SPELL_BLOCK}
+                    slotTotal={slotsAt(1)}
+                    spells={spellsAt(1)}
+                />
+                <SpellBlock
+                    title="Level 2"
+                    level={2}
+                    height={SPELL_BLOCK}
+                    slotTotal={slotsAt(2)}
+                    spells={spellsAt(2)}
+                />
             </SpellColumn>
             <SpellColumn>
-                <SpellBlock title="Level 3" height={SPELL_BLOCK_TOP} />
-                <SpellBlock title="Level 4" height={SPELL_BLOCK} />
-                <SpellBlock title="Level 5" height={SPELL_BLOCK} />
+                <SpellBlock
+                    title="Level 3"
+                    level={3}
+                    height={SPELL_BLOCK_TOP}
+                    slotTotal={slotsAt(3)}
+                    spells={spellsAt(3)}
+                />
+                <SpellBlock
+                    title="Level 4"
+                    level={4}
+                    height={SPELL_BLOCK}
+                    slotTotal={slotsAt(4)}
+                    spells={spellsAt(4)}
+                />
+                <SpellBlock
+                    title="Level 5"
+                    level={5}
+                    height={SPELL_BLOCK}
+                    slotTotal={slotsAt(5)}
+                    spells={spellsAt(5)}
+                />
             </SpellColumn>
         </SpellPage>
     );

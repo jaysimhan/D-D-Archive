@@ -1,27 +1,51 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, type CSSProperties, type ReactNode } from "react";
+import { useMenuPlacement } from "./useMenuPlacement";
+
+/** The menu's usual height, in design px, before the page edge trims it. */
+const MENU_HEIGHT = 280;
 
 /**
  * An autocomplete input that matches the CharacterSheetA4 field styling.
  * Shows a dropdown of filtered suggestions as the user types.
  *
  * Props:
- * - suggestions: string[]        — full list of valid options
- * - className:   string          — forwarded to the <input>
- * - ariaLabel:   string          — accessibility label
- * - placeholder: string          — optional placeholder text
+ * - suggestions:   string[]        — full list of valid options
+ * - className:     string          — forwarded to the <input>
+ * - ariaLabel:     string          — accessibility label
+ * - placeholder:   string          — optional placeholder text
+ * - defaultValue:  string          — what the sheet fills in; the user may edit it
+ * - sizer:         ReactNode       — hidden text that sizes the box, as the
+ *                                    fixed A4 pages do for their own blanks.
+ *                                    With one, the input is positioned over it.
  */
 export function AutocompleteField({
     suggestions,
     className = "",
     ariaLabel,
     placeholder,
+    defaultValue = "",
+    wrapperClassName = "min-w-[1px] flex-[1_0_0]",
+    wrapperStyle,
+    sizer,
+    sizerClassName = "",
+    onSelect,
+    clearOnSelect = false,
 }: {
     suggestions: string[];
     className?: string;
     ariaLabel: string;
     placeholder?: string;
+    defaultValue?: string;
+    wrapperClassName?: string;
+    wrapperStyle?: CSSProperties;
+    sizer?: ReactNode;
+    sizerClassName?: string;
+    /** Called with the picked suggestion. */
+    onSelect?: (value: string) => void;
+    /** For a field that adds to something else and is then ready for the next. */
+    clearOnSelect?: boolean;
 }) {
-    const [value, setValue] = useState("");
+    const [value, setValue] = useState(defaultValue);
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -33,6 +57,8 @@ export function AutocompleteField({
               s.toLowerCase().includes(value.toLowerCase())
           )
         : suggestions;
+
+    const menu = useMenuPlacement(wrapperRef, open && filtered.length > 0, MENU_HEIGHT);
 
     // Close on outside click
     useEffect(() => {
@@ -59,11 +85,12 @@ export function AutocompleteField({
 
     const select = useCallback(
         (val: string) => {
-            setValue(val);
+            setValue(clearOnSelect ? "" : val);
+            onSelect?.(val);
             setOpen(false);
             setActiveIndex(-1);
         },
-        []
+        [clearOnSelect, onSelect]
     );
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -120,7 +147,12 @@ export function AutocompleteField({
     };
 
     return (
-        <div ref={wrapperRef} className="relative min-w-[1px] flex-[1_0_0]">
+        <div ref={wrapperRef} className={`relative ${wrapperClassName}`} style={wrapperStyle}>
+            {sizer !== undefined && (
+                <span aria-hidden className={`block opacity-0 ${sizerClassName}`}>
+                    {sizer}
+                </span>
+            )}
             <input
                 type="text"
                 role="combobox"
@@ -147,8 +179,10 @@ export function AutocompleteField({
                 <ul
                     ref={listRef}
                     role="listbox"
-                    className="absolute left-0 right-0 z-50 mt-[4px] max-h-[280px] overflow-y-auto rounded-[12px] border-[2px] border-black/20 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
-                    style={{ top: "100%" }}
+                    className={`absolute left-0 right-0 z-50 overflow-y-auto rounded-[12px] border-[2px] border-black/20 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.15)] ${
+                        menu.side === "above" ? "bottom-full mb-[4px]" : "top-full mt-[4px]"
+                    }`}
+                    style={{ maxHeight: `${menu.maxHeight}px` }}
                 >
                     {filtered.map((item, i) => (
                         <li

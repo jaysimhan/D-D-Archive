@@ -1,5 +1,15 @@
-import type { ReactNode } from "react";
-import { SHEET_HEIGHT, SHEET_WIDTH } from "./CharacterSheetA4";
+import { memo, useCallback, useEffect, useState, type ReactNode } from "react";
+import { useSheetSuggestions, type SheetSuggestions } from "../../hooks/useSheetSuggestions";
+import type { CharacterData } from "../../types/character-creator";
+import { AutocompleteField } from "./AutocompleteField";
+import {
+    SHEET_HEIGHT,
+    SHEET_WIDTH,
+    appendList,
+    splitList,
+    useEditableAutoValue,
+} from "./CharacterSheetA4";
+import { featGrantsSpells, spellGrantingSources } from "./spellcasting-sources";
 import "./character-sheet.css";
 
 /**
@@ -17,6 +27,116 @@ const asset = (name: string) => `/character-sheet/page2/${name}.svg`;
 const YELLOW = "#ffb800";
 const BLUE = "#0090ff";
 const GREEN = "#005f1a";
+
+/* ------------------------------------------------------------------ */
+/* Values the sheet fills in from the character                        */
+/* ------------------------------------------------------------------ */
+
+/** PHB: modifier = (score − 10) ÷ 2, rounded down. */
+function abilityModifier(score: number) {
+    return Math.floor((score - 10) / 2);
+}
+
+/** PHB: +2 at level 1, rising by one every four levels. */
+function proficiencyBonus(level: number) {
+    return 2 + Math.floor((Math.max(level, 1) - 1) / 4);
+}
+
+/** Feats that raise passive Perception, by lower-cased name. */
+const PASSIVE_PERCEPTION_FEATS: Record<string, number> = {
+    alert: 5,
+    observant: 5,
+};
+
+/** What the feats named in this page's own panel add to passive Perception. */
+function passivePerceptionFeatBonus(feats: string[]) {
+    return feats.reduce(
+        (total, feat) => total + (PASSIVE_PERCEPTION_FEATS[feat.trim().toLowerCase()] ?? 0),
+        0,
+    );
+}
+
+/**
+ * The Perception modifier a character brings to the sheet. Page 1 reports the
+ * same number as it is edited there, so this is only the value the two pages
+ * start from — and what page 2 falls back on when it is rendered alone.
+ */
+function characterPerceptionModifier(character: CharacterData) {
+    const perception = character.proficiencies?.skills.find(
+        (skill) => skill.name.trim().toLowerCase() === "perception",
+    );
+    const rank = perception?.expertise ? 2 : perception?.proficient ? 1 : 0;
+
+    return (
+        abilityModifier(character.abilityScores.WIS) +
+        proficiencyBonus(character.level) * rank
+    );
+}
+
+/** "Name: description", one blank line apart, as page 1 writes its features. */
+function formatEntries(entries: { name?: string; description?: string }[]) {
+    return entries
+        .filter((entry) => entry.name?.trim())
+        .map((entry) => `${entry.name}${entry.description ? `: ${entry.description}` : ""}`)
+        .join("\n\n");
+}
+
+/**
+ * The names out of a panel written as formatEntries writes it — one entry per
+ * blank line, "Name: description". Whatever else the player types is left
+ * alone; only the leading name of each entry is read back.
+ */
+function entryNames(text: string) {
+    return text
+        .split(/\n\s*\n/)
+        .map((entry) => entry.trim().split("\n")[0].split(":")[0].trim())
+        .filter(Boolean);
+}
+
+/**
+ * The traits the Species Traits panel fills in with. A character carries its
+ * own — the subrace's included — while a sheet being filled in by hand looks
+ * up whatever Species page 1 names, so that changing it there rewrites the
+ * panel here. A name the Archive does not know leaves the character's traits
+ * standing rather than blanking a panel that was right a keystroke ago.
+ */
+function speciesTraits({
+    species,
+    options,
+    character,
+}: {
+    /** Page 1's Species blank, or undefined when this page stands alone. */
+    species?: string;
+    options: SheetSuggestions["species"];
+    character?: CharacterData;
+}) {
+    const fromCharacter = [
+        ...(character?.race?.traits ?? []),
+        ...(character?.subrace?.traits ?? []),
+    ];
+    if (species === undefined) return fromCharacter;
+
+    const named = splitList(species).flatMap((name) => {
+        const key = name.toLowerCase();
+        // The character's own entry is the fuller one: the Archive lists the
+        // race's traits, the character adds the subrace's on top.
+        if (key === character?.race?.name.trim().toLowerCase()) return fromCharacter;
+        return options.find((option) => option.name.toLowerCase() === key)?.traits ?? [];
+    });
+
+    return named.length ? named : fromCharacter;
+}
+
+/** Equipment carries no count of its own, so repeats become the Amount. */
+function inventoryRows(character?: CharacterData) {
+    const amounts = new Map<string, number>();
+    for (const item of character?.equipment ?? []) {
+        const name = item.name?.trim();
+        if (!name) continue;
+        amounts.set(name, (amounts.get(name) ?? 0) + 1);
+    }
+    return [...amounts].map(([item, amount]) => ({ item, amount: `${amount}` }));
+}
 
 /* ------------------------------------------------------------------ */
 /* Primitives                                                          */
@@ -87,6 +207,9 @@ function WritingPanel({
     outerClassName = "p-[12.554px] rounded-[19.728px]",
     innerClassName = "p-[19.255px] rounded-[15.404px]",
     headerClassName,
+    value,
+    search,
+    onTextChange,
 }: {
     borderColor: string;
     icon: ReactNode;
@@ -96,7 +219,37 @@ function WritingPanel({
     outerClassName?: string;
     innerClassName?: string;
     headerClassName?: string;
+    /**
+     * What the sheet fills in. Rewriting the panel overrides it; the override
+     * lasts until the sheet fills in something else — picking another Species
+     * on page 1 rewrites this panel rather than leaving the old traits under a
+     * new name.
+     */
+    value?: string;
+    /** Adds a field that looks entries up and writes them into the panel. */
+    search?: { options: { name: string; description?: string }[]; placeholder: string };
+    /** Reports what the panel holds, however it was written. */
+    onTextChange?: (text: string) => void;
 }) {
+    const [text, setText] = useEditableAutoValue(value ?? "");
+
+    // Reported from an effect rather than the handlers, so a pick from the
+    // search field is carried as well as a keystroke.
+    useEffect(() => onTextChange?.(text), [onTextChange, text]);
+
+    /** Append the picked entry, unless the panel already names it. */
+    const add = (name: string) => {
+        const option = search?.options.find((item) => item.name === name);
+        if (!option) return;
+        const written = text.trimEnd();
+        const already = written
+            .split("\n")
+            .some((line) => line.trim().toLowerCase().startsWith(name.toLowerCase()));
+        if (already) return;
+        const entry = formatEntries([option]);
+        setText(written ? `${written}\n\n${entry}` : entry);
+    };
+
     return (
         <div
             className={`relative flex w-full items-start border-[4.14px] border-solid ${outerClassName} ${
@@ -109,8 +262,22 @@ function WritingPanel({
             >
                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-start gap-[7.702px]">
                     <PanelHeader icon={icon} label={label} {...(headerClassName ? { className: headerClassName } : {})} />
+                    {search && (
+                        <div className="relative flex w-full shrink-0 items-center rounded-[23.893px] bg-white px-[28px] py-[16px]">
+                            <AutocompleteField
+                                ariaLabel={`Search ${label}`}
+                                placeholder={search.placeholder}
+                                suggestions={search.options.map((option) => option.name)}
+                                onSelect={add}
+                                clearOnSelect
+                                className="w-full text-[30px] font-medium not-italic leading-[normal] text-black placeholder:text-black/40"
+                            />
+                        </div>
+                    )}
                     <textarea
                         aria-label={label}
+                        value={text}
+                        onChange={(event) => setText(event.target.value)}
                         className="relative min-h-[1px] w-full flex-[1_0_0] rounded-[23.893px] bg-white px-[28px] py-[22px] text-[30px] font-medium not-italic leading-[1.35] text-black"
                     />
                 </div>
@@ -191,17 +358,53 @@ function CurrencyPanel({ label }: { label: string }) {
     );
 }
 
+/**
+ * The attunement marker beside a magic item: an outline the player fills in,
+ * toggled the same way page 1's proficiency rings are.
+ */
+function AttunementMarker({ label }: { label: string }) {
+    const [attuned, setAttuned] = useState(false);
+    return (
+        <button
+            type="button"
+            aria-label={`${label} attunement: ${attuned ? "attuned" : "not attuned"}`}
+            aria-pressed={attuned}
+            onClick={() => setAttuned((current) => !current)}
+            className="relative size-[47.234px] shrink-0"
+        >
+            {attuned ? (
+                <img
+                    alt=""
+                    src={asset("magic-item-marker-selected")}
+                    className="absolute inset-0 block size-full max-w-none"
+                />
+            ) : (
+                // Figma drew the outline with its stroke overflowing the box.
+                <div className="absolute" style={{ inset: "0 1.25% 4.95% 1.25%" }}>
+                    <img
+                        alt=""
+                        src={asset("magic-item-marker")}
+                        className="block size-full max-w-none"
+                    />
+                </div>
+            )}
+        </button>
+    );
+}
+
 /* ------------------------------------------------------------------ */
 /* Inventory                                                           */
 /* ------------------------------------------------------------------ */
 
 /** Proportional so the two columns fill the row exactly, as page 1 does. */
-const INVENTORY_COLUMNS = [
-    { label: "Item", grow: 506.353 },
+const INVENTORY_COLUMNS: { label: string; grow: number; search?: boolean }[] = [
+    { label: "Item", grow: 506.353, search: true },
     { label: "Amount", grow: 156.375 },
 ];
 
 const INVENTORY_ROWS = 8;
+
+const MAGIC_ITEM_ROWS = 4;
 
 function InventoryDivider() {
     return (
@@ -225,7 +428,68 @@ function InventoryDivider() {
 /* Sheet                                                               */
 /* ------------------------------------------------------------------ */
 
-export function CharacterSheetA4Page2() {
+/** Memoised: page 1's edits re-render the host, and this page ignores them. */
+export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
+    initialCharacter,
+    species,
+    perceptionModifier,
+    onFeatsChange,
+}: {
+    initialCharacter?: CharacterData;
+    /**
+     * The Species named on page 1, which the Species Traits panel is filled in
+     * from. Undefined where this page stands alone, and the character it was
+     * opened with is the only species it knows.
+     */
+    species?: string;
+    /** Page 1's Perception modifier; Passive Perception is 10 plus it. */
+    perceptionModifier?: number | null;
+    /** Reports the feats, appended, for the spellbook pages' header row. */
+    onFeatsChange?: (feats: string) => void;
+} = {}) {
+    const suggestions = useSheetSuggestions();
+    const characterFeats = formatEntries(initialCharacter?.feats ?? []);
+
+    // Held as well as reported: Alert and Observant raise passive Perception,
+    // and the panel is where this page learns the character has taken them.
+    const [feats, setFeats] = useState(characterFeats);
+    const featOptions = suggestions.feats;
+    const reportFeats = useCallback(
+        (text: string) => {
+            setFeats(text);
+            // Only the feats granting spells — Magic Initiate and its like —
+            // belong in the spellbook header; the rest are named on this page.
+            onFeatsChange?.(
+                appendList(
+                    spellGrantingSources(entryNames(text), featOptions, featGrantsSpells),
+                ),
+            );
+        },
+        [onFeatsChange, featOptions],
+    );
+
+    // Page 1 reports as it is edited; until it has, and wherever this page is
+    // rendered without it, the character the sheet was opened with stands in.
+    const perception =
+        perceptionModifier === undefined
+            ? initialCharacter
+                ? characterPerceptionModifier(initialCharacter)
+                : null
+            : perceptionModifier;
+    const passive =
+        perception === null
+            ? ""
+            : `${10 + perception + passivePerceptionFeatBonus(entryNames(feats))}`;
+    const [passiveValue, setPassiveValue] = useEditableAutoValue(passive);
+
+    const traits = formatEntries(
+        speciesTraits({ species, options: suggestions.species, character: initialCharacter }),
+    );
+    const inventory = inventoryRows(initialCharacter).slice(0, INVENTORY_ROWS);
+    const magicItems = (initialCharacter?.magicItems ?? [])
+        .map((item) => item.name)
+        .slice(0, MAGIC_ITEM_ROWS);
+
     return (
         <div
             className="cs-root relative flex items-center justify-center bg-white px-[95.824px] py-[133.321px]"
@@ -250,9 +514,17 @@ export function CharacterSheetA4Page2() {
                                             >
                                                 +2
                                             </span>
+                                            {/* Derived from page 1, and still a
+                                                blank: a monster's or a magic
+                                                item's effect is the player's
+                                                to write in. */}
                                             <input
                                                 type="text"
                                                 aria-label="Passive Perception"
+                                                value={passiveValue}
+                                                onChange={(event) =>
+                                                    setPassiveValue(event.target.value)
+                                                }
                                                 className="absolute inset-0 h-full w-full text-center text-[76.411px] font-medium not-italic leading-[normal] text-black"
                                             />
                                         </span>
@@ -321,6 +593,7 @@ export function CharacterSheetA4Page2() {
                         borderColor={BLUE}
                         height={551.64}
                         label="Species Traits"
+                        value={traits}
                         outerClassName="p-[12.547px] rounded-[22.795px]"
                         innerClassName="p-[19.245px] rounded-[15.396px]"
                         icon={<Icon src={asset("species-traits")} w={28.245} h={37.66} />}
@@ -329,6 +602,9 @@ export function CharacterSheetA4Page2() {
                         borderColor={BLUE}
                         height={1160}
                         label="Character Feats"
+                        value={characterFeats}
+                        onTextChange={reportFeats}
+                        search={{ options: suggestions.feats, placeholder: "Search feats…" }}
                         outerClassName="p-[12.547px] rounded-[19.717px]"
                         innerClassName="p-[19.245px] rounded-[22.795px]"
                         icon={<Icon src={asset("character-feats")} w={43.716} h={39.336} />}
@@ -339,29 +615,26 @@ export function CharacterSheetA4Page2() {
                         className="relative flex w-full shrink-0 items-start rounded-[20.276px] border-[4.14px] border-solid p-[12.903px]"
                         style={{ borderColor: GREEN }}
                     >
-                        <div className="relative flex min-w-[1px] flex-[1_0_0] flex-col items-start justify-center self-stretch overflow-clip rounded-[17.287px] bg-[#f8f8f8] p-[21.608px]">
+                        {/* Unclipped: the rows' suggestion menus open past the panel. */}
+                        <div className="relative flex min-w-[1px] flex-[1_0_0] flex-col items-start justify-center self-stretch rounded-[17.287px] bg-[#f8f8f8] p-[21.608px]">
                             <div className="relative flex w-full shrink-0 flex-col items-start gap-[8.643px]">
                                 <PanelHeader
                                     label="Magic Items"
                                     className="w-full px-[8.333px] py-[19.58px]"
                                     icon={<Icon src={asset("magic-items")} w={54.463} h={51.014} />}
                                 />
-                                {[0, 1, 2, 3].map((index) => (
+                                {Array.from({ length: MAGIC_ITEM_ROWS }, (_, index) => (
                                     <div
                                         key={index}
                                         className="relative flex h-[97.82px] w-full shrink-0 items-center justify-end gap-[24.568px] rounded-[26.782px] bg-white px-[24.568px] py-[26.782px]"
                                     >
-                                        <input
-                                            type="text"
-                                            aria-label={`Magic item ${index + 1}`}
-                                            className="relative min-w-[1px] flex-[1_0_0] text-[32px] font-medium not-italic leading-[normal] text-black"
+                                        <AutocompleteField
+                                            ariaLabel={`Magic item ${index + 1}`}
+                                            suggestions={suggestions.magicItems}
+                                            defaultValue={magicItems[index] ?? ""}
+                                            className="w-full text-[32px] font-medium not-italic leading-[normal] text-black"
                                         />
-                                        <Icon
-                                            src={asset("magic-item-marker")}
-                                            w={47.234}
-                                            h={47.234}
-                                            inset="0 1.25% 4.95% 1.25%"
-                                        />
+                                        <AttunementMarker label={`Magic item ${index + 1}`} />
                                     </div>
                                 ))}
                             </div>
@@ -384,7 +657,8 @@ export function CharacterSheetA4Page2() {
                         className="relative flex w-full shrink-0 items-start rounded-[20.276px] border-[4.14px] border-solid p-[12.903px]"
                         style={{ borderColor: GREEN }}
                     >
-                        <div className="relative flex min-w-[1px] flex-[1_0_0] flex-col items-start justify-center overflow-clip rounded-[17.287px] bg-[#f8f8f8] p-[21.608px]">
+                        {/* Unclipped: the rows' suggestion menus open past the panel. */}
+                        <div className="relative flex min-w-[1px] flex-[1_0_0] flex-col items-start justify-center rounded-[17.287px] bg-[#f8f8f8] p-[21.608px]">
                             <div className="relative flex w-full shrink-0 flex-col items-start gap-[8.643px]">
                                 <PanelHeader
                                     label="Inventory"
@@ -417,31 +691,55 @@ export function CharacterSheetA4Page2() {
                                             key={row}
                                             className="relative flex w-full shrink-0 items-start gap-[26.812px] rounded-[26.812px] px-[53.625px] py-[26.812px]"
                                         >
-                                            {INVENTORY_COLUMNS.map((column, i) => (
-                                                <div key={column.label} className="contents">
-                                                    {i > 0 && <InventoryDivider />}
-                                                    <span
-                                                        className="relative block"
-                                                        style={{
-                                                            flexGrow: column.grow,
-                                                            flexBasis: 0,
-                                                            minWidth: 0,
-                                                        }}
-                                                    >
-                                                        <span
-                                                            aria-hidden
-                                                            className="block whitespace-nowrap text-[33.516px] font-medium not-italic leading-[normal] text-black opacity-0"
-                                                        >
-                                                            {column.label}
-                                                        </span>
-                                                        <input
-                                                            type="text"
-                                                            aria-label={`${column.label}, row ${row + 1}`}
-                                                            className="absolute inset-0 h-full w-full text-left text-[33.516px] font-medium not-italic leading-[normal] text-black"
-                                                        />
-                                                    </span>
-                                                </div>
-                                            ))}
+                                            {INVENTORY_COLUMNS.map((column, i) => {
+                                                const filled = inventory[row];
+                                                const value = column.search
+                                                    ? (filled?.item ?? "")
+                                                    : (filled?.amount ?? "");
+                                                return (
+                                                    <div key={column.label} className="contents">
+                                                        {i > 0 && <InventoryDivider />}
+                                                        {column.search ? (
+                                                            <AutocompleteField
+                                                                ariaLabel={`${column.label}, row ${row + 1}`}
+                                                                suggestions={suggestions.items}
+                                                                defaultValue={value}
+                                                                wrapperClassName="block"
+                                                                wrapperStyle={{
+                                                                    flexGrow: column.grow,
+                                                                    flexBasis: 0,
+                                                                    minWidth: 0,
+                                                                }}
+                                                                sizer={column.label}
+                                                                sizerClassName="whitespace-nowrap text-[33.516px] font-medium not-italic leading-[normal] text-black"
+                                                                className="absolute inset-0 h-full w-full text-left text-[33.516px] font-medium not-italic leading-[normal] text-black"
+                                                            />
+                                                        ) : (
+                                                            <span
+                                                                className="relative block"
+                                                                style={{
+                                                                    flexGrow: column.grow,
+                                                                    flexBasis: 0,
+                                                                    minWidth: 0,
+                                                                }}
+                                                            >
+                                                                <span
+                                                                    aria-hidden
+                                                                    className="block whitespace-nowrap text-[33.516px] font-medium not-italic leading-[normal] text-black opacity-0"
+                                                                >
+                                                                    {column.label}
+                                                                </span>
+                                                                <input
+                                                                    type="text"
+                                                                    aria-label={`${column.label}, row ${row + 1}`}
+                                                                    defaultValue={value}
+                                                                    className="absolute inset-0 h-full w-full text-left text-[33.516px] font-medium not-italic leading-[normal] text-black"
+                                                                />
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     ))}
                                 </div>
@@ -460,4 +758,4 @@ export function CharacterSheetA4Page2() {
             </div>
         </div>
     );
-}
+});

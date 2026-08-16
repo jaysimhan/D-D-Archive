@@ -1,9 +1,12 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Download, Edit } from "lucide-react";
 import {
     CharacterSheetA4,
+    EMPTY_SPELLCASTING,
     SHEET_HEIGHT,
     SHEET_WIDTH,
+    appendList,
+    type SpellcastingSummary,
 } from "../components/character-sheet/CharacterSheetA4";
 import { CharacterSheetA4Page2 } from "../components/character-sheet/CharacterSheetA4Page2";
 import { CharacterSheetA4Page3 } from "../components/character-sheet/CharacterSheetA4Page3";
@@ -26,6 +29,23 @@ export function CharacterSheetPage({
     const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [scale, setScale] = useState(1);
     const [downloading, setDownloading] = useState(false);
+
+    // The spellbook pages head every page with where the character's magic
+    // comes from, which pages 1 and 2 hold between them: Class, Sub-class and
+    // Species here, feats there. Both report as they are edited, and the two
+    // lists are appended into the one blank pages 3 and 4 fill in.
+    const [spellcasting, setSpellcasting] = useState<SpellcastingSummary>(EMPTY_SPELLCASTING);
+    const [feats, setFeats] = useState("");
+    const spellcastingWithFeats = useMemo(
+        () => ({ ...spellcasting, sources: appendList([spellcasting.sources, feats]) }),
+        [spellcasting, feats],
+    );
+
+    // Page 2 fills its Species Traits and Passive Perception in from page 1's
+    // Species and Perception. Both stay undefined until page 1 has reported,
+    // which is page 2's cue to fall back on the character it was opened with.
+    const [species, setSpecies] = useState<string>();
+    const [perceptionModifier, setPerceptionModifier] = useState<number | null>();
 
     const measure = useCallback(() => {
         const el = viewportRef.current;
@@ -150,10 +170,26 @@ export function CharacterSheetPage({
             >
                 {/* Pages 2-4 sit below page 1 on screen, in the order the PDF uses. */}
                 {[
-                    <CharacterSheetA4 initialCharacter={initialCharacter} />,
-                    <CharacterSheetA4Page2 />,
-                    <CharacterSheetA4Page3 />,
-                    <CharacterSheetA4Page4 />,
+                    <CharacterSheetA4
+                        initialCharacter={initialCharacter}
+                        onSpellcastingChange={setSpellcasting}
+                        onSpeciesChange={setSpecies}
+                        onPerceptionModifierChange={setPerceptionModifier}
+                    />,
+                    <CharacterSheetA4Page2
+                        initialCharacter={initialCharacter}
+                        species={species}
+                        perceptionModifier={perceptionModifier}
+                        onFeatsChange={setFeats}
+                    />,
+                    <CharacterSheetA4Page3
+                        spellcasting={spellcastingWithFeats}
+                        spells={initialCharacter?.selectedSpells}
+                    />,
+                    <CharacterSheetA4Page4
+                        spellcasting={spellcastingWithFeats}
+                        spells={initialCharacter?.selectedSpells}
+                    />,
                 ].map((content, index) => (
                     <div
                         key={index}
