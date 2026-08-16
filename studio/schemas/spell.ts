@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'spell',
@@ -30,13 +30,8 @@ export default {
         {
             name: 'school',
             title: 'School',
-            type: 'string',
-            options: {
-                list: [
-                    'Abjuration', 'Conjuration', 'Divination', 'Enchantment',
-                    'Evocation', 'Illusion', 'Necromancy', 'Transmutation'
-                ],
-            },
+            type: 'reference',
+            to: [{ type: 'magicSchool' }],
             validation: (Rule: any) => Rule.required(),
         },
         {
@@ -54,13 +49,24 @@ export default {
         {
             name: 'components',
             title: 'Components',
-            type: 'object',
-            fields: [
-                { name: 'verbal', title: 'Verbal', type: 'boolean', initialValue: false },
-                { name: 'somatic', title: 'Somatic', type: 'boolean', initialValue: false },
-                { name: 'material', title: 'Material', type: 'boolean', initialValue: false },
-                { name: 'materialDescription', title: 'Material Description', type: 'string' },
-            ],
+            type: 'array',
+            of: [{ type: 'string' }],
+            options: {
+                list: [
+                    { title: 'Verbal (V)', value: 'V' },
+                    { title: 'Somatic (S)', value: 'S' },
+                    { title: 'Material (M)', value: 'M' },
+                ],
+            },
+            validation: (Rule: any) => Rule.required(),
+        },
+        {
+            name: 'materialCost',
+            title: 'Material Component Details',
+            type: 'text',
+            rows: 2,
+            hidden: ({ parent }: any) => !parent?.components?.includes('M'),
+            description: 'Visible only when "Material (M)" is checked in components.',
         },
         {
             name: 'duration',
@@ -83,7 +89,8 @@ export default {
         {
             name: 'description',
             title: 'Description',
-            type: 'text',
+            type: 'array',
+            of: [{ type: 'block' }],
             validation: (Rule: any) => Rule.required(),
         },
         {
@@ -109,5 +116,8 @@ export default {
         sourceField,
         editionField,
         versionField,
+        rulesetField,
+        isHomebrewField,
+        versionNotesField,
     ],
 }

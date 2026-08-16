@@ -1,5 +1,18 @@
+/// <reference types="vite/client" />
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
+
+/**
+ * In dev, send queries through Vite's `/sanity` proxy (see vite.config.ts).
+ * Sanity only allow-lists a couple of localhost ports for CORS, so a dev server
+ * on any other port gets a 403; proxying makes the request same-origin instead.
+ * Production keeps talking to the CDN host directly.
+ */
+// The underlying request layer rejects relative URLs, so this must be absolute.
+const devProxy =
+    import.meta.env?.DEV && typeof window !== 'undefined'
+        ? ({ useProjectHostname: false, apiHost: `${window.location.origin}/sanity` } as const)
+        : {};
 
 // Sanity client configuration
 export const sanityClient = createClient({
@@ -7,6 +20,7 @@ export const sanityClient = createClient({
     dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
     useCdn: true, // Enable CDN for faster reads (cached data)
     apiVersion: '2024-01-01', // Use a date-based API version
+    ...devProxy,
 });
 
 // Image URL builder

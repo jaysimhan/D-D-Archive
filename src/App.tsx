@@ -10,6 +10,7 @@ import NProgress from "nprogress";
 const HomePage = lazy(() => import("./pages/HomePage").then(module => ({ default: module.HomePage })));
 const LibraryPage = lazy(() => import("./pages/LibraryPage").then(module => ({ default: module.LibraryPage })));
 const CharacterCreatorPage = lazy(() => import("./pages/CharacterCreatorPage").then(module => ({ default: module.CharacterCreatorPage })));
+const CharacterSheetPage = lazy(() => import("./pages/CharacterSheetPage").then(module => ({ default: module.CharacterSheetPage })));
 
 
 function Navigation() {
@@ -137,6 +138,7 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/creator" element={<CharacterCreatorPage />} />
+              <Route path="/character-sheet" element={<CharacterSheetPage />} />
             </Routes>
           </Suspense>
 

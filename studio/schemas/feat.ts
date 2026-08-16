@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'feat',
@@ -142,8 +142,18 @@ export default {
             type: 'array',
             of: [{ type: 'spellGrant' }],
         },
+        {
+            name: 'grants',
+            title: 'Feature Grants',
+            type: 'array',
+            of: [{ type: 'featureGrant' }],
+            description: 'Define specific spell, slot, or resource pool benefits granted by this feat.',
+        },
         sourceField,
         editionField,
         versionField,
+        rulesetField,
+        isHomebrewField,
+        versionNotesField,
     ],
 }

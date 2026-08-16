@@ -1,0 +1,44 @@
+/* Scoped styles for the A4 character sheet.
+   The sheet is a light, print-style document living inside a dark app, so it
+   opts out of the global dark input styling in src/index.css. */
+
+.cs-root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-feature-settings: normal;
+}
+
+.cs-manrope {
+    font-family: Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Zero-specificity so every utility class on a field still wins. */
+:where(.cs-root) :where(input, textarea) {
+    background-color: transparent;
+    border: 0;
+    color: #000;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    margin: 0;
+    outline: none;
+    padding: 0;
+    resize: none;
+}
+
+/* Override the global brand focus ring (index.css) — it is set with
+   !important, so this needs !important plus the higher .cs-root specificity. */
+.cs-root input:focus-visible,
+.cs-root textarea:focus-visible {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Needs real specificity to beat Tailwind preflight's `textarea { resize: vertical }`. */
+.cs-root textarea {
+    display: block;
+    resize: none;
+}

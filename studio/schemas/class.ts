@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'class',
@@ -39,6 +39,9 @@ export default {
         sourceField,
         editionField,
         versionField,
+        rulesetField,
+        isHomebrewField,
+        versionNotesField,
         {
             name: 'hitDie',
             title: 'Hit Die',
@@ -136,30 +139,8 @@ export default {
             name: 'features',
             title: 'Features',
             type: 'array',
-            of: [
-                {
-                    type: 'object',
-                    name: 'classFeature',
-                    title: 'Feature',
-                    fields: [
-                        { name: 'level', title: 'Level', type: 'number', validation: (Rule: any) => Rule.required().min(1).max(20) },
-                        { name: 'name', title: 'Name', type: 'string', validation: (Rule: any) => Rule.required() },
-                        { name: 'description', title: 'Description', type: 'text', validation: (Rule: any) => Rule.required() },
-                    ],
-                    preview: {
-                        select: {
-                            title: 'name',
-                            subtitle: 'level',
-                        },
-                        prepare(selection: any) {
-                            return {
-                                title: selection.title,
-                                subtitle: `Level ${selection.subtitle}`,
-                            };
-                        },
-                    },
-                },
-            ],
+            of: [{ type: 'reference', to: [{ type: 'feature' }] }],
+            description: 'References to feature documents representing the core progression track',
         },
         {
             name: 'subclasses',
@@ -177,8 +158,11 @@ export default {
                                 }
                             }
                             return {
-                                filter: 'parentClassId == $classSlug || !defined(parentClassId)',
-                                params: { classSlug: document.slug.current }
+                                filter: 'parentClassId == $classSlug || parentClass._ref == $classId || !defined(parentClassId)',
+                                params: {
+                                    classSlug: document.slug.current,
+                                    classId: document._id
+                                }
                             }
                         }
                     }
@@ -200,6 +184,13 @@ export default {
             description: 'Level at which subclass is selected (1-3)',
             initialValue: 3,
             validation: (Rule: any) => Rule.min(1).max(3),
+        },
+        {
+            name: 'grants',
+            title: 'Feature Grants',
+            type: 'array',
+            of: [{ type: 'featureGrant' }],
+            description: 'Define specific spell, slot, or resource pool benefits granted by this class.',
         },
     ],
 }

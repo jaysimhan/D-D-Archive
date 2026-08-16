@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'background',
@@ -78,9 +78,69 @@ export default {
             ],
             validation: (Rule: any) => Rule.required(),
         },
+        {
+            name: 'abilityScoreIncrease',
+            title: 'Ability Score Increase',
+            type: 'array',
+            of: [
+                {
+                    type: 'object',
+                    name: 'abilityBonus',
+                    title: 'Ability Bonus',
+                    fields: [
+                        {
+                            name: 'ability',
+                            title: 'Ability',
+                            type: 'string',
+                            options: {
+                                list: [
+                                    { title: 'Strength', value: 'STR' },
+                                    { title: 'Dexterity', value: 'DEX' },
+                                    { title: 'Constitution', value: 'CON' },
+                                    { title: 'Intelligence', value: 'INT' },
+                                    { title: 'Wisdom', value: 'WIS' },
+                                    { title: 'Charisma', value: 'CHA' },
+                                ],
+                            },
+                            validation: (Rule: any) => Rule.required(),
+                        },
+                        {
+                            name: 'bonus',
+                            title: 'Bonus',
+                            type: 'number',
+                            initialValue: 1,
+                            validation: (Rule: any) => Rule.required().min(1),
+                        },
+                    ],
+                    preview: {
+                        select: {
+                            ability: 'ability',
+                            bonus: 'bonus',
+                        },
+                        prepare(selection: any) {
+                            const { ability, bonus } = selection
+                            return {
+                                title: `+${bonus} to ${ability || '?'}`
+                            }
+                        }
+                    }
+                }
+            ],
+            description: 'For 2024 ruleset compliance. Ability score increases are defined here.',
+        },
+        {
+            name: 'feats',
+            title: 'Starting Feats',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'feat' }] }],
+            description: 'For 2024 ruleset compliance. Feats granted starting at level 1 by the background.',
+        },
         sourceField,
         editionField,
         versionField,
+        rulesetField,
+        isHomebrewField,
+        versionNotesField,
         {
             name: 'traits',
             title: 'Traits',

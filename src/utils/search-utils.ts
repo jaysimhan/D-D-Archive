@@ -1,16 +1,41 @@
 import { Spell, Class, Race, Item, Background, SearchFilters, Feat, Subclass } from "../types/dnd-types";
+import { matchScore, prepareQuery } from "./text-match";
+
+/**
+ * Apply the non-text filters, then score and order what survives.
+ *
+ * `fields` returns the searchable text for a record, most significant first
+ * (name, then description and friends). With no query the original order — the
+ * alphabetical order Sanity returned — is preserved.
+ */
+function rank<T>(
+  items: T[],
+  filters: SearchFilters,
+  fields: (item: T) => (string | undefined | null)[],
+  keep: (item: T) => boolean
+): T[] {
+  const query = prepareQuery(filters.query);
+  const matched: { item: T; score: number }[] = [];
+
+  for (const item of items) {
+    if (!keep(item)) continue;
+    if (!query) {
+      matched.push({ item, score: 0 });
+      continue;
+    }
+    const [name, ...body] = fields(item);
+    const score = matchScore(query, name ?? "", ...body);
+    if (score <= 0) continue;
+    matched.push({ item, score });
+  }
+
+  // Array.prototype.sort is stable, so equal scores keep alphabetical order.
+  if (query) matched.sort((a, b) => b.score - a.score);
+  return matched.map((entry) => entry.item);
+}
 
 export function searchSpells(spells: Spell[], filters: SearchFilters): Spell[] {
-  return spells.filter((spell) => {
-    // Text search
-    if (
-      filters.query &&
-      !spell.name.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !spell.description.toLowerCase().includes(filters.query.toLowerCase())
-    ) {
-      return false;
-    }
-
+  return rank(spells, filters, (spell) => [spell.name, spell.description], (spell) => {
     // Edition filter
     if (filters.edition && filters.edition !== "Both") {
       if (spell.edition !== filters.edition && spell.edition !== "Both") {
@@ -63,16 +88,7 @@ export function searchSpells(spells: Spell[], filters: SearchFilters): Spell[] {
 }
 
 export function searchClasses(classes: Class[], filters: SearchFilters): Class[] {
-  return classes.filter((classItem) => {
-    // Text search
-    if (
-      filters.query &&
-      !classItem.name.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !classItem.description.toLowerCase().includes(filters.query.toLowerCase())
-    ) {
-      return false;
-    }
-
+  return rank(classes, filters, (classItem) => [classItem.name, classItem.description], (classItem) => {
     // Edition filter
     if (filters.edition && filters.edition !== "Both") {
       if (classItem.edition !== filters.edition && classItem.edition !== "Both") {
@@ -110,16 +126,7 @@ export function searchClasses(classes: Class[], filters: SearchFilters): Class[]
 }
 
 export function searchRaces(races: Race[], filters: SearchFilters): Race[] {
-  return races.filter((race) => {
-    // Text search
-    if (
-      filters.query &&
-      !race.name.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !race.description.toLowerCase().includes(filters.query.toLowerCase())
-    ) {
-      return false;
-    }
-
+  return rank(races, filters, (race) => [race.name, race.description], (race) => {
     // Edition filter
     if (filters.edition && filters.edition !== "Both") {
       if (race.edition !== filters.edition && race.edition !== "Both") {
@@ -137,16 +144,7 @@ export function searchRaces(races: Race[], filters: SearchFilters): Race[] {
 }
 
 export function searchItems(items: Item[], filters: SearchFilters): Item[] {
-  return items.filter((item) => {
-    // Text search
-    if (
-      filters.query &&
-      !item.name.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !item.description.toLowerCase().includes(filters.query.toLowerCase())
-    ) {
-      return false;
-    }
-
+  return rank(items, filters, (item) => [item.name, item.description], (item) => {
     // Edition filter
     if (filters.edition && filters.edition !== "Both") {
       if (item.edition !== filters.edition && item.edition !== "Both") {
@@ -229,16 +227,7 @@ export function searchBackgrounds(
   backgrounds: Background[],
   filters: SearchFilters
 ): Background[] {
-  return backgrounds.filter((background) => {
-    // Text search
-    if (
-      filters.query &&
-      !background.name.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !background.description.toLowerCase().includes(filters.query.toLowerCase())
-    ) {
-      return false;
-    }
-
+  return rank(backgrounds, filters, (background) => [background.name, background.description], (background) => {
     // Edition filter
     if (filters.edition && filters.edition !== "Both") {
       if (
@@ -285,16 +274,7 @@ export function getAvailableSpells(
 }
 
 export function searchFeats(feats: Feat[], filters: SearchFilters): Feat[] {
-  return feats.filter((feat) => {
-    // Text search
-    if (
-      filters.query &&
-      !feat.name.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !feat.description.toLowerCase().includes(filters.query.toLowerCase())
-    ) {
-      return false;
-    }
-
+  return rank(feats, filters, (feat) => [feat.name, feat.description], (feat) => {
     // Edition filter
     if (filters.edition && filters.edition !== "Both") {
       if (feat.edition !== filters.edition && feat.edition !== "Both") {
@@ -313,17 +293,7 @@ export function searchFeats(feats: Feat[], filters: SearchFilters): Feat[] {
 }
 
 export function searchSubclasses(subclasses: Subclass[], filters: SearchFilters): Subclass[] {
-  return subclasses.filter((subclass) => {
-    // Text search
-    if (
-      filters.query &&
-      !subclass.name.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !subclass.description.toLowerCase().includes(filters.query.toLowerCase()) &&
-      !subclass.parentClassId.toLowerCase().replace(/-/g, ' ').includes(filters.query.toLowerCase())
-    ) {
-      return false;
-    }
-
+  return rank(subclasses, filters, (subclass) => [subclass.name, subclass.description, subclass.parentClassId?.replace(/-/g, ' ')], (subclass) => {
     // Edition filter
     if (filters.edition && filters.edition !== "Both") {
       if (subclass.edition !== filters.edition && subclass.edition !== "Both") {

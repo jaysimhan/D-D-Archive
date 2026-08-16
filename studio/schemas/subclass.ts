@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'subclass',
@@ -23,9 +23,16 @@ export default {
         },
         {
             name: 'parentClassId',
-            title: 'Parent Class ID',
+            title: 'Parent Class ID (Legacy)',
             type: 'string',
             description: 'ID of the parent class (e.g., "wizard", "fighter")',
+        },
+        {
+            name: 'parentClass',
+            title: 'Parent Class',
+            type: 'reference',
+            to: [{ type: 'class' }],
+            description: 'Reference linking back to the parent class.',
             validation: (Rule: any) => Rule.required(),
         },
         {
@@ -46,6 +53,9 @@ export default {
         sourceField,
         editionField,
         versionField,
+        rulesetField,
+        isHomebrewField,
+        versionNotesField,
         {
             name: 'proficiencies',
             title: 'Additional Proficiencies',
@@ -107,30 +117,8 @@ export default {
             name: 'features',
             title: 'Features',
             type: 'array',
-            of: [
-                {
-                    type: 'object',
-                    name: 'subclassFeature',
-                    title: 'Feature',
-                    fields: [
-                        { name: 'level', title: 'Level', type: 'number', validation: (Rule: any) => Rule.required().min(1).max(20) },
-                        { name: 'name', title: 'Name', type: 'string', validation: (Rule: any) => Rule.required() },
-                        { name: 'description', title: 'Description', type: 'text', validation: (Rule: any) => Rule.required() },
-                    ],
-                    preview: {
-                        select: {
-                            title: 'name',
-                            subtitle: 'level',
-                        },
-                        prepare(selection: any) {
-                            return {
-                                title: selection.title,
-                                subtitle: `Level ${selection.subtitle}`,
-                            };
-                        },
-                    },
-                },
-            ],
+            of: [{ type: 'reference', to: [{ type: 'feature' }] }],
+            description: 'References to feature documents representing the subclass progression track',
         },
         {
             name: 'traits',
@@ -139,19 +127,20 @@ export default {
             of: [{ type: 'reference', to: [{ type: 'trait' }] }],
             description: 'Reference traits from the centralized Trait library',
         },
-
     ],
     preview: {
         select: {
             title: 'name',
-            subtitle: 'parentClassId',
+            legacyParentId: 'parentClassId',
+            parentClassName: 'parentClass.name',
         },
         prepare(selection: any) {
-            const { title, subtitle } = selection;
+            const { title, legacyParentId, parentClassName } = selection
+            const parentName = parentClassName || legacyParentId || 'Unknown'
             return {
                 title: title,
-                subtitle: `${subtitle ? subtitle.charAt(0).toUpperCase() + subtitle.slice(1) : 'Unknown'} Subclass`,
-            };
+                subtitle: `${parentName.charAt(0).toUpperCase() + parentName.slice(1)} Subclass`,
+            }
         },
     },
 }
