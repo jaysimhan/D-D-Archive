@@ -3,7 +3,7 @@ import { ArrowRight, ArrowLeft, Check, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CharacterData, CreationStep } from "../types/character-creator";
 
-import { CharacterSheet } from "./CharacterSheet";
+import { CharacterSheetPage } from "../pages/CharacterSheetPage";
 import { useSubclasses } from "../hooks/useSanityData";
 
 // Import Step Components
@@ -144,40 +144,10 @@ export function CharacterCreator() {
     setIsComplete(true);
   };
 
-  const getSheetData = (): any => {
-    // Map skills from object array to string array
-    const skillNames = characterData.proficiencies?.skills
-      .filter(s => s.proficient)
-      .map(s => s.name) || [];
-
-    const expertiseNames = characterData.proficiencies?.skills
-      .filter(s => s.expertise)
-      .map(s => s.name) || [];
-
-    // Map personality to details
-    const details = {
-      personalityTraits: characterData.personality?.traits,
-      ideals: characterData.personality?.ideals,
-      bonds: characterData.personality?.bonds,
-      flaws: characterData.personality?.flaws,
-    };
-
-    return {
-      ...characterData,
-      proficiencies: {
-        skills: skillNames,
-        tools: characterData.proficiencies?.tools || [],
-        languages: characterData.proficiencies?.languages || [],
-      },
-      expertise: expertiseNames,
-      details: details,
-    };
-  };
-
   if (isComplete) {
     return (
-      <CharacterSheet
-        character={getSheetData()}
+      <CharacterSheetPage
+        initialCharacter={characterData}
         onEdit={() => setIsComplete(false)}
       />
     );

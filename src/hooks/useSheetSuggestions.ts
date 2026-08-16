@@ -8,10 +8,24 @@ import { sanityClient } from '../lib/sanity';
  * full document hooks in useSanityData are far too heavy for a dropdown.
  */
 export interface SheetSuggestions {
-    classes: { name: string; id: string }[];
-    species: string[];
-    backgrounds: string[];
-    subclasses: { name: string; parentClassId?: string }[];
+    classes: {
+        name: string;
+        id: string;
+        hitDie?: number;
+        pointLabel?: string;
+        primaryAbility?: string[];
+        spellcastingAbility?: string;
+        features?: { level: number; name: string; description?: string }[];
+    }[];
+    species: { name: string; speed?: number }[];
+    backgrounds: { name: string; skillProficiencies?: string[] }[];
+    subclasses: {
+        name: string;
+        parentClassId?: string;
+        magicAbility?: string;
+        spellcastingAbility?: string;
+        features?: { level: number; name: string; description?: string }[];
+    }[];
     armor: string[];
     weapons: string[];
     tools: string[];
@@ -21,10 +35,35 @@ export interface SheetSuggestions {
 // `species` is the newer schema and `race` the legacy one; the live dataset
 // still holds races, so read both and merge until the migration lands.
 const QUERY = `{
-    "classes": *[_type == "class" && defined(name)] | order(name asc) { name, "id": slug.current },
-    "species": *[_type in ["species", "race"] && defined(name)] | order(name asc).name,
-    "backgrounds": *[_type == "background" && defined(name)] | order(name asc).name,
-    "subclasses": *[_type == "subclass" && defined(name)] | order(name asc) { name, parentClassId },
+    "classes": *[_type == "class" && defined(name)] | order(name asc) {
+        name,
+        "id": slug.current,
+        hitDie,
+        primaryAbility,
+        spellcastingAbility,
+        features[]{
+            "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+            "name": coalesce(name, @->name),
+            "description": coalesce(description, @->description)
+        },
+        "pointLabel": grants[grantType == "Resource Pool" && defined(resourceName)][0].resourceName
+    },
+    "species": *[_type in ["species", "race"] && defined(name)] | order(name asc) { name, speed },
+    "backgrounds": *[_type == "background" && defined(name)] | order(name asc) {
+        name,
+        skillProficiencies
+    },
+    "subclasses": *[_type == "subclass" && defined(name)] | order(name asc) {
+        name,
+        "parentClassId": coalesce(parentClass->slug.current, parentClassId),
+        magicAbility,
+        spellcastingAbility,
+        features[]{
+            "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+            "name": coalesce(name, @->name),
+            "description": coalesce(description, @->description)
+        }
+    },
     "armor": *[_type == "item" && type == "Armor" && defined(name)] | order(name asc).name,
     "weapons": *[_type == "item" && type == "Weapon" && defined(name)] | order(name asc).name,
     "tools": *[_type == "item" && type == "Tool" && defined(name)] | order(name asc).name
@@ -82,12 +121,27 @@ export function useSheetSuggestions(): SheetSuggestions {
             .then((result) => {
                 if (!isMounted || !result) return;
                 setData({
-                    classes: uniqueDocs<{ name: string; id: string }>(result.classes),
-                    species: uniqueNames(result.species),
-                    backgrounds: uniqueNames(result.backgrounds),
-                    subclasses: uniqueDocs<{ name: string; parentClassId?: string }>(
-                        result.subclasses,
-                    ),
+                    classes: uniqueDocs<{
+                        name: string;
+                        id: string;
+                        hitDie?: number;
+                        pointLabel?: string;
+                        primaryAbility?: string[];
+                        spellcastingAbility?: string;
+                        features?: { level: number; name: string; description?: string }[];
+                    }>(result.classes),
+                    species: uniqueDocs<{ name: string; speed?: number }>(result.species),
+                    backgrounds: uniqueDocs<{
+                        name: string;
+                        skillProficiencies?: string[];
+                    }>(result.backgrounds),
+                    subclasses: uniqueDocs<{
+                        name: string;
+                        parentClassId?: string;
+                        magicAbility?: string;
+                        spellcastingAbility?: string;
+                        features?: { level: number; name: string; description?: string }[];
+                    }>(result.subclasses),
                     armor: uniqueNames(result.armor),
                     weapons: uniqueNames(result.weapons),
                     tools: uniqueNames(result.tools),

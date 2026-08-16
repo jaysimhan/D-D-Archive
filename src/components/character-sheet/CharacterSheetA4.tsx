@@ -1,6 +1,6 @@
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { DiceD20 } from "../DiceIcons";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSheetSuggestions } from "../../hooks/useSheetSuggestions";
+import type { CharacterData } from "../../types/character-creator";
 import "./character-sheet.css";
 
 /**
@@ -21,8 +21,14 @@ const asset = (name: string) => `/character-sheet/${name}.svg`;
 /* Shrink to fit                                                       */
 /* ------------------------------------------------------------------ */
 
-/** Below this share of the designed size the text stops being readable. */
-const MIN_FIT_SCALE = 0.42;
+/**
+ * Floor on the shrink, as a share of the designed size. Low enough that the
+ * longest value the sheet generates itself still fits — a four-class Hit Dice
+ * string such as "5d10 + 3d8 + 2d6 + 2d12" needs roughly a third of the size
+ * Figma drew — and no lower, so a field pasted full of prose reads as too much
+ * text for the box rather than shrinking away to nothing.
+ */
+const MIN_FIT_SCALE = 0.35;
 
 /** Room left for the caret and for sub-pixel rounding, in design px. */
 const FIT_PADDING = 4;
@@ -93,6 +99,19 @@ function useFitText<T extends HTMLElement>(text: string) {
 
     const style = fontSize ? { fontSize: `${fontSize}px` } : undefined;
     return [ref, style] as const;
+}
+
+/** An automatic value that becomes a temporary manual override when edited. */
+function useEditableAutoValue(automatic: string) {
+    const [override, setOverride] = useState<{ source: string; value: string } | null>(null);
+
+    // Prevent an old override from reappearing if the inputs later return to a
+    // previously seen automatic value.
+    useEffect(() => setOverride(null), [automatic]);
+
+    const value = override?.source === automatic ? override.value : automatic;
+    const setValue = (next: string) => setOverride({ source: automatic, value: next });
+    return [value, setValue] as const;
 }
 
 /* ------------------------------------------------------------------ */
@@ -200,12 +219,19 @@ function FitInput({
     label,
     className,
     inputMode,
+    value,
+    onChange,
+    readOnly = false,
 }: {
     label: string;
     className: string;
     inputMode?: "numeric";
+    value?: string;
+    onChange?: (value: string) => void;
+    readOnly?: boolean;
 }) {
-    const [text, setText] = useState("");
+    const [internal, setInternal] = useState("");
+    const text = value ?? internal;
     const [inputRef, fitStyle] = useFitText<HTMLInputElement>(text);
     return (
         <input
@@ -213,11 +239,33 @@ function FitInput({
             type="text"
             aria-label={label}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+                if (value === undefined) setInternal(e.target.value);
+                onChange?.(e.target.value);
+            }}
             inputMode={inputMode}
+            readOnly={readOnly}
             style={fitStyle}
             className={className}
         />
+    );
+}
+
+/** Read-only text that keeps labels inside fixed Figma boxes. */
+function FitLabel({
+    label,
+    value,
+    className,
+}: {
+    label: string;
+    value: string;
+    className: string;
+}) {
+    const [outputRef, fitStyle] = useFitText<HTMLOutputElement>(value);
+    return (
+        <output ref={outputRef} aria-label={label} style={fitStyle} className={className}>
+            {value}
+        </output>
     );
 }
 
@@ -241,13 +289,16 @@ function DerivedValue({
     /** Styling for the derived text when it should differ from the sizer's. */
     valueClassName?: string;
 }) {
+    const [outputRef, fitStyle] = useFitText<HTMLOutputElement>(value);
     return (
         <span className={`relative block shrink-0 ${wrapperClassName}`}>
             <span aria-hidden className={`block opacity-0 ${textClassName}`}>
                 {sizer}
             </span>
             <output
+                ref={outputRef}
                 aria-label={label}
+                style={fitStyle}
                 className={`absolute inset-0 flex h-full w-full items-center justify-center whitespace-nowrap text-center ${valueClassName ?? textClassName}`}
             >
                 {value}
@@ -256,22 +307,121 @@ function DerivedValue({
     );
 }
 
-/** A proficiency ring, toggled by clicking it. */
-function ProfRing({ label, src = asset("prof-ring") }: { label: string; src?: string }) {
-    const [marked, setMarked] = useState(false);
+type ProficiencyLevel = 0 | 1 | 2;
+
+/**
+ * A proficiency marker. Skills can cycle empty → proficient → expertise,
+ * while other uses (such as saving throws) keep the original binary toggle.
+ */
+function ProfRing({
+    label,
+    src = asset("prof-ring"),
+    level,
+    onLevelChange,
+    allowExpertise = false,
+}: {
+    label: string;
+    src?: string;
+    level?: ProficiencyLevel;
+    onLevelChange?: (level: ProficiencyLevel) => void;
+    allowExpertise?: boolean;
+}) {
+    const [internalLevel, setInternalLevel] = useState<ProficiencyLevel>(0);
+    const currentLevel = level ?? internalLevel;
+    const stateLabel =
+        currentLevel === 2 ? "expertise" : currentLevel === 1 ? "proficient" : "not proficient";
+
+    const toggle = () => {
+        const next = (
+            allowExpertise
+                ? (currentLevel + 1) % 3
+                : currentLevel === 0
+                  ? 1
+                  : 0
+        ) as ProficiencyLevel;
+        if (level === undefined) setInternalLevel(next);
+        onLevelChange?.(next);
+    };
+
     return (
         <button
             type="button"
-            aria-label={`${label} proficiency`}
-            aria-pressed={marked}
-            onClick={() => setMarked((v) => !v)}
+            aria-label={`${label} proficiency: ${stateLabel}`}
+            aria-pressed={currentLevel > 0}
+            onClick={toggle}
             className="relative size-[20.73px] shrink-0"
         >
-            <div className="absolute" style={{ inset: "-4.99%" }}>
-                <img alt="" src={src} className="block size-full max-w-none" />
-            </div>
-            {marked && <span className="absolute inset-[26%] rounded-full bg-black" />}
+            {currentLevel === 2 ? (
+                <img
+                    alt=""
+                    src={asset("expertise-star")}
+                    className="absolute inset-0 block size-full max-w-none"
+                />
+            ) : (
+                <>
+                    <div className="absolute" style={{ inset: "-4.99%" }}>
+                        <img alt="" src={src} className="block size-full max-w-none" />
+                    </div>
+                    {currentLevel === 1 && (
+                        <span className="absolute inset-[26%] rounded-full bg-black" />
+                    )}
+                </>
+            )}
         </button>
+    );
+}
+
+/** Three individually toggleable death-save markers on their connecting line. */
+function DeathSaveTrack({ kind }: { kind: "success" | "failure" }) {
+    const [marked, setMarked] = useState([false, false, false]);
+    const success = kind === "success";
+    const markerBox = success ? "size-[33.657px]" : "size-[35.226px]";
+
+    const toggle = (index: number) => {
+        setMarked((current) =>
+            current.map((value, markerIndex) =>
+                markerIndex === index ? !value : value,
+            ),
+        );
+    };
+
+    return (
+        <div
+            className={`relative shrink-0 ${
+                success
+                    ? "h-[165.527px] w-[33.657px]"
+                    : "h-[167.389px] w-[35.226px]"
+            }`}
+        >
+            <span
+                aria-hidden
+                className="absolute left-1/2 top-[16.828px] bottom-[16.828px] w-[2.243px] -translate-x-1/2 bg-black"
+            />
+            <div className="relative z-10 flex size-full flex-col justify-between">
+                {marked.map((isMarked, index) => (
+                    <div
+                        key={index}
+                        className={`flex shrink-0 items-center justify-center ${markerBox}`}
+                    >
+                        <button
+                            type="button"
+                            aria-label={`${kind} death save ${index + 1}`}
+                            aria-pressed={isMarked}
+                            onClick={() => toggle(index)}
+                            className={
+                                success
+                                    ? `size-[33.657px] rounded-full border-[2.243px] border-solid border-black ${
+                                          isMarked ? "bg-black" : "bg-[#f8f8f8]"
+                                      }`
+                                    : `size-[24.908px] rotate-45 border-[2.243px] border-solid border-black ${
+                                          isMarked ? "bg-black" : "bg-[#f8f8f8]"
+                                      }`
+                            }
+                        />
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }
 
@@ -301,6 +451,45 @@ const MAX_SUGGESTIONS = 8;
  * line, e.g. "Fighter / Wizard". Entries are separated by a slash.
  */
 const LIST_SEPARATOR = "/";
+
+/** Fallbacks for legacy class documents that predate Resource Pool grants. */
+const CLASS_POINT_LABELS: Record<string, string> = {
+    monk: "Focus Points",
+    sorcerer: "Sorcery Points",
+    pugilist: "Moxie Points",
+};
+
+/** Class-feature save DC abilities when no explicit schema value is present. */
+const CLASS_SAVE_ABILITIES: Record<string, string> = {
+    barbarian: "STR",
+    bard: "CHA",
+    cleric: "WIS",
+    druid: "WIS",
+    fighter: "STR",
+    monk: "WIS",
+    paladin: "CHA",
+    ranger: "WIS",
+    rogue: "DEX",
+    sorcerer: "CHA",
+    warlock: "CHA",
+    wizard: "INT",
+    artificer: "INT",
+};
+
+const ABILITY_KEYS: Record<string, string> = {
+    strength: "STR",
+    dexterity: "DEX",
+    constitution: "CON",
+    intelligence: "INT",
+    wisdom: "WIS",
+    charisma: "CHA",
+};
+
+function normalizeAbilityKey(value?: string) {
+    if (!value) return undefined;
+    const normalized = value.trim().toLowerCase();
+    return ABILITY_KEYS[normalized] ?? normalized.slice(0, 3).toUpperCase();
+}
 
 /** ["Fighter", "Wizard"] from "Fighter / Wizard " — blanks dropped. */
 export function splitList(value: string): string[] {
@@ -337,6 +526,7 @@ function SuggestInput({
     value,
     onValueChange,
     multiple = false,
+    initialValue = "",
 }: {
     label: string;
     options: string[];
@@ -346,9 +536,11 @@ function SuggestInput({
     onValueChange?: (value: string) => void;
     /** Accept several entries, separated by a slash — used for multiclassing. */
     multiple?: boolean;
+    initialValue?: string;
 }) {
-    const [internal, setInternal] = useState("");
+    const [internal, setInternal] = useState(initialValue);
     const current = value ?? internal;
+    const [inputRef, fitStyle] = useFitText<HTMLInputElement>(current);
     const setCurrent = (next: string) => {
         setInternal(next);
         onValueChange?.(next);
@@ -358,11 +550,17 @@ function SuggestInput({
     const [active, setActive] = useState(-1);
 
     // In multiple mode only the entry after the last slash is being edited;
-    // the ones before it are already committed.
-    const committed = multiple ? splitList(current).slice(0, -1) : [];
-    const pending = multiple
-        ? (current.split(LIST_SEPARATOR).pop() ?? "").trim()
-        : current.trim();
+    // every segment before that slash is already committed. Work from the raw
+    // segments so a trailing slash in "Monk /" preserves Monk instead of
+    // dropping it as splitList (which intentionally removes blanks) would.
+    const segments = multiple ? current.split(LIST_SEPARATOR) : [current];
+    const committed = multiple
+        ? segments
+              .slice(0, -1)
+              .map((entry) => entry.trim())
+              .filter(Boolean)
+        : [];
+    const pending = (segments[segments.length - 1] ?? "").trim();
 
     const matches = useMemo(() => {
         const taken = new Set(committed.map((entry) => entry.toLowerCase()));
@@ -420,6 +618,7 @@ function SuggestInput({
     return (
         <span className="relative min-w-[1px] flex-[1_0_0]">
             <input
+                ref={inputRef}
                 type="text"
                 role="combobox"
                 aria-label={label}
@@ -427,6 +626,7 @@ function SuggestInput({
                 aria-autocomplete="list"
                 autoComplete="off"
                 value={current}
+                style={fitStyle}
                 onChange={(e) => {
                     setCurrent(e.target.value);
                     setOpen(true);
@@ -469,6 +669,203 @@ function SuggestInput({
     );
 }
 
+/**
+ * The suggestion menu's own geometry, in design px, so a field can tell
+ * whether the menu still fits below it: eight rows of `MENU_ROW_HEIGHT` plus
+ * the list's padding, borders and offset.
+ */
+const MENU_ROW_HEIGHT = 59;
+const MENU_CHROME_HEIGHT = 32;
+
+/**
+ * Weapons / Tools — the same Archive suggestions as SuggestInput, over a block
+ * that holds a list rather than a single value.
+ *
+ * One entry per line: the menu matches the line the caret is on, picking fills
+ * that line and opens the next, and entries already listed drop out of the
+ * menu, so several can be chosen in a row. It stays an ordinary textarea —
+ * anything can still be typed.
+ */
+function SuggestTextArea({
+    label,
+    options,
+    className,
+    initialValue = "",
+}: {
+    label: string;
+    options: string[];
+    className: string;
+    initialValue?: string;
+}) {
+    const [value, setValue] = useState(initialValue);
+    const [open, setOpen] = useState(false);
+    const [active, setActive] = useState(-1);
+    const [caretLine, setCaretLine] = useState(0);
+    const [placement, setPlacement] = useState<"below" | "above">("below");
+    const areaRef = useRef<HTMLTextAreaElement>(null);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    /** Set when a pick rewrites the value, so the caret can follow it. */
+    const caretAfterPick = useRef<number | null>(null);
+
+    const matches = useMemo(() => {
+        const rows = value.split("\n");
+        const taken = new Set(
+            rows
+                .filter((_, index) => index !== caretLine)
+                .map((row) => row.trim().toLowerCase())
+                .filter(Boolean),
+        );
+        const pool = options.filter((option) => !taken.has(option.toLowerCase()));
+        const query = (rows[caretLine] ?? "").trim().toLowerCase();
+        if (!query) return pool.slice(0, MAX_SUGGESTIONS);
+        const starts: string[] = [];
+        const contains: string[] = [];
+        for (const option of pool) {
+            const lower = option.toLowerCase();
+            if (lower === query) continue;
+            if (lower.startsWith(query)) starts.push(option);
+            else if (lower.includes(query)) contains.push(option);
+        }
+        return [...starts, ...contains].slice(0, MAX_SUGGESTIONS);
+    }, [options, value, caretLine]);
+
+    const visible = open && matches.length > 0;
+
+    useLayoutEffect(() => {
+        const caret = caretAfterPick.current;
+        if (caret === null) return;
+        caretAfterPick.current = null;
+        areaRef.current?.setSelectionRange(caret, caret);
+    }, [value]);
+
+    // These blocks sit at the foot of a tall column, so the menu often has no
+    // room below. The sheet is one uniformly scaled coordinate space, so the
+    // menu's design height converts with the same factor the page is drawn at.
+    useLayoutEffect(() => {
+        const wrapper = wrapperRef.current;
+        const sheet = wrapper?.closest(".cs-root");
+        if (!visible || !wrapper || !sheet) return;
+        const field = wrapper.getBoundingClientRect();
+        const page = sheet.getBoundingClientRect();
+        const scale = page.height / SHEET_HEIGHT;
+        const needed = (MENU_CHROME_HEIGHT + matches.length * MENU_ROW_HEIGHT) * scale;
+        setPlacement(page.bottom - field.bottom < needed ? "above" : "below");
+    }, [visible, matches.length]);
+
+    const syncCaret = (element: HTMLTextAreaElement) => {
+        const upto = element.value.slice(0, element.selectionStart ?? 0);
+        setCaretLine(upto.split("\n").length - 1);
+    };
+
+    const choose = (option: string) => {
+        const rows = value.split("\n");
+        rows[caretLine] = option;
+        // Leave a blank line ready so the next entry can be picked straight
+        // away; onBlur tidies it up if they stop here.
+        if (caretLine === rows.length - 1) rows.push("");
+        caretAfterPick.current = rows.slice(0, caretLine + 1).join("\n").length + 1;
+        setValue(rows.join("\n"));
+        setCaretLine(caretLine + 1);
+        setActive(-1);
+    };
+
+    const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === "Escape") {
+            setOpen(false);
+            setActive(-1);
+            return;
+        }
+        if (!visible) {
+            if (event.key === "ArrowDown") setOpen(true);
+            return;
+        }
+        // The arrows belong to the caret while there are lines left to move
+        // to; only from the edge of the text do they step into the menu.
+        const lastLine = value.split("\n").length - 1;
+        if (event.key === "ArrowDown") {
+            if (active < 0 && caretLine < lastLine) return;
+            event.preventDefault();
+            setActive((i) => (i + 1) % matches.length);
+        } else if (event.key === "ArrowUp") {
+            if (active < 0 && caretLine > 0) return;
+            event.preventDefault();
+            setActive((i) => (i <= 0 ? matches.length - 1 : i - 1));
+        } else if (event.key === "Enter" && active >= 0) {
+            event.preventDefault();
+            choose(matches[active]);
+        }
+    };
+
+    return (
+        <div
+            ref={wrapperRef}
+            className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col"
+        >
+            <textarea
+                ref={areaRef}
+                role="combobox"
+                aria-label={label}
+                aria-expanded={visible}
+                aria-autocomplete="list"
+                autoComplete="off"
+                value={value}
+                onChange={(e) => {
+                    setValue(e.target.value);
+                    syncCaret(e.target);
+                    setOpen(true);
+                    setActive(-1);
+                }}
+                onSelect={(e) => syncCaret(e.currentTarget)}
+                onFocus={(e) => {
+                    syncCaret(e.currentTarget);
+                    setOpen(true);
+                }}
+                onBlur={() => {
+                    setValue(
+                        value
+                            .split("\n")
+                            .map((row) => row.trim())
+                            .filter(Boolean)
+                            .join("\n"),
+                    );
+                    setOpen(false);
+                    setActive(-1);
+                }}
+                onKeyDown={onKeyDown}
+                className={`min-h-[1px] w-full flex-[1_0_0] ${className}`}
+            />
+            {visible && (
+                <ul
+                    role="listbox"
+                    aria-label={`${label} suggestions`}
+                    className={`absolute left-0 z-50 w-full min-w-[420px] overflow-hidden rounded-[18px] border-[3px] border-solid border-black bg-white py-[8px] shadow-[0_18px_48px_rgba(0,0,0,0.28)] ${
+                        placement === "above"
+                            ? "bottom-full mb-[10px]"
+                            : "top-full mt-[10px]"
+                    }`}
+                >
+                    {matches.map((option, i) => (
+                        <li key={option} role="option" aria-selected={i === active}>
+                            <button
+                                type="button"
+                                tabIndex={-1}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => choose(option)}
+                                onMouseEnter={() => setActive(i)}
+                                className={`block w-full px-[26px] py-[12px] text-left text-[28px] font-medium leading-[1.25] text-black ${
+                                    i === active ? "bg-black/10" : ""
+                                }`}
+                            >
+                                {option}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
+
 /* ------------------------------------------------------------------ */
 /* Header fields                                                       */
 /* ------------------------------------------------------------------ */
@@ -482,10 +879,14 @@ function HeaderFieldSm({
     icon,
     label,
     options,
+    value,
+    onValueChange,
 }: {
     icon: ReactNode;
     label: string;
     options: string[];
+    value?: string;
+    onValueChange?: (value: string) => void;
 }) {
     return (
         <div className="relative flex w-full shrink-0 items-center gap-[24.714px] rounded-[24.714px] border-[3.089px] border-solid border-black p-[24.714px]">
@@ -496,6 +897,8 @@ function HeaderFieldSm({
             <SuggestInput
                 label={label}
                 options={options}
+                value={value}
+                onValueChange={onValueChange}
                 className="text-[30.893px] font-medium not-italic leading-[normal] text-black"
             />
         </div>
@@ -537,12 +940,26 @@ function formatModifier(modifier: number) {
     return modifier >= 0 ? `+${modifier}` : `${modifier}`;
 }
 
+/** Read a user-entered proficiency bonus such as "2" or "+2". */
+function parseProficiencyBonus(value: string) {
+    const trimmed = value.trim();
+    return /^\+?\d+$/.test(trimmed) ? Number.parseInt(trimmed, 10) : null;
+}
+
 /**
  * The score box is the only blank here: the circle shows the modifier the rules
  * derive from it, so it is read-only.
  */
-function AbilityScoreGrid({ ability }: { ability: string }) {
-    const [score, setScore] = useState("");
+function AbilityScoreGrid({
+    ability,
+    onModifierChange,
+    initialScore,
+}: {
+    ability: string;
+    onModifierChange: (modifier: number | null) => void;
+    initialScore?: number;
+}) {
+    const [score, setScore] = useState(initialScore === undefined ? "" : `${initialScore}`);
     const parsed = Number.parseInt(score, 10);
     const modifier = Number.isNaN(parsed) ? "" : formatModifier(abilityModifier(parsed));
 
@@ -557,16 +974,21 @@ function AbilityScoreGrid({ ability }: { ability: string }) {
                     value={score}
                     onChange={(next) => {
                         const digits = next.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
-                        if (digits === "" || Number(digits) <= MAX_ABILITY_SCORE) setScore(digits);
+                        if (digits === "" || Number(digits) <= MAX_ABILITY_SCORE) {
+                            setScore(digits);
+                            onModifierChange(
+                                digits === "" ? null : abilityModifier(Number.parseInt(digits, 10)),
+                            );
+                        }
                     }}
                     inputMode="numeric"
                     maxLength={2}
                     textClassName="whitespace-nowrap text-[33.09px] font-normal not-italic leading-[normal] text-black"
-                    valueClassName="whitespace-nowrap text-[29px] font-normal not-italic leading-[normal] tabular-nums text-black"
+                    valueClassName="whitespace-nowrap text-[33.09px] font-normal not-italic leading-[normal] tabular-nums text-black"
                 />
             </div>
-            {/* Modifier circle. Only "+10" reaches three characters; it steps
-                down a size rather than crowding the ring. */}
+            {/* Modifier circle. Only "+10" reaches three characters, and the
+                blank shrinks it to fit rather than crowding the ring. */}
             <div className="relative col-start-1 row-start-1 ml-0 mt-0 flex size-[124.088px] flex-col items-center justify-center rounded-[198.54px] border-2 border-solid border-black bg-white px-[15.42px] py-[12.336px]">
                 <DerivedValue
                     label={`${ability} modifier`}
@@ -574,28 +996,70 @@ function AbilityScoreGrid({ ability }: { ability: string }) {
                     value={modifier}
                     wrapperClassName="w-[72.175px]"
                     textClassName="text-[55.699px] font-medium not-italic leading-[normal] text-black"
-                    valueClassName={`${modifier.length > 2 ? "text-[42px]" : "text-[50px]"} font-medium not-italic leading-[normal] tabular-nums text-black`}
+                    valueClassName="text-[50px] font-medium not-italic leading-[normal] tabular-nums text-black"
                 />
             </div>
         </div>
     );
 }
 
-function SkillRow({ skill }: { skill: SkillDef }) {
+function SkillRow({
+    skill,
+    modifier,
+    proficiencyBonus,
+    initialLevel = 0,
+}: {
+    skill: SkillDef;
+    modifier: number | null;
+    proficiencyBonus: number | null;
+    initialLevel?: ProficiencyLevel;
+}) {
+    const [proficiencyLevel, setProficiencyLevel] = useState<ProficiencyLevel>(initialLevel);
+    const total =
+        proficiencyLevel > 0 && modifier !== null && proficiencyBonus !== null
+            ? formatModifier(modifier + proficiencyBonus * proficiencyLevel)
+            : "";
+
     return (
         <div className="relative flex h-[53.771px] w-full shrink-0 items-center gap-[12.409px] rounded-[22.544px] bg-white px-[20.681px] py-[22.544px]">
-            <ProfRing label={skill.label} />
+            <ProfRing
+                label={skill.label}
+                level={proficiencyLevel}
+                onLevelChange={setProficiencyLevel}
+                allowExpertise
+            />
             <Icon src={skill.icon} w={skill.w} h={skill.h} />
             <p className="relative shrink-0 whitespace-nowrap text-[20.681px] font-normal not-italic leading-[normal] text-black">
                 {skill.label}
             </p>
+            <output
+                aria-label={`${skill.label} modifier`}
+                className="relative ml-auto min-w-[48px] shrink-0 text-right text-[20.681px] font-semibold leading-[normal] tabular-nums text-black"
+            >
+                {total}
+            </output>
         </div>
     );
 }
 
-function AbilityCard({ ability }: { ability: AbilityDef }) {
+function AbilityCard({
+    ability,
+    proficiencyBonus,
+    onModifierChange,
+    initialScore,
+    initialSkillLevels,
+}: {
+    ability: AbilityDef;
+    proficiencyBonus: number | null;
+    onModifierChange?: (ability: string, modifier: number | null) => void;
+    initialScore?: number;
+    initialSkillLevels?: Record<string, ProficiencyLevel>;
+}) {
     const { abbr, rest, skills } = ability;
     const name = `${abbr}${rest}`.toUpperCase();
+    const [modifier, setModifier] = useState<number | null>(
+        initialScore === undefined ? null : abilityModifier(initialScore),
+    );
     return (
         <div className="relative flex w-full shrink-0 flex-wrap content-start items-start gap-y-[3.5px] rounded-[22.749px] border-[4.136px] border-solid border-[#ffb800] p-[10.794px]">
             <div className="relative flex w-full flex-col items-center justify-center gap-[12.409px] overflow-clip rounded-[16.545px] bg-[#f8f8f8] p-[20.681px]">
@@ -609,7 +1073,14 @@ function AbilityCard({ ability }: { ability: AbilityDef }) {
                             </span>
                         </p>
                     </div>
-                    <AbilityScoreGrid ability={name} />
+                    <AbilityScoreGrid
+                        ability={name}
+                        initialScore={initialScore}
+                        onModifierChange={(next) => {
+                            setModifier(next);
+                            onModifierChange?.(abbr.toUpperCase(), next);
+                        }}
+                    />
                 </div>
 
                 <div
@@ -636,7 +1107,13 @@ function AbilityCard({ ability }: { ability: AbilityDef }) {
                                 </p>
                             </div>
                             {skills.map((skill) => (
-                                <SkillRow key={skill.label} skill={skill} />
+                                <SkillRow
+                                    key={skill.label}
+                                    skill={skill}
+                                    modifier={modifier}
+                                    proficiencyBonus={proficiencyBonus}
+                                    initialLevel={initialSkillLevels?.[skill.label] ?? 0}
+                                />
                             ))}
                         </>
                     )}
@@ -647,7 +1124,15 @@ function AbilityCard({ ability }: { ability: AbilityDef }) {
 }
 
 /** Proficiency Bonus / Inspiration — a blank box with a label beside it. */
-function CounterCard({ label }: { label: ReactNode }) {
+function CounterCard({
+    label,
+    value,
+    onValueChange,
+}: {
+    label: ReactNode;
+    value?: string;
+    onValueChange?: (value: string) => void;
+}) {
     return (
         <div className="relative flex w-full shrink-0 flex-wrap content-start items-start gap-y-[3.5px] rounded-[22.749px] border-[4.136px] border-solid border-[#ffb800] p-[10.794px]">
             <div className="relative flex w-full items-center gap-[24.672px] overflow-clip rounded-[16.545px] bg-[#f8f8f8] p-[12.409px]">
@@ -655,6 +1140,8 @@ function CounterCard({ label }: { label: ReactNode }) {
                     <Blank
                         label={typeof label === "string" ? label : "Proficiency Bonus"}
                         sizer="+2"
+                        value={value}
+                        onChange={onValueChange}
                         wrapperClassName="w-full"
                         textClassName="text-[71.961px] font-medium not-italic leading-[normal] text-black"
                     />
@@ -745,7 +1232,7 @@ const ABILITIES_RIGHT: AbilityDef[] = [
             { label: "Intimidation", icon: asset("skill-intimidation"), w: 28.744, h: 28.744 },
             { label: "Perception", icon: asset("skill-perception"), w: 35.93, h: 25.151 },
             { label: "Performance", icon: asset("skill-performance"), w: 28.744, h: 28.576 },
-            { label: "Persusasion", icon: asset("skill-persuasion"), w: 28.744, h: 28.744 },
+            { label: "Persuasion", icon: asset("skill-persuasion"), w: 28.744, h: 28.744 },
         ],
     },
 ];
@@ -759,10 +1246,12 @@ function EquipmentField({
     icon,
     label,
     options,
+    initialValue,
 }: {
     icon: ReactNode;
     label: string;
     options: string[];
+    initialValue?: string;
 }) {
     return (
         <div className="relative flex w-full shrink-0 items-center gap-[14.067px] rounded-[14.067px] border-2 border-solid border-black bg-white px-[28.135px] py-[14.067px]">
@@ -773,21 +1262,26 @@ function EquipmentField({
             <SuggestInput
                 label={label}
                 options={options}
+                initialValue={initialValue}
                 className="text-[29.933px] font-normal not-italic leading-[normal] text-black"
             />
         </div>
     );
 }
 
-/** Weapons / Tools — a labelled block with room to write. */
+/** Weapons / Tools — a labelled block with room to write, one entry per line. */
 function EquipmentBlock({
     icon,
     label,
+    options,
     height,
+    initialValue,
 }: {
     icon: ReactNode;
     label: string;
+    options: string[];
     height: number;
+    initialValue?: string;
 }) {
     return (
         <div
@@ -800,9 +1294,11 @@ function EquipmentBlock({
                     {label}
                 </p>
             </div>
-            <textarea
-                aria-label={label}
-                className="relative min-h-[1px] w-full flex-[1_0_0] text-[29.933px] font-normal not-italic leading-[normal] text-black"
+            <SuggestTextArea
+                label={label}
+                options={options}
+                initialValue={initialValue}
+                className="text-[29.933px] font-normal not-italic leading-[normal] text-black"
             />
         </div>
     );
@@ -821,7 +1317,29 @@ const ACTION_COLUMNS = [
 
 const ACTION_ROW_COUNT = 6;
 
-function ActionRow({ index }: { index: number }) {
+function formatFeatures(
+    features: { level: number; name: string; description?: string }[] | undefined,
+    maximumLevel: number,
+) {
+    return (features ?? [])
+        .filter((feature) => !feature.level || feature.level <= maximumLevel)
+        .sort((a, b) => (a.level ?? 0) - (b.level ?? 0))
+        .map(
+            (feature) =>
+                `${feature.name}${feature.description ? `: ${feature.description}` : ""}`,
+        )
+        .join("\n\n");
+}
+
+type ActionValue = { action?: string; attack?: string; damage?: string; range?: string };
+
+function ActionRow({ index, initial }: { index: number; initial?: ActionValue }) {
+    const [values, setValues] = useState([
+        initial?.action ?? "",
+        initial?.attack ?? "",
+        initial?.damage ?? "",
+        initial?.range ?? "",
+    ]);
     return (
         <div className="relative flex w-full items-start gap-[23.768px] rounded-[23.768px] px-[47.535px] py-[23.768px]">
             {ACTION_COLUMNS.map((column, i) => (
@@ -836,6 +1354,14 @@ function ActionRow({ index }: { index: number }) {
                         label={`${column.label}, row ${index + 1}`}
                         sizer={column.label}
                         align="left"
+                        value={values[i]}
+                        onChange={(next) =>
+                            setValues((current) =>
+                                current.map((value, valueIndex) =>
+                                    valueIndex === i ? next : value,
+                                ),
+                            )
+                        }
                         wrapperStyle={{ flexGrow: column.width, flexBasis: 0, minWidth: 0 }}
                         textClassName="whitespace-nowrap text-[29.71px] font-medium not-italic leading-[normal] text-black"
                     />
@@ -849,29 +1375,332 @@ function ActionRow({ index }: { index: number }) {
 /* Sheet                                                               */
 /* ------------------------------------------------------------------ */
 
-export function CharacterSheetA4() {
+export function CharacterSheetA4({ initialCharacter }: { initialCharacter?: CharacterData }) {
     const suggestions = useSheetSuggestions();
-    const [characterClass, setCharacterClass] = useState("");
+    const [characterName, setCharacterName] = useState(initialCharacter?.name ?? "");
+    const [characterClass, setCharacterClass] = useState(initialCharacter?.class?.name ?? "");
+    const [characterSubclass, setCharacterSubclass] = useState(
+        initialCharacter?.subclass?.name ?? "",
+    );
+    const [species, setSpecies] = useState(initialCharacter?.race?.name ?? "");
+    const [background, setBackground] = useState(initialCharacter?.background?.name ?? "");
+    const [characterLevel, setCharacterLevel] = useState(
+        initialCharacter ? `${initialCharacter.level}` : "",
+    );
+    const [abilityModifiers, setAbilityModifiers] = useState<
+        Partial<Record<string, number | null>>
+    >(() => {
+        if (!initialCharacter) return {};
+        return Object.fromEntries(
+            Object.entries(initialCharacter.abilityScores).map(([ability, score]) => [
+                ability,
+                abilityModifier(score),
+            ]),
+        );
+    });
+    const [hitDieOverride, setHitDieOverride] = useState<{
+        source: string;
+        value: string;
+    } | null>(null);
+    const [pointOverride, setPointOverride] = useState<{
+        source: string;
+        value: string;
+    } | null>(null);
 
-    // Narrow the 217 subclasses to the entered classes. A multiclassed
-    // character draws from every class they have taken.
+    // Preserve the order in which classes were entered: any remainder from an
+    // uneven level split belongs to the earliest classes, especially the first.
+    const selectedClasses = useMemo(() => {
+        const byName = new Map(
+            suggestions.classes.map((item) => [item.name.toLowerCase(), item]),
+        );
+        const selected: typeof suggestions.classes = [];
+        const seen = new Set<string>();
+
+        for (const name of splitList(characterClass)) {
+            const item = byName.get(name.toLowerCase());
+            if (!item || seen.has(item.id)) continue;
+            seen.add(item.id);
+            selected.push(item);
+        }
+        return selected;
+    }, [suggestions.classes, characterClass]);
+
+    // Narrow the subclass suggestions to the selected classes. A multiclassed
+    // character draws from every class they have taken. Only fall back to the
+    // full list while no entered value matches a known class; once a class is
+    // selected, an empty match must stay empty rather than leaking unrelated
+    // subclass suggestions back into the menu.
     const subclassOptions = useMemo(() => {
-        const entered = new Set(splitList(characterClass).map((name) => name.toLowerCase()));
-        const slugs = suggestions.classes
-            .filter((c) => entered.has(c.name.toLowerCase()))
-            .map((c) => c.id);
-        const pool = slugs.length
-            ? suggestions.subclasses.filter(
-                  (s) => s.parentClassId && slugs.includes(s.parentClassId),
+        const selectedClassIds = new Set(selectedClasses.map((c) => c.id.toLowerCase()));
+
+        if (!selectedClassIds.size) {
+            return suggestions.subclasses.map((s) => s.name);
+        }
+
+        return suggestions.subclasses
+            .filter(
+                (s) =>
+                    s.parentClassId &&
+                    selectedClassIds.has(s.parentClassId.toLowerCase()),
+            )
+            .map((s) => s.name);
+    }, [suggestions.subclasses, selectedClasses]);
+
+    const isMulticlass = selectedClasses.length > 1;
+    const allocatedClassLevels = useMemo(() => {
+        const totalLevel = Number.parseInt(characterLevel, 10);
+        if (
+            !Number.isInteger(totalLevel) ||
+            totalLevel <= 0 ||
+            selectedClasses.length === 0
+        ) {
+            return [];
+        }
+
+        const levelsPerClass = Math.floor(totalLevel / selectedClasses.length);
+        const remainder = totalLevel % selectedClasses.length;
+        return selectedClasses.map(
+            (_, index) => levelsPerClass + (index < remainder ? 1 : 0),
+        );
+    }, [characterLevel, selectedClasses]);
+
+    const automaticHitDice = useMemo(() => {
+        if (
+            allocatedClassLevels.length !== selectedClasses.length ||
+            selectedClasses.some((item) => !item.hitDie)
+        ) {
+            return "";
+        }
+
+        return selectedClasses
+            .map((item, index) => `${allocatedClassLevels[index]}d${item.hitDie}`)
+            .join(" + ");
+    }, [allocatedClassLevels, selectedClasses]);
+    const hitDieValue =
+        isMulticlass && hitDieOverride?.source === automaticHitDice
+            ? hitDieOverride.value
+            : automaticHitDice;
+
+    // Multiclass Hit Dice may be manually adjusted, so read the class levels
+    // back from that field before calculating each class-specific point pool.
+    const hitDieClassLevels = useMemo(() => {
+        const parts = hitDieValue.split("+").map((part) => part.trim());
+        if (parts.length !== selectedClasses.length) return allocatedClassLevels;
+
+        const parsed = parts.map((part) => {
+            const match = /^(\d+)\s*d\d+$/i.exec(part);
+            return match ? Number.parseInt(match[1], 10) : Number.NaN;
+        });
+        return parsed.every(Number.isFinite) ? parsed : allocatedClassLevels;
+    }, [hitDieValue, selectedClasses.length, allocatedClassLevels]);
+
+    const pointResources = selectedClasses.flatMap((item, index) => {
+        const label = CLASS_POINT_LABELS[item.id] ?? item.pointLabel?.trim();
+        return label ? [{ label, classIndex: index }] : [];
+    });
+    const pointLabel = pointResources.length
+        ? pointResources.map((resource) => resource.label).join(" + ")
+        : "Points";
+    const automaticPointValue = pointResources.length
+        ? pointResources
+              .map((resource) => hitDieClassLevels[resource.classIndex])
+              .filter((value) => Number.isFinite(value))
+              .join(" + ")
+        : isMulticlass
+          ? hitDieClassLevels.join(" + ")
+          : characterLevel;
+    const pointValue =
+        pointOverride?.source === automaticPointValue
+            ? pointOverride.value
+            : automaticPointValue;
+
+    const totalLevel = Number.parseInt(characterLevel, 10);
+    const automaticProficiencyBonus =
+        Number.isInteger(totalLevel) && totalLevel > 0
+            ? formatModifier(2 + Math.floor((totalLevel - 1) / 4))
+            : "";
+    const [proficiencyBonus, setProficiencyBonus] = useEditableAutoValue(
+        automaticProficiencyBonus,
+    );
+    const parsedProficiencyBonus = parseProficiencyBonus(proficiencyBonus);
+
+    const selectedSubclassDocs = splitList(characterSubclass)
+        .map((name) =>
+            suggestions.subclasses.find(
+                (item) => item.name.toLowerCase() === name.toLowerCase(),
+            ),
+        )
+        .filter((item) => item !== undefined);
+    const subclassSaveAbility = selectedSubclassDocs
+        .map((item) => item.spellcastingAbility ?? item.magicAbility)
+        .find(Boolean);
+    const classSaveAbility = selectedClasses
+        .map(
+            (item) =>
+                item.spellcastingAbility ??
+                CLASS_SAVE_ABILITIES[item.id] ??
+                item.primaryAbility?.[0],
+        )
+        .find(Boolean);
+    const skillSaveAbility = normalizeAbilityKey(subclassSaveAbility ?? classSaveAbility);
+    const skillSaveModifier = skillSaveAbility
+        ? abilityModifiers[skillSaveAbility]
+        : undefined;
+    const automaticSkillSaveDc =
+        parsedProficiencyBonus !== null && typeof skillSaveModifier === "number"
+            ? `${8 + parsedProficiencyBonus + skillSaveModifier}`
+            : "";
+    const [skillSaveDc, setSkillSaveDc] = useEditableAutoValue(automaticSkillSaveDc);
+
+    const selectedSpecies = suggestions.species.find(
+        (item) => item.name.toLowerCase() === species.trim().toLowerCase(),
+    );
+    const automaticSpeed =
+        typeof selectedSpecies?.speed === "number" ? `${selectedSpecies.speed}` : "";
+    const [speed, setSpeed] = useEditableAutoValue(automaticSpeed);
+
+    const dexterityModifier = abilityModifiers.DEX;
+    const automaticArmorClass =
+        typeof dexterityModifier === "number" ? `${10 + dexterityModifier}` : "";
+    const automaticInitiative =
+        typeof dexterityModifier === "number" ? formatModifier(dexterityModifier) : "";
+    const [armorClass, setArmorClass] = useEditableAutoValue(automaticArmorClass);
+    const [initiative, setInitiative] = useEditableAutoValue(automaticInitiative);
+
+    const constitutionModifier = abilityModifiers.CON ?? 0;
+    const automaticMaximumHitPoints = useMemo(() => {
+        if (
+            selectedClasses.length === 0 ||
+            hitDieClassLevels.length !== selectedClasses.length ||
+            selectedClasses.some((item) => !item.hitDie)
+        ) {
+            return "";
+        }
+
+        let maximum = 0;
+        selectedClasses.forEach((item, index) => {
+            const levels = hitDieClassLevels[index] ?? 0;
+            const die = item.hitDie ?? 0;
+            const averageGain = Math.floor(die / 2) + 1;
+
+            if (index === 0 && levels > 0) {
+                maximum += Math.max(1, die + constitutionModifier);
+                maximum +=
+                    Math.max(1, averageGain + constitutionModifier) * (levels - 1);
+            } else {
+                maximum += Math.max(1, averageGain + constitutionModifier) * levels;
+            }
+        });
+        return maximum > 0 ? `${maximum}` : "";
+    }, [selectedClasses, hitDieClassLevels, constitutionModifier]);
+    const [maximumHitPoints, setMaximumHitPoints] = useEditableAutoValue(
+        automaticMaximumHitPoints,
+    );
+
+    const creatorClassFeatures =
+        initialCharacter?.class &&
+        splitList(characterClass).some(
+            (name) => name.toLowerCase() === initialCharacter.class?.name.toLowerCase(),
+        )
+            ? formatFeatures(initialCharacter.class.features, initialCharacter.level)
+            : "";
+    const automaticClassFeatures = selectedClasses.length
+        ? selectedClasses
+              .map((item, index) =>
+                  formatFeatures(
+                      item.features?.length
+                          ? item.features
+                          : item.id === initialCharacter?.class?.id
+                            ? initialCharacter.class.features
+                            : undefined,
+                      hitDieClassLevels[index] ?? 0,
+                  ),
               )
-            : suggestions.subclasses;
-        return (pool.length ? pool : suggestions.subclasses).map((s) => s.name);
-    }, [suggestions.classes, suggestions.subclasses, characterClass]);
+              .filter(Boolean)
+              .join("\n\n")
+        : creatorClassFeatures;
+    const creatorSubclassFeatures =
+        initialCharacter?.subclass &&
+        splitList(characterSubclass).some(
+            (name) => name.toLowerCase() === initialCharacter.subclass?.name.toLowerCase(),
+        )
+            ? formatFeatures(initialCharacter.subclass.features, initialCharacter.level)
+            : "";
+    const automaticSubclassFeatures = selectedSubclassDocs.length
+        ? selectedSubclassDocs
+              .map((item) => {
+                  const classIndex = selectedClasses.findIndex(
+                      (classItem) => classItem.id === item.parentClassId,
+                  );
+                  return formatFeatures(
+                      item.features?.length
+                          ? item.features
+                          : item.name === initialCharacter?.subclass?.name
+                            ? initialCharacter.subclass.features
+                            : undefined,
+                      hitDieClassLevels[classIndex] ??
+                          (Number.isInteger(totalLevel) ? totalLevel : 0),
+                  );
+              })
+              .filter(Boolean)
+              .join("\n\n")
+        : creatorSubclassFeatures;
+    const [classFeatures, setClassFeatures] = useEditableAutoValue(
+        automaticClassFeatures,
+    );
+    const [subclassFeatures, setSubclassFeatures] = useEditableAutoValue(
+        automaticSubclassFeatures,
+    );
+
+    const spellAttackBonus =
+        parsedProficiencyBonus !== null && typeof skillSaveModifier === "number"
+            ? formatModifier(parsedProficiencyBonus + skillSaveModifier)
+            : "";
+    const initialActions: ActionValue[] = [
+        ...(initialCharacter?.selectedSpells ?? []).map((spell) => ({
+            action: spell.name,
+            attack: spellAttackBonus,
+            damage: spell.school,
+            range: spell.range,
+        })),
+        ...(initialCharacter?.equipment ?? [])
+            .filter((item) => item.type === "Weapon")
+            .map((item) => ({
+                action: item.name,
+                damage: item.properties?.join(", ") ?? "",
+            })),
+    ].slice(0, ACTION_ROW_COUNT);
+
+    const handleAbilityModifierChange = (ability: string, modifier: number | null) => {
+        setAbilityModifiers((current) => ({ ...current, [ability]: modifier }));
+    };
 
     const classOptions = useMemo(
         () => suggestions.classes.map((c) => c.name),
         [suggestions.classes],
     );
+    const initialSkillLevels = Object.fromEntries(
+        (initialCharacter?.proficiencies?.skills ?? []).map((skill) => [
+            skill.name,
+            (skill.expertise ? 2 : skill.proficient ? 1 : 0) as ProficiencyLevel,
+        ]),
+    );
+    const initialAbilityScore = (ability: string) =>
+        initialCharacter?.abilityScores[
+            ability.toUpperCase() as keyof CharacterData["abilityScores"]
+        ];
+    const initialArmor = (initialCharacter?.equipment ?? [])
+        .filter((item) => item.type === "Armor" && !item.name.toLowerCase().includes("shield"))
+        .map((item) => item.name)
+        .join(" / ");
+    const initialShield = (initialCharacter?.equipment ?? []).find((item) =>
+        item.name.toLowerCase().includes("shield"),
+    )?.name;
+    const initialWeapons = (initialCharacter?.equipment ?? [])
+        .filter((item) => item.type === "Weapon")
+        .map((item) => item.name)
+        .join("\n");
+    const initialTools = initialCharacter?.proficiencies?.tools.join("\n") ?? "";
 
     return (
         <div
@@ -882,7 +1711,7 @@ export function CharacterSheetA4() {
                 {/* Title */}
                 <div className="absolute left-0 top-0 flex items-center gap-[18.569px] whitespace-nowrap not-italic text-black">
                     <div className="flex shrink-0 items-center justify-center">
-                        <DiceD20 className="size-[55.707px]" />
+                        <Icon src={asset("die")} w={48.743} h={55.707} />
                     </div>
                     <p className="relative shrink-0 text-[46.422px] font-bold leading-[normal]">
                         Character Sheet for D&amp;D
@@ -901,34 +1730,62 @@ export function CharacterSheetA4() {
                                     </p>
                                     <textarea
                                         aria-label="Character name"
+                                        value={characterName}
+                                        onChange={(event) => setCharacterName(event.target.value)}
                                         className="relative min-h-[1px] w-full flex-[1_0_0] text-[32.268px] font-medium not-italic leading-[normal] text-black"
                                     />
                                 </div>
                             </div>
-                            <div className="relative flex w-[1156.001px] shrink-0 items-center gap-[25.814px] rounded-[25.814px] border-[3.227px] border-solid border-black p-[25.814px]">
-                                <Icon src={asset("class")} w={38.722} h={38.722} />
-                                <p className="relative shrink-0 whitespace-nowrap text-[32.268px] font-medium not-italic leading-[normal] text-black">
-                                    Class
-                                </p>
-                                <SuggestInput
-                                    label="Class"
-                                    options={classOptions}
-                                    multiple
-                                    value={characterClass}
-                                    onValueChange={setCharacterClass}
-                                    className="text-[32.268px] font-medium not-italic leading-[normal] text-black"
-                                />
+                            <div className="relative flex w-[1156.001px] shrink-0 items-stretch rounded-[25.814px] border-[3.227px] border-solid border-black">
+                                <div className="relative flex min-w-0 flex-1 items-center gap-[25.814px] p-[25.814px]">
+                                    <Icon src={asset("class")} w={38.722} h={38.722} />
+                                    <p className="relative shrink-0 whitespace-nowrap text-[32.268px] font-medium not-italic leading-[normal] text-black">
+                                        Class
+                                    </p>
+                                    <SuggestInput
+                                        label="Class"
+                                        options={classOptions}
+                                        multiple
+                                        value={characterClass}
+                                        onValueChange={setCharacterClass}
+                                        className="text-[32.268px] font-medium not-italic leading-[normal] text-black"
+                                    />
+                                </div>
+                                <div className="relative flex w-[258px] shrink-0 items-center gap-[18px] border-l-[3.227px] border-solid border-black px-[25.814px]">
+                                    <p className="relative shrink-0 whitespace-nowrap text-[32.268px] font-medium not-italic leading-[normal] text-black">
+                                        Level
+                                    </p>
+                                    <Blank
+                                        label="Level"
+                                        sizer="00"
+                                        value={characterLevel}
+                                        onChange={(next) => {
+                                            const digits = next
+                                                .replace(/\D/g, "")
+                                                .replace(/^0+(?=\d)/, "");
+                                            setCharacterLevel(digits);
+                                        }}
+                                        inputMode="numeric"
+                                        maxLength={2}
+                                        wrapperClassName="min-w-0 flex-1"
+                                        textClassName="whitespace-nowrap text-[32.268px] font-medium not-italic leading-[normal] tabular-nums text-black"
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-start justify-between">
                             <HeaderFieldSm
                                 label="Species"
-                                options={suggestions.species}
+                                options={suggestions.species.map((item) => item.name)}
+                                value={species}
+                                onValueChange={setSpecies}
                                 icon={<Icon src={asset("species")} w={27.804} h={37.071} />}
                             />
                             <HeaderFieldSm
                                 label="Background"
-                                options={suggestions.backgrounds}
+                                options={suggestions.backgrounds.map((item) => item.name)}
+                                value={background}
+                                onValueChange={setBackground}
                                 icon={<Icon src={asset("background")} w={32.438} h={37.071} />}
                             />
                             <HeaderFieldSm
@@ -953,6 +1810,8 @@ export function CharacterSheetA4() {
                             <div className="relative flex w-full shrink-0 items-center gap-[20.681px]">
                                 <div className="relative flex w-[402.649px] shrink-0 flex-col items-start gap-[20.681px]">
                                     <CounterCard
+                                        value={proficiencyBonus}
+                                        onValueChange={setProficiencyBonus}
                                         label={
                                             <>
                                                 Proficiency
@@ -962,20 +1821,37 @@ export function CharacterSheetA4() {
                                         }
                                     />
                                     {ABILITIES_LEFT.map((ability) => (
-                                        <AbilityCard key={ability.abbr} ability={ability} />
+                                        <AbilityCard
+                                            key={ability.abbr}
+                                            ability={ability}
+                                            proficiencyBonus={parsedProficiencyBonus}
+                                            onModifierChange={handleAbilityModifierChange}
+                                            initialScore={initialAbilityScore(ability.abbr)}
+                                            initialSkillLevels={initialSkillLevels}
+                                        />
                                     ))}
                                 </div>
                                 <div className="relative flex w-[403.082px] shrink-0 flex-col items-start gap-[20.681px]">
                                     <CounterCard label="Inspiration" />
                                     {ABILITIES_RIGHT.map((ability) => (
-                                        <AbilityCard key={ability.abbr} ability={ability} />
+                                        <AbilityCard
+                                            key={ability.abbr}
+                                            ability={ability}
+                                            proficiencyBonus={parsedProficiencyBonus}
+                                            onModifierChange={handleAbilityModifierChange}
+                                            initialScore={initialAbilityScore(ability.abbr)}
+                                            initialSkillLevels={initialSkillLevels}
+                                        />
                                     ))}
                                 </div>
                             </div>
 
                             {/* Equipment Training & Proficiencies */}
                             <div className="relative flex w-full shrink-0 items-start rounded-[22.749px] border-[4.136px] border-solid border-[#005f1a] p-[9.02px]">
-                                <div className="relative flex w-full flex-col items-start justify-center overflow-clip rounded-[11.067px] bg-[#f8f8f8] p-[13.834px]">
+                                {/* No overflow clip: the equipment fields' suggestion
+                                    menus have to escape this box. Its children are
+                                    inset by the padding, so nothing needs clipping. */}
+                                <div className="relative flex w-full flex-col items-start justify-center rounded-[11.067px] bg-[#f8f8f8] p-[13.834px]">
                                     <div className="relative flex w-full flex-col items-start gap-[8.273px]">
                                         <div className="relative flex w-full shrink-0 items-center gap-[14.067px] rounded-[14.067px] bg-[#f8f8f8] px-[28.135px] py-[14.067px]">
                                             <Icon
@@ -990,21 +1866,27 @@ export function CharacterSheetA4() {
                                         <EquipmentField
                                             label="Armor Type"
                                             options={suggestions.armor}
+                                            initialValue={initialArmor}
                                             icon={<Icon src={asset("armor-type")} w={35.783} h={36} />}
                                         />
                                         <EquipmentField
                                             label="Shield"
                                             options={suggestions.armor}
+                                            initialValue={initialShield}
                                             icon={<Icon src={asset("shield")} w={33.762} h={36} />}
                                         />
                                         <EquipmentBlock
                                             label="Weapons"
+                                            options={suggestions.weapons}
                                             height={236.473}
+                                            initialValue={initialWeapons}
                                             icon={<Icon src={asset("weapons")} w={36.484} h={48.646} />}
                                         />
                                         <EquipmentBlock
                                             label="Tools"
+                                            options={suggestions.tools}
                                             height={268}
+                                            initialValue={initialTools}
                                             icon={
                                                 <div className="relative flex shrink-0 items-center justify-center">
                                                     <div className="flex-none rotate-180 -scale-y-100">
@@ -1031,10 +1913,21 @@ export function CharacterSheetA4() {
                                         <div className="relative flex h-full w-[690.272px] shrink-0 items-stretch gap-[18.645px] rounded-[29.918px] border-[3.561px] border-solid border-[#d40000] p-[18.645px]">
                                             <div className="relative flex w-[331.159px] shrink-0 flex-col items-stretch gap-[15.982px]">
                                                 <div className="relative flex h-[148.974px] w-full shrink-0 flex-col items-center justify-end rounded-[17.833px] border-[2.452px] border-solid border-black bg-[#f8f8f8] px-[41.472px] py-[16.553px]">
-                                                    <input
-                                                        type="text"
-                                                        aria-label="Hit die"
-                                                        className="relative min-h-[1px] w-full flex-[1_0_0] text-center text-[61.978px] font-medium not-italic leading-[normal] text-black"
+                                                    <FitInput
+                                                        label="Hit die"
+                                                        value={hitDieValue}
+                                                        readOnly={!isMulticlass}
+                                                        onChange={(next) => {
+                                                            if (isMulticlass) {
+                                                                setHitDieOverride({
+                                                                    source: automaticHitDice,
+                                                                    value: next,
+                                                                });
+                                                            }
+                                                        }}
+                                                        className={`relative min-h-[1px] w-full flex-[1_0_0] text-center text-[61.978px] font-medium not-italic leading-[normal] text-black ${
+                                                            isMulticlass ? "" : "cursor-default"
+                                                        }`}
                                                     />
                                                     <div className="relative flex shrink-0 items-center gap-[5.925px] px-[5.925px]">
                                                         <Icon
@@ -1048,9 +1941,8 @@ export function CharacterSheetA4() {
                                                     </div>
                                                 </div>
                                                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-center justify-end rounded-[18.395px] border-[2.516px] border-solid border-black bg-[#f8f8f8] p-[42.555px]">
-                                                    <input
-                                                        type="text"
-                                                        aria-label="Current hit points"
+                                                    <FitInput
+                                                        label="Current hit points"
                                                         className="relative min-h-[1px] w-full flex-[1_0_0] text-center text-[63.596px] font-medium not-italic leading-[normal] text-black"
                                                     />
                                                     <div className="relative flex w-full shrink-0 items-center px-[6.079px]">
@@ -1062,9 +1954,8 @@ export function CharacterSheetA4() {
                                             </div>
                                             <div className="relative flex min-w-[1px] flex-[1_0_0] flex-col items-stretch gap-[15.982px]">
                                                 <div className="relative flex h-[148.974px] w-full shrink-0 flex-col items-center justify-end rounded-[17.833px] border-[2.452px] border-solid border-black bg-[#f8f8f8] px-[41.472px] py-[16.553px]">
-                                                    <input
-                                                        type="text"
-                                                        aria-label="Temporary hit points"
+                                                    <FitInput
+                                                        label="Temporary hit points"
                                                         className="relative min-h-[1px] w-full flex-[1_0_0] text-center text-[61.978px] font-medium not-italic leading-[100.04%] text-black bg-transparent"
                                                     />
                                                     <div className="relative flex w-full shrink-0 items-center gap-[5.925px] px-[5.925px]">
@@ -1080,9 +1971,10 @@ export function CharacterSheetA4() {
                                                     </div>
                                                 </div>
                                                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-center justify-end rounded-[18.395px] border-[2.516px] border-solid border-black bg-[#f8f8f8] p-[42.555px]">
-                                                    <input
-                                                        type="text"
-                                                        aria-label="Maximum hit points"
+                                                    <FitInput
+                                                        label="Maximum hit points"
+                                                        value={maximumHitPoints}
+                                                        onChange={setMaximumHitPoints}
                                                         className="relative min-h-[1px] w-full flex-[1_0_0] text-center text-[63.596px] font-medium not-italic leading-[100.04%] text-black bg-transparent"
                                                     />
                                                     <div className="relative flex w-full shrink-0 items-center gap-[6.079px] px-[6.079px]">
@@ -1107,6 +1999,8 @@ export function CharacterSheetA4() {
                                         {
                                             label: "Speed",
                                             icon: <Icon src={asset("speed")} w={29.76} h={29.745} />,
+                                            value: speed,
+                                            setValue: setSpeed,
                                             gap: "gap-[6.078px] px-[6.078px]",
                                             text: "text-[25.149px]",
                                         },
@@ -1115,6 +2009,8 @@ export function CharacterSheetA4() {
                                             icon: (
                                                 <Icon src={asset("armor-class")} w={27.778} h={29.619} />
                                             ),
+                                            value: armorClass,
+                                            setValue: setArmorClass,
                                             gap: "gap-[5.989px] px-[5.989px]",
                                             text: "text-[24.782px]",
                                         },
@@ -1123,6 +2019,8 @@ export function CharacterSheetA4() {
                                             icon: (
                                                 <Icon src={asset("initiative")} w={24.87} h={21.761} />
                                             ),
+                                            value: initiative,
+                                            setValue: setInitiative,
                                             gap: "gap-[6.078px] px-[6.078px]",
                                             text: "text-[25.149px]",
                                         },
@@ -1135,6 +2033,8 @@ export function CharacterSheetA4() {
                                                 <Blank
                                                     label={stat.label}
                                                     sizer="+2"
+                                                    value={stat.value}
+                                                    onChange={stat.setValue}
                                                     wrapperClassName="w-full"
                                                     textClassName="text-[68.275px] font-medium not-italic leading-[normal] text-black"
                                                 />
@@ -1167,15 +2067,7 @@ export function CharacterSheetA4() {
                                                 <p className="relative shrink-0 whitespace-nowrap text-[17.95px] font-normal not-italic leading-[100.08%] text-black">
                                                     Success
                                                 </p>
-                                                <div className="relative flex h-[165.527px] w-[33.657px] shrink-0 items-center justify-center">
-                                                    <div className="flex-none -rotate-90">
-                                                        <Icon
-                                                            src={asset("death-save-success-track")}
-                                                            w={165.527}
-                                                            h={33.657}
-                                                        />
-                                                    </div>
-                                                </div>
+                                                <DeathSaveTrack kind="success" />
                                                 <Icon
                                                     src={asset("death-save-success-icon")}
                                                     w={38.784}
@@ -1202,15 +2094,7 @@ export function CharacterSheetA4() {
                                                 <p className="relative shrink-0 whitespace-nowrap text-[17.95px] font-normal not-italic leading-[100.08%] text-black">
                                                     Failure
                                                 </p>
-                                                <div className="relative flex h-[167.389px] w-[35.226px] shrink-0 items-center justify-center">
-                                                    <div className="flex-none -rotate-90">
-                                                        <Icon
-                                                            src={asset("death-save-failure-track")}
-                                                            w={167.389}
-                                                            h={35.226}
-                                                        />
-                                                    </div>
-                                                </div>
+                                                <DeathSaveTrack kind="failure" />
                                                 <Icon
                                                     src={asset("death-save-failure-icon")}
                                                     w={32.701}
@@ -1243,9 +2127,10 @@ export function CharacterSheetA4() {
                                                 <p className="relative shrink-0 whitespace-nowrap text-[32.268px] font-medium not-italic leading-[normal] text-black">
                                                     Skill Save DC
                                                 </p>
-                                                <input
-                                                    type="text"
-                                                    aria-label="Skill Save DC"
+                                                <FitInput
+                                                    label="Skill Save DC"
+                                                    value={skillSaveDc}
+                                                    onChange={setSkillSaveDc}
                                                     className="relative min-w-[1px] flex-[1_0_0] text-[32.268px] font-medium not-italic leading-[normal] text-black"
                                                 />
                                             </div>
@@ -1276,7 +2161,11 @@ export function CharacterSheetA4() {
 
                                         <div className="relative flex w-full flex-col items-start rounded-[37.398px] bg-[#f8f8f8]">
                                             {Array.from({ length: ACTION_ROW_COUNT }, (_, index) => (
-                                                <ActionRow key={index} index={index} />
+                                                <ActionRow
+                                                    key={index}
+                                                    index={index}
+                                                    initial={initialActions[index]}
+                                                />
                                             ))}
                                         </div>
                                     </div>
@@ -1306,6 +2195,8 @@ export function CharacterSheetA4() {
                                                     label="Subclass"
                                                     options={subclassOptions}
                                                     multiple
+                                                    value={characterSubclass}
+                                                    onValueChange={setCharacterSubclass}
                                                     className="text-[32.268px] font-medium not-italic leading-[normal] text-black"
                                                 />
                                             </div>
@@ -1335,22 +2226,38 @@ export function CharacterSheetA4() {
 
                                             <textarea
                                                 aria-label="Class features"
+                                                value={classFeatures}
+                                                onChange={(event) =>
+                                                    setClassFeatures(event.target.value)
+                                                }
                                                 className="absolute bottom-[23.768px] left-[47.535px] top-[23.768px] w-[calc(50%_-_59.419px)] text-[29.71px] font-medium not-italic leading-[normal] text-black"
                                             />
                                             <textarea
                                                 aria-label="Subclass features"
+                                                value={subclassFeatures}
+                                                onChange={(event) =>
+                                                    setSubclassFeatures(event.target.value)
+                                                }
                                                 className="absolute bottom-[220px] right-[47.535px] top-[23.768px] w-[calc(50%_-_59.419px)] text-[29.71px] font-medium not-italic leading-[normal] text-black"
                                             />
 
                                             <div className="absolute left-[1016.4px] top-[995.7px] h-[189px] w-[261px] overflow-clip rounded-[17px] border-[3.227px] border-solid border-black">
-                                                <input
-                                                    type="text"
-                                                    aria-label="Points"
+                                                <FitInput
+                                                    label={pointLabel}
+                                                    value={pointValue}
+                                                    onChange={(next) =>
+                                                        setPointOverride({
+                                                            source: automaticPointValue,
+                                                            value: next,
+                                                        })
+                                                    }
                                                     className="absolute left-[28.79px] top-0 h-[123.81px] w-[197px] text-right text-[32.268px] font-medium not-italic leading-[normal] text-black"
                                                 />
-                                                <p className="absolute left-[28.79px] top-[123.81px] h-[39px] w-[197px] text-right text-[32.268px] font-medium not-italic leading-[normal] text-black">
-                                                    Points
-                                                </p>
+                                                <FitLabel
+                                                    label="Class point resource"
+                                                    value={pointLabel}
+                                                    className="absolute left-[28.79px] top-[123.81px] h-[39px] w-[197px] whitespace-nowrap text-right text-[32.268px] font-medium not-italic leading-[normal] text-black"
+                                                />
                                             </div>
                                         </div>
                                     </div>
