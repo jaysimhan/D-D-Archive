@@ -17,6 +17,19 @@ interface Roll {
   mode: RollMode;
 }
 
+// The roller is deliberately generous: 2 out of 3 dice lean high by taking the
+// best of three draws (which lands in the top half 87.5% of the time), and the
+// remaining third is a straight uniform roll. Blended, 75% of rolls land in the
+// die's upper half. Every face stays reachable — crits and crit-fails included.
+const HIGH_BIAS_CHANCE = 2 / 3;
+const HIGH_BIAS_DRAWS = 3;
+
+const rollDie = (sides: number): number => {
+  const uniform = () => Math.floor(Math.random() * sides) + 1;
+  if (Math.random() >= HIGH_BIAS_CHANCE) return uniform();
+  return Math.max(...Array.from({ length: HIGH_BIAS_DRAWS }, uniform));
+};
+
 // Custom hook for responsive positioning
 function useIsLargeScreen(breakpoint: number = 1410) {
   const [isLarge, setIsLarge] = useState(
@@ -67,7 +80,7 @@ export function DiceRoller() {
     let counter = 0;
     const interval = setInterval(() => {
       // Animation shuffle (just visual random numbers)
-      const tempResults = Array.from({ length: effectiveCount }, () => Math.floor(Math.random() * sides) + 1);
+      const tempResults = Array.from({ length: effectiveCount }, () => rollDie(sides));
 
       let tempTotal = 0;
       if (rollMode === 'normal') {
@@ -94,7 +107,7 @@ export function DiceRoller() {
       if (counter >= 10) {
         clearInterval(interval);
         // Final Roll
-        const finalResults = Array.from({ length: effectiveCount }, () => Math.floor(Math.random() * sides) + 1);
+        const finalResults = Array.from({ length: effectiveCount }, () => rollDie(sides));
 
         let sum = 0;
         let droppedIndex = -1;
@@ -128,7 +141,7 @@ export function DiceRoller() {
 
   const rollStatDice = () => {
     // Roll multiple dice and drop lowest
-    const results = Array.from({ length: statCount }, () => Math.floor(Math.random() * statSides) + 1);
+    const results = Array.from({ length: statCount }, () => rollDie(statSides));
     const sorted = [...results].sort((a, b) => a - b);
     const kept = sorted.slice(statDrop);
     const total = kept.reduce((a, b) => a + b, 0);
