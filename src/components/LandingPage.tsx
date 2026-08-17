@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Swords, BookOpen, Flame, Crown } from "lucide-react";
+import { Swords, BookOpen, Flame, Crown, ScrollText } from "lucide-react";
 import { useHomepage } from "../hooks/useSanityData";
+import { hasRecentSheet } from "../lib/character-storage";
 import SanityImage from "./SanityImage";
 
 
@@ -8,6 +10,9 @@ import SanityImage from "./SanityImage";
 export function LandingPage() {
   const { data: homepageData } = useHomepage();
   const content = homepageData?.[0];
+  // Read once on mount so the label matches what the sheet will actually open
+  // with: the character from a run finished within the hour, or a blank sheet.
+  const [hasSavedSheet] = useState(hasRecentSheet);
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
       {/* Dark Fantasy Background */}
@@ -147,6 +152,17 @@ export function LandingPage() {
                 </div>
               </Link>
             </div>
+
+            {/* Straight to the sheet, skipping the creator */}
+            <Link
+              to="/character-sheet"
+              className="group inline-flex items-center gap-2 px-4 py-2 rounded border border-brand-800/30 bg-black/30 text-brand-300/70 hover:text-brand-200 hover:border-brand-600/40 hover:bg-black/50 transition-all"
+            >
+              <ScrollText className="w-4 h-4" />
+              <span className="text-xs sm:text-sm tracking-wider">
+                {hasSavedSheet ? "Open Your Recent Sheet" : "Open a Blank Sheet"}
+              </span>
+            </Link>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 pt-4 sm:pt-8 w-full max-w-3xl px-4">

@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Download, Edit } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
     CharacterSheetA4,
     EMPTY_SPELLCASTING,
@@ -15,7 +16,7 @@ import {
     flattenFieldsForCapture,
     removeScreenOnlyControls,
 } from "../components/character-sheet/pdf-fields";
-import type { CharacterData } from "../types/character-creator";
+import { loadCompletedSheet } from "../lib/character-storage";
 
 /**
  * html2canvas and jsPDF are fetched at the click rather than shipped with the
@@ -31,14 +32,18 @@ const isStaleBuild = (cause: unknown) =>
  * Hosts the A4 character sheet. The sheet is built at its native design size
  * (2480 x 3508), so this page scales it down to whatever width is available
  * rather than reflowing it — that keeps the layout identical at every size.
+ *
+ * The page stands on its own at /character-sheet: finishing the creator saves
+ * the character and sends the player here, and coming in cold picks that same
+ * character up while it is still recent. Failing that the sheet opens blank,
+ * which is a perfectly good thing to fill in or print by hand.
  */
-export function CharacterSheetPage({
-    initialCharacter,
-    onEdit,
-}: {
-    initialCharacter?: CharacterData;
-    onEdit?: () => void;
-} = {}) {
+export function CharacterSheetPage() {
+    const navigate = useNavigate();
+    // The sheet's fields seed themselves from this on their first render only,
+    // so the character has to be in hand before that render — hence a lazy
+    // initial state over an effect.
+    const [initialCharacter] = useState(() => loadCompletedSheet() ?? undefined);
     const viewportRef = useRef<HTMLDivElement>(null);
     const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [scale, setScale] = useState(1);
@@ -168,10 +173,10 @@ export function CharacterSheetPage({
     return (
         <div className="character-sheet-page min-h-screen bg-zinc-950 px-0 py-4 sm:px-4 sm:py-8">
             <div className="character-sheet-toolbar mx-auto mb-3 flex w-full max-w-[1700px] flex-wrap justify-end gap-2 px-3 sm:mb-4 sm:gap-3 sm:px-0">
-                {onEdit && (
+                {initialCharacter && (
                     <button
                         type="button"
-                        onClick={onEdit}
+                        onClick={() => navigate("/creator")}
                         className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     >
                         <Edit className="size-4" aria-hidden />

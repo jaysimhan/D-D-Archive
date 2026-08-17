@@ -1,0 +1,165 @@
+import {
+    isCreationStep,
+    type CharacterData,
+    type CreationStep,
+} from "../types/character-creator";
+
+/**
+ * The creator used to hold the whole character in React state, so a refresh —
+ * or any reload the browser decided to do on its own — sent the player back to
+ * step one with nothing kept. Both halves of the flow now write to
+ * localStorage: the creator saves a draft after every edit, and finishing
+ * stamps a copy that /character-sheet can be opened against directly.
+ */
+const DRAFT_KEY = "dnd-archive:creator-draft";
+const SHEET_KEY = "dnd-archive:last-sheet";
+
+/** How long a finished character stays on offer at /character-sheet. */
+export const SHEET_TTL_MS = 60 * 60 * 1000;
+
+export interface CreatorDraft {
+    step: CreationStep;
+    character: CharacterData;
+}
+
+export function createEmptyCharacter(): CharacterData {
+    return {
+        name: "",
+        level: 1,
+        abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        selectedSpells: [],
+        feats: [],
+        equipment: [],
+        magicItems: [],
+        magicInitiateClass: undefined,
+        personality: {},
+        proficiencies: {
+            skills: [],
+            languages: ["Common"],
+            tools: [],
+            armor: [],
+            weapons: [],
+        },
+        racialBonusAllocation: {},
+    };
+}
+
+function readJson(key: string): unknown {
+    try {
+        const raw = window.localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        // Storage can be blocked outright (private windows, cookie settings)
+        // and what is in it can be half-written. Either way there is nothing to
+        // restore, so the caller starts fresh instead of crashing.
+        return null;
+    }
+}
+
+function writeJson(key: string, value: unknown): void {
+    try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (cause) {
+        // Nothing to do but carry on in memory: the session still works, it
+        // just will not survive a refresh.
+        console.warn("Could not save character progress", cause);
+    }
+}
+
+function removeKey(key: string): void {
+    try {
+        window.localStorage.removeItem(key);
+    } catch {
+        /* see readJson */
+    }
+}
+
+const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
+    Array.isArray(value) ? (value as T[]) : fallback;
+
+/**
+ * Anything read back may predate the current shape of CharacterData, and the
+ * step components index into these fields without checking. Layering the
+ * stored values over a fresh character keeps every field present and the right
+ * kind, so an old or truncated payload cannot take a step down with it.
+ */
+function normalizeCharacter(value: unknown): CharacterData | null {
+    if (!value || typeof value !== "object") return null;
+
+    const stored = value as Partial<CharacterData>;
+    const empty = createEmptyCharacter();
+
+    return {
+        ...empty,
+        ...stored,
+        name: typeof stored.name === "string" ? stored.name : empty.name,
+        level: typeof stored.level === "number" ? stored.level : empty.level,
+        abilityScores: { ...empty.abilityScores, ...(stored.abilityScores ?? {}) },
+        selectedSpells: asArray(stored.selectedSpells),
+        feats: asArray(stored.feats),
+        equipment: asArray(stored.equipment),
+        magicItems: asArray(stored.magicItems),
+        personality: { ...(stored.personality ?? {}) },
+        proficiencies: {
+            skills: asArray(stored.proficiencies?.skills),
+            languages: asArray(stored.proficiencies?.languages, ["Common"]),
+            tools: asArray(stored.proficiencies?.tools),
+            armor: asArray(stored.proficiencies?.armor),
+            weapons: asArray(stored.proficiencies?.weapons),
+        },
+        racialBonusAllocation: stored.racialBonusAllocation ?? {},
+        hpRolls: Array.isArray(stored.hpRolls) ? stored.hpRolls : undefined,
+    };
+}
+
+export function loadDraft(): CreatorDraft | null {
+    const stored = readJson(DRAFT_KEY) as Partial<CreatorDraft> | null;
+    const character = normalizeCharacter(stored?.character);
+    if (!character) return null;
+
+    return {
+        // A step that no longer exists would leave the creator with nowhere to
+        // land, so an unrecognised one is dropped and the creator picks up at
+        // the first step the draft has actually earned.
+        step: isCreationStep(stored?.step) ? stored.step : "race",
+        character,
+    };
+}
+
+export function saveDraft(character: CharacterData, step: CreationStep): void {
+    writeJson(DRAFT_KEY, { step, character } satisfies CreatorDraft);
+}
+
+export function clearDraft(): void {
+    removeKey(DRAFT_KEY);
+}
+
+export function saveCompletedSheet(character: CharacterData): void {
+    writeJson(SHEET_KEY, { completedAt: Date.now(), character });
+}
+
+/**
+ * The character behind the last completed run, or null once it is more than an
+ * hour old — opening /character-sheet on its own is meant to hand back a sheet
+ * the player was just working on, not one from another sitting.
+ */
+export function loadCompletedSheet(): CharacterData | null {
+    const stored = readJson(SHEET_KEY) as
+        | { completedAt?: number; character?: unknown }
+        | null;
+    if (!stored) return null;
+
+    const completedAt = stored.completedAt;
+    const isFresh =
+        typeof completedAt === "number" && Date.now() - completedAt < SHEET_TTL_MS;
+    if (!isFresh) {
+        removeKey(SHEET_KEY);
+        return null;
+    }
+
+    return normalizeCharacter(stored.character);
+}
+
+export function hasRecentSheet(): boolean {
+    return loadCompletedSheet() !== null;
+}

@@ -15,6 +15,31 @@ export type CreationStep =
     | "magic-item"
     | "personality";
 
+/**
+ * Every step id, which doubles as its URL: /creator/race, /creator/magic-item.
+ * The creator builds its own running order from the character (a fighter never
+ * sees "spells"); this is only the vocabulary a URL is allowed to use.
+ */
+export const CREATION_STEPS: CreationStep[] = [
+    "name",
+    "race",
+    "class",
+    "subclass",
+    "abilities",
+    "background",
+    "spells",
+    "feats",
+    "proficiencies",
+    "hp",
+    "equipment",
+    "magic-item",
+    "personality",
+];
+
+export function isCreationStep(value: unknown): value is CreationStep {
+    return CREATION_STEPS.includes(value as CreationStep);
+}
+
 export interface CharacterData {
     name: string;
     race?: Race;

@@ -1,9 +1,16 @@
-import { useState, useMemo } from "react";
-import { ArrowRight, ArrowLeft, Check, Crown } from "lucide-react";
-import { Link } from "react-router-dom";
-import { CharacterData, CreationStep } from "../types/character-creator";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, ArrowLeft, Check, Crown, Loader2, RotateCcw } from "lucide-react";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { CharacterData, CreationStep, isCreationStep } from "../types/character-creator";
 
-import { CharacterSheetPage } from "../pages/CharacterSheetPage";
+import {
+  clearDraft,
+  createEmptyCharacter,
+  loadDraft,
+  saveCompletedSheet,
+  saveDraft,
+  type CreatorDraft,
+} from "../lib/character-storage";
 import { useSubclasses } from "../hooks/useSanityData";
 
 // Import Step Components
@@ -22,31 +29,17 @@ import { HitPointsStep } from "./character-creator/HitPointsStep";
 import { MagicItemStep } from "./character-creator/MagicItemStep";
 
 export function CharacterCreator() {
-  const [currentStep, setCurrentStep] = useState<CreationStep>("race");
-  const [isComplete, setIsComplete] = useState(false);
-  const [characterData, setCharacterData] = useState<CharacterData>({
-    name: "",
-    level: 1,
-    abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-    selectedSpells: [],
-    feats: [],
-    equipment: [],
-    magicItems: [],
-    magicInitiateClass: undefined,
-    personality: {},
-    proficiencies: {
-      skills: [],
-      languages: ["Common"],
-      tools: [],
-      armor: [],
-      weapons: []
-    },
-    racialBonusAllocation: {}
-  });
-
+  const navigate = useNavigate();
+  const { step: stepParam } = useParams<{ step: string }>();
+  // The draft is read straight into initial state: localStorage is synchronous,
+  // so the very first render already knows which steps this character has
+  // earned and no step ever mounts against an empty character.
+  const [characterData, setCharacterData] = useState<CharacterData>(
+    () => loadDraft()?.character ?? createEmptyCharacter(),
+  );
 
   // Fetch subclasses here for the check
-  const { data: sanitySubclasses } = useSubclasses();
+  const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses();
 
   const allSubclasses = useMemo(() => {
     return sanitySubclasses || [];
@@ -95,22 +88,8 @@ export function CharacterCreator() {
     return baseSteps;
   }, [characterData.class, characterData.level, characterData.feats, characterData.race, allSubclasses]);
 
-  const currentStepIndex = steps.indexOf(currentStep);
-
-  const nextStep = () => {
-    if (currentStepIndex < steps.length - 1) {
-      setCurrentStep(steps[currentStepIndex + 1]);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStep(steps[currentStepIndex - 1]);
-    }
-  };
-
-  const canProgress = (): boolean => {
-    switch (currentStep) {
+  const canLeaveStep = (step: CreationStep | undefined): boolean => {
+    switch (step) {
       case "race":
         return !!characterData.race;
       case "class":
@@ -140,17 +119,93 @@ export function CharacterCreator() {
     }
   };
 
-  const completeCharacter = () => {
-    setIsComplete(true);
+  // Now that each step is its own URL, one can be typed in or bookmarked out of
+  // turn. Reachable ground stops at the first step still missing a choice, so
+  // /creator/spells cannot be opened before there is a class to cast with.
+  const furthestStepIndex = useMemo(() => {
+    const blockedAt = steps.findIndex((step) => !canLeaveStep(step));
+    return blockedAt === -1 ? steps.length - 1 : blockedAt;
+  }, [steps, characterData]);
+
+  const requestedIndex = isCreationStep(stepParam) ? steps.indexOf(stepParam) : -1;
+  const isStepAllowed = requestedIndex >= 0 && requestedIndex <= furthestStepIndex;
+  const currentStep: CreationStep | undefined = isStepAllowed
+    ? steps[requestedIndex]
+    : undefined;
+  const currentStepIndex = isStepAllowed ? requestedIndex : -1;
+
+  // Every edit is written back, so a refresh — or a browser reloading the tab on
+  // its own — picks up on the same step with the same character. The name and
+  // personality fields report on every keystroke, so the write waits a moment
+  // rather than re-serialising the whole character letter by letter.
+  const pendingDraft = useRef<CreatorDraft | null>(null);
+  useEffect(() => {
+    if (!currentStep) return;
+    pendingDraft.current = { character: characterData, step: currentStep };
+    const handle = window.setTimeout(() => {
+      saveDraft(characterData, currentStep);
+      pendingDraft.current = null;
+    }, 400);
+    return () => window.clearTimeout(handle);
+  }, [characterData, currentStep]);
+
+  // Leaving the creator cancels that timer, so anything it was still holding is
+  // written on the way out — otherwise the last edit before Complete or Back
+  // would be the one edit the draft never kept.
+  useEffect(
+    () => () => {
+      const pending = pendingDraft.current;
+      if (pending) saveDraft(pending.character, pending.step);
+    },
+    [],
+  );
+
+  // Each step is a real navigation now; without this a long step would open
+  // already scrolled to wherever the previous one was left.
+  useEffect(() => {
+    if (currentStep) window.scrollTo({ top: 0 });
+  }, [currentStep]);
+
+  const goToStep = (step: CreationStep) => navigate(`/creator/${step}`);
+
+  const nextStep = () => {
+    if (currentStepIndex >= 0 && currentStepIndex < steps.length - 1) {
+      goToStep(steps[currentStepIndex + 1]);
+    }
   };
 
-  if (isComplete) {
-    return (
-      <CharacterSheetPage
-        initialCharacter={characterData}
-        onEdit={() => setIsComplete(false)}
-      />
-    );
+  const prevStep = () => {
+    if (currentStepIndex > 0) {
+      goToStep(steps[currentStepIndex - 1]);
+    }
+  };
+
+  const canProgress = () => canLeaveStep(currentStep);
+
+  const completeCharacter = () => {
+    saveCompletedSheet(characterData);
+    navigate("/character-sheet");
+  };
+
+  const startOver = () => {
+    if (!window.confirm("Discard this character and start from the beginning?")) return;
+    clearDraft();
+    setCharacterData(createEmptyCharacter());
+    navigate(`/creator/${steps[0]}`, { replace: true });
+  };
+
+  if (!currentStep) {
+    // The subclass step only joins the running order once Sanity has answered
+    // on which classes have subclasses, so a refresh on /creator/subclass waits
+    // for that answer rather than being bounced off a step that does exist.
+    if (subclassesLoading) {
+      return (
+        <div className="min-h-[50vh] flex items-center justify-center text-gray-500">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+        </div>
+      );
+    }
+    return <Navigate to={`/creator/${steps[furthestStepIndex]}`} replace />;
   }
 
   return (
@@ -175,7 +230,7 @@ export function CharacterCreator() {
               <Link to="/" className="p-2 rounded-lg bg-brand-900/30 hover:bg-brand-900/50 border border-brand-800/30 transition-colors">
                 <ArrowLeft className="w-5 h-5 text-brand-400" />
               </Link>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-1">
                 <div className="relative">
                   <div className="absolute inset-0 bg-brand-500/20 blur-xl rounded-full"></div>
                   <div className="relative w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center border-2 border-brand-400/50 shadow-lg">
@@ -187,6 +242,15 @@ export function CharacterCreator() {
                   <p className="text-brand-400/60 text-sm">Create your D&D character (Levels 1-3)</p>
                 </div>
               </div>
+              {/* Progress is kept between visits now, so there has to be a way
+                  to put a half-finished character down and begin another. */}
+              <button
+                onClick={startOver}
+                className="flex items-center gap-2 px-3 py-2 text-xs md:text-sm text-gray-400 hover:text-white rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span className="hidden sm:inline">Start Over</span>
+              </button>
             </div>
           </div>
         </div>
