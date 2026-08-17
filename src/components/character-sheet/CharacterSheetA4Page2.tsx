@@ -264,7 +264,12 @@ function WritingPanel({
                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-start gap-[7.702px]">
                     <PanelHeader icon={icon} label={label} {...(headerClassName ? { className: headerClassName } : {})} />
                     {search && (
-                        <div className="relative flex w-full shrink-0 items-center rounded-[23.893px] bg-white px-[28px] py-[16px]">
+                        // A way to write into the panel, not part of the sheet:
+                        // the PDF drops it and lets the panel take the space.
+                        <div
+                            data-screen-only
+                            className="relative flex w-full shrink-0 items-center rounded-[23.893px] bg-white px-[28px] py-[16px]"
+                        >
                             <AutocompleteField
                                 ariaLabel={`Search ${label}`}
                                 placeholder={search.placeholder}

@@ -42,3 +42,16 @@
     display: block;
     resize: none;
 }
+
+/* The PDF download runs html2canvas, which finds each font's baseline by
+   dropping a 1x1 GIF next to a text sample and reading how far the image sits
+   below the sample's top — the image has to sit *on* the baseline for that to
+   work. Tailwind preflight's `img { display: block }` pushes it onto its own
+   line instead, so every measurement comes back ~0.4em too tall and all text
+   lands that far below its box in the PDF. The probe is appended to
+   document.body, not the sheet, so this rule has to be global; the data URI is
+   html2canvas's own (SMALL_IMAGE), so nothing else can match it. */
+img[src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"] {
+    display: inline !important;
+    vertical-align: baseline !important;
+}

@@ -11,6 +11,10 @@ import {
 import { CharacterSheetA4Page2 } from "../components/character-sheet/CharacterSheetA4Page2";
 import { CharacterSheetA4Page3 } from "../components/character-sheet/CharacterSheetA4Page3";
 import { CharacterSheetA4Page4 } from "../components/character-sheet/CharacterSheetA4Page4";
+import {
+    flattenFieldsForCapture,
+    removeScreenOnlyControls,
+} from "../components/character-sheet/pdf-fields";
 import type { CharacterData } from "../types/character-creator";
 
 /**
@@ -119,6 +123,8 @@ export function CharacterSheetPage({
                             .forEach((node) => {
                                 (node as HTMLElement).style.transform = "none";
                             });
+                        removeScreenOnlyControls(documentClone);
+                        flattenFieldsForCapture(documentClone);
                     },
                 });
 
