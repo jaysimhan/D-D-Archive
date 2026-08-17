@@ -52,6 +52,12 @@ const JUSTIFY_BY_TEXT_ALIGN: Record<string, string> = {
  */
 export function removeScreenOnlyControls(root: ParentNode) {
     root.querySelectorAll("[data-screen-only]").forEach((node) => node.remove());
+    // A field may reserve room for an on-screen control that no longer exists
+    // in an export. Let it reclaim that room before either capture path lays it
+    // out. Appearance uses this for the upload button above its prose.
+    root.querySelectorAll<HTMLElement>("[data-cs-export-padding-top]").forEach((node) => {
+        node.style.paddingTop = node.dataset.csExportPaddingTop ?? "";
+    });
 }
 
 export function flattenFieldsForCapture(root: ParentNode) {

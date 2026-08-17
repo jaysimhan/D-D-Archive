@@ -8,8 +8,9 @@ import {
     SuggestTextArea,
     appendList,
     splitList,
-    useEditableAutoValue,
 } from "./CharacterSheetA4";
+import { AttunementMarker } from "./markers";
+import { useEditableAutoValue } from "./use-editable-auto-value";
 import { featGrantsSpells, spellGrantingSources } from "./spellcasting-sources";
 import "./character-sheet.css";
 
@@ -43,8 +44,11 @@ function proficiencyBonus(level: number) {
     return 2 + Math.floor((Math.max(level, 1) - 1) / 4);
 }
 
-/** Feats that raise passive Perception, by lower-cased name. */
-const PASSIVE_PERCEPTION_FEATS: Record<string, number> = {
+/**
+ * Feats that raise passive Perception, by lower-cased name. Also handed to the
+ * HTML download, which keeps deriving the panel's bonus after the fact.
+ */
+export const PASSIVE_PERCEPTION_FEATS: Record<string, number> = {
     alert: 5,
     observant: 5,
 };
@@ -211,6 +215,7 @@ function WritingPanel({
     value,
     search,
     onTextChange,
+    exportField,
 }: {
     borderColor: string;
     icon: ReactNode;
@@ -220,6 +225,8 @@ function WritingPanel({
     outerClassName?: string;
     innerClassName?: string;
     headerClassName?: string;
+    /** Names the panel for the HTML download, where another field reads it. */
+    exportField?: string;
     /**
      * What the sheet fills in. Rewriting the panel overrides it; the override
      * lasts until the sheet fills in something else — picking another Species
@@ -253,6 +260,7 @@ function WritingPanel({
 
     return (
         <div
+            data-cs={exportField}
             className={`relative flex w-full items-start border-[4.14px] border-solid ${outerClassName} ${
                 grow ? "min-h-[1px] flex-[1_0_0]" : "shrink-0"
             }`}
@@ -382,40 +390,6 @@ function CurrencyPanel({ label }: { label: string }) {
     );
 }
 
-/**
- * The attunement marker beside a magic item: an outline the player fills in,
- * toggled the same way page 1's proficiency rings are.
- */
-function AttunementMarker({ label }: { label: string }) {
-    const [attuned, setAttuned] = useState(false);
-    return (
-        <button
-            type="button"
-            aria-label={`${label} attunement: ${attuned ? "attuned" : "not attuned"}`}
-            aria-pressed={attuned}
-            onClick={() => setAttuned((current) => !current)}
-            className="relative size-[47.234px] shrink-0"
-        >
-            {attuned ? (
-                <img
-                    alt=""
-                    src={asset("magic-item-marker-selected")}
-                    className="absolute inset-0 block size-full max-w-none"
-                />
-            ) : (
-                // Figma drew the outline with its stroke overflowing the box.
-                <div className="absolute" style={{ inset: "0 1.25% 4.95% 1.25%" }}>
-                    <img
-                        alt=""
-                        src={asset("magic-item-marker")}
-                        className="block size-full max-w-none"
-                    />
-                </div>
-            )}
-        </button>
-    );
-}
-
 /* ------------------------------------------------------------------ */
 /* Inventory                                                           */
 /* ------------------------------------------------------------------ */
@@ -526,6 +500,8 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         <div className="relative flex w-full shrink-0 flex-col items-start gap-[20.831px]">
                             {/* Passive Perception */}
                             <div
+                                data-cs="passive-perception"
+                                data-cs-auto={passive}
                                 className="relative flex w-full shrink-0 flex-col items-start rounded-[24.156px] border-[4.14px] border-solid p-[11.462px]"
                                 style={{ borderColor: YELLOW }}
                             >
@@ -627,6 +603,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         borderColor={BLUE}
                         height={1160}
                         label="Character Feats"
+                        exportField="feats"
                         value={characterFeats}
                         onTextChange={reportFeats}
                         search={{ options: suggestions.feats, placeholder: "Search feats…" }}

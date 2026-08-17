@@ -12,6 +12,12 @@ import {
   type CreatorDraft,
 } from "../lib/character-storage";
 import { useSubclasses } from "../hooks/useSanityData";
+import {
+  buildProficiencyPlan,
+  EMPTY_CUSTOM,
+  pruneSelections,
+  resolveProficiencies,
+} from "../utils/proficiency-plan";
 
 // Import Step Components
 import { NameStep } from "./character-creator/NameStep";
@@ -159,6 +165,30 @@ export function CharacterCreator() {
     },
     [],
   );
+
+  // Proficiencies are not typed in, they are read off the character: species,
+  // class, subclass, background and feats grant them, and the player only fills
+  // in the choices those features leave open. Keeping the reading here rather
+  // than inside the step means a class swapped after the fact still drops the
+  // picks it was offering, even if the player never opens the step again.
+  useEffect(() => {
+    const plan = buildProficiencyPlan(characterData);
+    const choices = pruneSelections(plan, characterData.proficiencyChoices ?? {});
+    const proficiencies = resolveProficiencies(
+      plan,
+      choices,
+      characterData.customProficiencies ?? EMPTY_CUSTOM,
+    );
+
+    setCharacterData((prev) => {
+      const sameChoices =
+        JSON.stringify(prev.proficiencyChoices ?? {}) === JSON.stringify(choices);
+      const sameProficiencies =
+        JSON.stringify(prev.proficiencies) === JSON.stringify(proficiencies);
+      if (sameChoices && sameProficiencies) return prev;
+      return { ...prev, proficiencies, proficiencyChoices: choices };
+    });
+  }, [characterData]);
 
   // Each step is a real navigation now; without this a long step would open
   // already scrolled to wherever the previous one was left.
@@ -347,17 +377,12 @@ export function CharacterCreator() {
               )}
               {currentStep === "proficiencies" && (
                 <ProficiencyStep
-                  proficiencies={characterData.proficiencies || { skills: [], languages: ["Common"], tools: [], armor: [], weapons: [] }}
-                  race={characterData.race}
-                  classData={characterData.class}
-                  subclass={characterData.subclass}
-                  background={characterData.background}
-                  feats={characterData.feats}
-                  abilityScores={characterData.abilityScores}
-                  subrace={characterData.subrace}
-                  racialBonusAllocation={characterData.racialBonusAllocation}
-                  onProficienciesChange={(proficiencies: any) =>
-                    setCharacterData({ ...characterData, proficiencies })
+                  character={characterData}
+                  onChange={(patch) =>
+                    setCharacterData((prev) => ({
+                      ...prev,
+                      ...(typeof patch === "function" ? patch(prev) : patch),
+                    }))
                   }
                 />
               )}

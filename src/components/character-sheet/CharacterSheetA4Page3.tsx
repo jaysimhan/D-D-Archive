@@ -21,9 +21,10 @@ import {
     SHEET_HEIGHT,
     SHEET_WIDTH,
     SuggestInput,
-    useEditableAutoValue,
     type SpellcastingSummary,
 } from "./CharacterSheetA4";
+import { PreparedMarker, SpellMarker } from "./markers";
+import { useEditableAutoValue } from "./use-editable-auto-value";
 import { useMenuPlacement } from "./useMenuPlacement";
 import "./character-sheet.css";
 
@@ -105,6 +106,7 @@ function SchoolTag({
     const color = known?.color ?? UNKNOWN_SCHOOL;
     return (
         <span
+            data-cs="spell-school"
             title={school}
             className={`relative shrink-0 whitespace-nowrap rounded-full border-2 border-solid px-[10px] py-[1px] font-semibold leading-[1.35] ${className}`}
             style={{ borderColor: color, color, backgroundColor: `${color}1f` }}
@@ -303,10 +305,25 @@ function LabelledTile({
 }
 
 /** Spell Save DC / Spell Attack Bonus — a square blank beside its label. */
-function NumericTile({ label, autoValue = "" }: { label: string; autoValue?: string }) {
+function NumericTile({
+    label,
+    autoValue = "",
+    exportField,
+    abilities,
+}: {
+    label: string;
+    autoValue?: string;
+    /** Names the tile for the HTML download, which keeps deriving it. */
+    exportField?: string;
+    /** The casting abilities behind it, "INT / WIS", appended as page 1 writes them. */
+    abilities?: string;
+}) {
     const [value, setValue] = useEditableAutoValue(autoValue);
     return (
         <div
+            data-cs={exportField}
+            data-cs-abilities={abilities}
+            data-cs-auto={exportField === undefined ? undefined : autoValue}
             className="relative flex h-full min-w-[1px] flex-[1_0_0] items-start rounded-[24.156px] border-[4.14px] border-solid p-[11.462px]"
             style={{ borderColor: SPELL_BLUE }}
         >
@@ -362,8 +379,18 @@ function SpellHeaderRow({ spellcasting }: { spellcasting: SpellcastingSummary })
                 fieldClassName="text-[56px]"
                 autoValue={spellcasting.ability}
             />
-            <NumericTile label="Spell Save DC" autoValue={spellcasting.saveDc} />
-            <NumericTile label="Spell Attack Bonus" autoValue={spellcasting.attackBonus} />
+            <NumericTile
+                label="Spell Save DC"
+                autoValue={spellcasting.saveDc}
+                exportField="spell-save-dc"
+                abilities={spellcasting.ability}
+            />
+            <NumericTile
+                label="Spell Attack Bonus"
+                autoValue={spellcasting.attackBonus}
+                exportField="spell-attack-bonus"
+                abilities={spellcasting.ability}
+            />
         </div>
     );
 }
@@ -388,45 +415,6 @@ function CellDivider() {
                 </div>
             </div>
         </div>
-    );
-}
-
-type MarkerName = "c" | "r" | "v" | "s" | "m";
-
-const MARKER_LABELS: Record<MarkerName, string> = {
-    c: "Concentration",
-    r: "Ritual",
-    v: "Verbal component",
-    s: "Somatic component",
-    m: "Material component",
-};
-
-/** A spell marker whose automatic value can still be changed by hand. */
-function SpellMarker({ name, automatic }: { name: MarkerName; automatic: boolean }) {
-    const [selectedValue, setSelectedValue] = useEditableAutoValue(String(automatic));
-    const selected = selectedValue === "true";
-    const label = MARKER_LABELS[name];
-    const selectedAsset =
-        name === "c" || name === "r" ? "component-active-7" : "component-active-6";
-    // "C" is exported a shade larger than the rest.
-    const size = name === "c" ? 40.041 : 39.089;
-
-    return (
-        <button
-            type="button"
-            aria-label={label}
-            aria-pressed={selected}
-            title={`${label}: ${selected ? "yes" : "no"}`}
-            onClick={() => setSelectedValue(String(!selected))}
-            className="relative shrink-0 cursor-pointer rounded-full focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-black"
-            style={{ width: `${size}px`, height: `${size}px` }}
-        >
-            <img
-                alt=""
-                src={selected ? spellAsset(selectedAsset) : spellAsset(`component-${name}`)}
-                className="absolute inset-0 block size-full max-w-none"
-            />
-        </button>
     );
 }
 
@@ -470,14 +458,20 @@ function SlotBox({
     label,
     width,
     autoValue = "",
+    exportLevel,
 }: {
     label: string;
     width: number;
     autoValue?: string;
+    /** Set on the total, which the HTML download re-derives as Level is edited. */
+    exportLevel?: number;
 }) {
     const [value, setValue] = useEditableAutoValue(autoValue);
     return (
         <div
+            data-cs={exportLevel === undefined ? undefined : "slot-total"}
+            data-cs-level={exportLevel}
+            data-cs-auto={exportLevel === undefined ? undefined : autoValue}
             className="relative flex h-[64.13px] shrink-0 flex-col items-center rounded-[5.3px] border-2 border-solid border-black bg-white px-[8.834px] py-[7.067px]"
             style={{ width: `${width}px` }}
         >
@@ -497,7 +491,17 @@ function SlotBox({
  * The total is filled in from the class levels page 1 holds, leaving the player
  * only the expended count to keep — the one number no sheet can derive.
  */
-function BlockHeader({ title, slots, total }: { title: string; slots: boolean; total: string }) {
+function BlockHeader({
+    title,
+    level,
+    slots,
+    total,
+}: {
+    title: string;
+    level: number;
+    slots: boolean;
+    total: string;
+}) {
     if (!slots) {
         return (
             <div className="relative flex h-[58.419px] w-full shrink-0 items-center justify-center rounded-[29.993px] border border-solid border-black bg-[#f8f8f8] px-[18.13px]">
@@ -521,6 +525,7 @@ function BlockHeader({ title, slots, total }: { title: string; slots: boolean; t
                         label={`${title} slots total`}
                         width={113.817}
                         autoValue={total}
+                        exportLevel={level}
                     />
                 </div>
             </div>
@@ -569,31 +574,6 @@ function ColumnLabels({ height }: { height: number }) {
 const CELL_TEXT =
     "relative h-[40.041px] shrink-0 overflow-hidden whitespace-nowrap text-center text-[24px] font-medium not-italic leading-[40.041px] text-black";
 
-/** The prepared/in-use circle, initially selected for spells from the creator list. */
-function PreparedMarker({ automatic, row }: { automatic: boolean; row: string }) {
-    const [selectedValue, setSelectedValue] = useEditableAutoValue(String(automatic));
-    const selected = selectedValue === "true";
-
-    return (
-        <button
-            type="button"
-            aria-label={`Spell in use, ${row}`}
-            aria-pressed={selected}
-            title={`Spell in use: ${selected ? "yes" : "no"}`}
-            onClick={() => setSelectedValue(String(!selected))}
-            className="relative h-[23.857px] w-[23.857px] shrink-0 cursor-pointer rounded-full focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-black"
-        >
-            <span className="absolute -inset-[4.99%]">
-                <img
-                    alt=""
-                    src={spellAsset(selected ? "prepared-active" : "prepared")}
-                    className="block size-full max-w-none"
-                />
-            </span>
-        </button>
-    );
-}
-
 /** How tall the hover card would like to be, in design px. */
 const DETAILS_HEIGHT = 620;
 
@@ -607,8 +587,12 @@ const DETAILS_CHARS = 700;
  * It is drawn inside the sheet's coordinate space, as the suggestion menus
  * are, so it scales with the page — and it never takes the pointer, so moving
  * onto it cannot make it flicker away.
+ *
+ * Exported for the HTML download, which renders one of these per spell the
+ * sheet has written down and hangs it off the row rather than rebuilding the
+ * card by hand.
  */
-function SpellDetails({
+export function SpellDetails({
     spell,
     anchorRef,
     open,
@@ -715,6 +699,7 @@ function SpellRow({
 
     return (
         <div
+            data-cs="spell-row"
             className="relative flex min-h-[1px] w-full flex-[1_0_0] items-center rounded-[25.946px] bg-white px-[23.802px]"
             style={{ gap: `${CELL_GAP}px` }}
         >
@@ -723,6 +708,7 @@ function SpellRow({
             )}
             <div
                 ref={nameRef}
+                data-cs="spell-name"
                 className="relative flex h-[40.041px] min-w-[1px] flex-[1_0_0] items-center gap-[12px]"
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
@@ -751,6 +737,7 @@ function SpellRow({
             </div>
             <CellDivider />
             <p
+                data-cs="spell-time"
                 className={CELL_TEXT}
                 style={{ width: `${CELL}px` }}
                 title={resolved?.castingTime}
@@ -758,7 +745,12 @@ function SpellRow({
                 {shortCastingTime(resolved?.castingTime)}
             </p>
             <CellDivider />
-            <p className={CELL_TEXT} style={{ width: `${CELL}px` }} title={resolved?.range}>
+            <p
+                data-cs="spell-range"
+                className={CELL_TEXT}
+                style={{ width: `${CELL}px` }}
+                title={resolved?.range}
+            >
                 {shortRange(resolved?.range)}
             </p>
             <CellDivider />
@@ -852,6 +844,7 @@ export const SpellBlock = memo(function SpellBlock({
                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-start gap-[9.998px]">
                     <BlockHeader
                         title={title}
+                        level={level}
                         slots={slots}
                         total={slotTotal ? `${slotTotal}` : ""}
                     />

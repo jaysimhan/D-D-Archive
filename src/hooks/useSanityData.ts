@@ -59,6 +59,7 @@ export function useClasses() {
         spellcastingAbility,
         features,
         traits[]->{name, description},
+        proficiencies,
         source,
         edition
     } | order(name asc)`);
@@ -77,6 +78,7 @@ export function useSubclasses() {
         parentClassId,
         features,
         traits[]->{name, description},
+        proficiencies,
         magicType,
         magicAbility,
         magicDescription,
@@ -125,6 +127,7 @@ export function useSubclassesByClass(classId: string) {
             parentClassId,
             features,
             traits[]->{name, description},
+            proficiencies,
             magicType,
             magicAbility,
             magicDescription,
@@ -223,6 +226,7 @@ export function useBackgrounds() {
         },
         skillProficiencies,
         toolProficiencies,
+        proficiencies,
         traits[]->{name, description},
         languages,
         equipment,

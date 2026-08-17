@@ -1,5 +1,6 @@
 import {
     memo,
+    useCallback,
     useEffect,
     useLayoutEffect,
     useMemo,
@@ -10,6 +11,13 @@ import {
 import { useSheetSuggestions } from "../../hooks/useSheetSuggestions";
 import { useMenuPlacement } from "./useMenuPlacement";
 import type { CharacterData } from "../../types/character-creator";
+import {
+    DeathSaveMarker,
+    ProfRing,
+    type ProfRingVariant,
+    type ProficiencyLevel,
+} from "./markers";
+import { useEditableAutoValue } from "./use-editable-auto-value";
 import { spellSlotsByLevel, type SpellSlots } from "./spell-slots";
 import {
     classGrantsSpells,
@@ -73,6 +81,9 @@ function measureText(text: string, style: CSSStyleDeclaration, fontSize: number)
  *
  * Widths come from `clientWidth` and from canvas metrics, both untransformed,
  * so the page's zoom drops out and a field fits the same at any scale.
+ *
+ * Consumers also mark their element `data-cs-fit`, which is how the HTML
+ * download finds the fields it has to keep fitting once React is gone.
  */
 function useFitText<T extends HTMLElement>(text: string) {
     const ref = useRef<T>(null);
@@ -115,19 +126,6 @@ function useFitText<T extends HTMLElement>(text: string) {
 
     const style = fontSize ? { fontSize: `${fontSize}px` } : undefined;
     return [ref, style] as const;
-}
-
-/** An automatic value that becomes a temporary manual override when edited. */
-export function useEditableAutoValue(automatic: string) {
-    const [override, setOverride] = useState<{ source: string; value: string } | null>(null);
-
-    // Prevent an old override from reappearing if the inputs later return to a
-    // previously seen automatic value.
-    useEffect(() => setOverride(null), [automatic]);
-
-    const value = override?.source === automatic ? override.value : automatic;
-    const setValue = (next: string) => setOverride({ source: automatic, value: next });
-    return [value, setValue] as const;
 }
 
 /* ------------------------------------------------------------------ */
@@ -219,6 +217,7 @@ function Blank({
                 }}
                 inputMode={inputMode}
                 maxLength={maxLength}
+                data-cs-fit=""
                 style={fitStyle}
                 className={`absolute inset-0 h-full w-full ${alignClass} ${valueClassName ?? textClassName}`}
             />
@@ -261,6 +260,7 @@ function FitInput({
             }}
             inputMode={inputMode}
             readOnly={readOnly}
+            data-cs-fit=""
             style={fitStyle}
             className={className}
         />
@@ -279,7 +279,13 @@ function FitLabel({
 }) {
     const [outputRef, fitStyle] = useFitText<HTMLOutputElement>(value);
     return (
-        <output ref={outputRef} aria-label={label} style={fitStyle} className={className}>
+        <output
+            ref={outputRef}
+            aria-label={label}
+            data-cs-fit=""
+            style={fitStyle}
+            className={className}
+        >
             {value}
         </output>
     );
@@ -314,76 +320,13 @@ function DerivedValue({
             <output
                 ref={outputRef}
                 aria-label={label}
+                data-cs-fit=""
                 style={fitStyle}
                 className={`absolute inset-0 flex h-full w-full items-center justify-center whitespace-nowrap text-center ${valueClassName ?? textClassName}`}
             >
                 {value}
             </output>
         </span>
-    );
-}
-
-type ProficiencyLevel = 0 | 1 | 2;
-
-/**
- * A proficiency marker. Skills can cycle empty → proficient → expertise,
- * while other uses (such as saving throws) keep the original binary toggle.
- */
-function ProfRing({
-    label,
-    src = asset("prof-ring"),
-    level,
-    onLevelChange,
-    allowExpertise = false,
-}: {
-    label: string;
-    src?: string;
-    level?: ProficiencyLevel;
-    onLevelChange?: (level: ProficiencyLevel) => void;
-    allowExpertise?: boolean;
-}) {
-    const [internalLevel, setInternalLevel] = useState<ProficiencyLevel>(0);
-    const currentLevel = level ?? internalLevel;
-    const stateLabel =
-        currentLevel === 2 ? "expertise" : currentLevel === 1 ? "proficient" : "not proficient";
-
-    const toggle = () => {
-        const next = (
-            allowExpertise
-                ? (currentLevel + 1) % 3
-                : currentLevel === 0
-                  ? 1
-                  : 0
-        ) as ProficiencyLevel;
-        if (level === undefined) setInternalLevel(next);
-        onLevelChange?.(next);
-    };
-
-    return (
-        <button
-            type="button"
-            aria-label={`${label} proficiency: ${stateLabel}`}
-            aria-pressed={currentLevel > 0}
-            onClick={toggle}
-            className="relative size-[20.73px] shrink-0"
-        >
-            {currentLevel === 2 ? (
-                <img
-                    alt=""
-                    src={asset("expertise-star")}
-                    className="absolute inset-0 block size-full max-w-none"
-                />
-            ) : (
-                <>
-                    <div className="absolute" style={{ inset: "-4.99%" }}>
-                        <img alt="" src={src} className="block size-full max-w-none" />
-                    </div>
-                    {currentLevel === 1 && (
-                        <span className="absolute inset-[26%] rounded-full bg-black" />
-                    )}
-                </>
-            )}
-        </button>
     );
 }
 
@@ -419,20 +362,11 @@ function DeathSaveTrack({ kind }: { kind: "success" | "failure" }) {
                         key={index}
                         className={`flex shrink-0 items-center justify-center ${markerBox}`}
                     >
-                        <button
-                            type="button"
-                            aria-label={`${kind} death save ${index + 1}`}
-                            aria-pressed={isMarked}
-                            onClick={() => toggle(index)}
-                            className={
-                                success
-                                    ? `size-[33.657px] rounded-full border-[2.243px] border-solid border-black ${
-                                          isMarked ? "bg-black" : "bg-[#f8f8f8]"
-                                      }`
-                                    : `size-[24.908px] rotate-45 border-[2.243px] border-solid border-black ${
-                                          isMarked ? "bg-black" : "bg-[#f8f8f8]"
-                                      }`
-                            }
+                        <DeathSaveMarker
+                            kind={kind}
+                            label={`${kind} death save ${index + 1}`}
+                            marked={isMarked}
+                            onToggle={() => toggle(index)}
                         />
                     </div>
                 ))}
@@ -670,6 +604,7 @@ export function SuggestInput({
                 aria-autocomplete="list"
                 autoComplete="off"
                 value={current}
+                data-cs-fit=""
                 style={fitStyle}
                 onChange={(e) => {
                     setCurrent(e.target.value);
@@ -946,7 +881,7 @@ type AbilityDef = {
     iconW: number;
     iconH: number;
     /** Figma uses a second ring variant on Strength. */
-    savingThrowRing?: string;
+    savingThrowRing?: ProfRingVariant;
     skills: SkillDef[];
     headerAlign: string;
 };
@@ -955,6 +890,9 @@ const SAVING_THROW_ICON = { src: asset("saving-throw"), w: 35.566, h: 28.827 };
 
 /** Highest ability score the rules allow (magic items cap at 30). */
 const MAX_ABILITY_SCORE = 30;
+
+/** The Level blank takes two digits, and the rules stop at twenty. */
+const MAX_CHARACTER_LEVEL = 20;
 
 /** PHB: modifier = (score − 10) ÷ 2, rounded down. */
 function abilityModifier(score: number) {
@@ -972,16 +910,67 @@ function parseProficiencyBonus(value: string) {
     return /^\+?\d+$/.test(trimmed) ? Number.parseInt(trimmed, 10) : null;
 }
 
+/** PHB: +2 at level 1, rising by one every four levels. */
+function proficiencyBonusAt(level: number) {
+    return 2 + Math.floor((level - 1) / 4);
+}
+
+/**
+ * Maximum hit points by the PHB's average rule: the first class's die in full
+ * at level 1, then half of it rounded up per level after, each with the
+ * Constitution modifier and never gaining less than one.
+ *
+ * A pure function of the dice, the levels behind each of them and the modifier,
+ * so the HTML download can be handed this same answer for every level and
+ * Constitution the player might edit their way to.
+ */
+export function averageMaximumHitPoints(
+    dice: number[],
+    classLevels: number[],
+    constitutionModifier: number,
+) {
+    let maximum = 0;
+    dice.forEach((die, index) => {
+        const levels = classLevels[index] ?? 0;
+        const averageGain = Math.floor(die / 2) + 1;
+
+        if (index === 0 && levels > 0) {
+            maximum += Math.max(1, die + constitutionModifier);
+            maximum += Math.max(1, averageGain + constitutionModifier) * (levels - 1);
+        } else {
+            maximum += Math.max(1, averageGain + constitutionModifier) * levels;
+        }
+    });
+    return maximum;
+}
+
+/** How the total level is shared out between the classes taken, in order. */
+function splitLevels(totalLevel: number, classCount: number) {
+    const levelsPerClass = Math.floor(totalLevel / classCount);
+    const remainder = totalLevel % classCount;
+    return Array.from(
+        { length: classCount },
+        (_, index) => levelsPerClass + (index < remainder ? 1 : 0),
+    );
+}
+
 /**
  * The score box is the only blank here: the circle shows the modifier the rules
  * derive from it, so it is read-only.
+ *
+ * `data-cs` marks the pair for the HTML download, which re-derives the circle
+ * from the box as this page does — the box is the only `input` inside and the
+ * circle the only `output`.
  */
 function AbilityScoreGrid({
     ability,
+    abilityKey,
     onModifierChange,
     initialScore,
 }: {
     ability: string;
+    /** "WIS" — how every other field on the sheet names this ability. */
+    abilityKey: string;
     onModifierChange: (modifier: number | null) => void;
     initialScore?: number;
 }) {
@@ -990,7 +979,11 @@ function AbilityScoreGrid({
     const modifier = Number.isNaN(parsed) ? "" : formatModifier(abilityModifier(parsed));
 
     return (
-        <div className="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]">
+        <div
+            data-cs="ability"
+            data-cs-ability={abilityKey}
+            className="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
+        >
             {/* Score box, tucked behind the modifier circle. Sized by the widest
                 pair of digits, not Figma's "14", so "20" cannot be shaved. */}
             <div className="relative col-start-1 row-start-1 ml-[98.13px] mt-[28.95px] flex items-center justify-center rounded-[8.273px] border-2 border-solid border-black py-[16.545px] pl-[41.363px] pr-[16.545px]">
@@ -1029,14 +1022,22 @@ function AbilityScoreGrid({
     );
 }
 
+/**
+ * `data-cs` marks the row for the HTML download: the ring inside it and the
+ * ability named here are what the total is re-derived from once the sheet is a
+ * standalone file.
+ */
 function SkillRow({
     skill,
+    abilityKey,
     modifier,
     proficiencyBonus,
     initialLevel = 0,
     onLevelChange,
 }: {
     skill: SkillDef;
+    /** "WIS" — which ability's modifier this skill adds. */
+    abilityKey: string;
     modifier: number | null;
     proficiencyBonus: number | null;
     initialLevel?: ProficiencyLevel;
@@ -1050,15 +1051,20 @@ function SkillRow({
             : "";
 
     return (
-        <div className="relative flex h-[53.771px] w-full shrink-0 items-center gap-[12.409px] rounded-[22.544px] bg-white px-[20.681px] py-[22.544px]">
+        <div
+            data-cs="skill"
+            data-cs-ability={abilityKey}
+            data-cs-skill={skill.label}
+            className="relative flex h-[53.771px] w-full shrink-0 items-center gap-[12.409px] rounded-[22.544px] bg-white px-[20.681px] py-[22.544px]"
+        >
             <ProfRing
                 label={skill.label}
+                variant="skill"
                 level={proficiencyLevel}
                 onLevelChange={(level) => {
                     setProficiencyLevel(level);
                     onLevelChange?.(level);
                 }}
-                allowExpertise
             />
             <Icon src={skill.icon} w={skill.w} h={skill.h} />
             <p className="relative shrink-0 whitespace-nowrap text-[20.681px] font-normal not-italic leading-[normal] text-black">
@@ -1092,6 +1098,7 @@ function AbilityCard({
 }) {
     const { abbr, rest, skills } = ability;
     const name = `${abbr}${rest}`.toUpperCase();
+    const abilityKey = abbr.toUpperCase();
     const [modifier, setModifier] = useState<number | null>(
         initialScore === undefined ? null : abilityModifier(initialScore),
     );
@@ -1110,10 +1117,11 @@ function AbilityCard({
                     </div>
                     <AbilityScoreGrid
                         ability={name}
+                        abilityKey={abilityKey}
                         initialScore={initialScore}
                         onModifierChange={(next) => {
                             setModifier(next);
-                            onModifierChange?.(abbr.toUpperCase(), next);
+                            onModifierChange?.(abilityKey, next);
                         }}
                     />
                 </div>
@@ -1125,7 +1133,7 @@ function AbilityCard({
                     <div className="relative flex h-[53.771px] w-full shrink-0 items-center gap-[12.409px] rounded-[22.544px] bg-white px-[20.681px] py-[22.544px]">
                         <ProfRing
                             label={`${name} saving throw`}
-                            src={ability.savingThrowRing ?? asset("prof-ring")}
+                            variant={ability.savingThrowRing ?? "save"}
                         />
                         <Icon {...SAVING_THROW_ICON} />
                         <p className="relative shrink-0 whitespace-nowrap text-[20.681px] font-normal not-italic leading-[normal] text-black">
@@ -1145,15 +1153,12 @@ function AbilityCard({
                                 <SkillRow
                                     key={skill.label}
                                     skill={skill}
+                                    abilityKey={abilityKey}
                                     modifier={modifier}
                                     proficiencyBonus={proficiencyBonus}
                                     initialLevel={initialSkillLevels?.[skill.label] ?? 0}
                                     onLevelChange={(level) =>
-                                        onSkillLevelChange?.(
-                                            abbr.toUpperCase(),
-                                            skill.label,
-                                            level,
-                                        )
+                                        onSkillLevelChange?.(abilityKey, skill.label, level)
                                     }
                                 />
                             ))}
@@ -1170,13 +1175,23 @@ function CounterCard({
     label,
     value,
     onValueChange,
+    exportField,
+    automaticValue,
 }: {
     label: ReactNode;
     value?: string;
     onValueChange?: (value: string) => void;
+    /** Names the card for the HTML download, where it derives a value. */
+    exportField?: string;
+    /** The derived value behind it; see `applyDerived` in the download runtime. */
+    automaticValue?: string;
 }) {
     return (
-        <div className="relative flex w-full shrink-0 flex-wrap content-start items-start gap-y-[3.5px] rounded-[22.749px] border-[4.136px] border-solid border-[#ffb800] p-[10.794px]">
+        <div
+            data-cs={exportField}
+            data-cs-auto={automaticValue}
+            className="relative flex w-full shrink-0 flex-wrap content-start items-start gap-y-[3.5px] rounded-[22.749px] border-[4.136px] border-solid border-[#ffb800] p-[10.794px]"
+        >
             <div className="relative flex w-full items-center gap-[24.672px] overflow-clip rounded-[16.545px] bg-[#f8f8f8] p-[12.409px]">
                 <div className="relative flex shrink-0 flex-col items-center rounded-[9.252px] border-2 border-solid border-black bg-white px-[15.42px] py-[12.336px]">
                     <Blank
@@ -1245,7 +1260,7 @@ const ABILITIES_RIGHT: AbilityDef[] = [
         icon: asset("ability-strength"),
         iconW: 41.634,
         iconH: 41.767,
-        savingThrowRing: asset("prof-ring-alt"),
+        savingThrowRing: "save-alt",
         headerAlign: "items-center justify-center",
         skills: [{ label: "Athletics", icon: asset("skill-athletics"), w: 42.271, h: 29.59 }],
     },
@@ -1576,11 +1591,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
             return [];
         }
 
-        const levelsPerClass = Math.floor(totalLevel / selectedClasses.length);
-        const remainder = totalLevel % selectedClasses.length;
-        return selectedClasses.map(
-            (_, index) => levelsPerClass + (index < remainder ? 1 : 0),
-        );
+        return splitLevels(totalLevel, selectedClasses.length);
     }, [characterLevel, selectedClasses]);
 
     const automaticHitDice = useMemo(() => {
@@ -1636,7 +1647,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     const totalLevel = Number.parseInt(characterLevel, 10);
     const automaticProficiencyBonus =
         Number.isInteger(totalLevel) && totalLevel > 0
-            ? formatModifier(2 + Math.floor((totalLevel - 1) / 4))
+            ? formatModifier(proficiencyBonusAt(totalLevel))
             : "";
     const [proficiencyBonus, setProficiencyBonus] = useEditableAutoValue(
         automaticProficiencyBonus,
@@ -1725,32 +1736,96 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                   ),
               );
 
+    // Only a subclass casting off spell slots of its own adds to them —
+    // Eldritch Knight and Arcane Trickster, not a monk's ki spells.
+    const slotCastingClassIds = useMemo(
+        () =>
+            new Set(
+                splitList(characterSubclass)
+                    .map((name) =>
+                        suggestions.subclasses.find(
+                            (item) => item.name.toLowerCase() === name.toLowerCase(),
+                        ),
+                    )
+                    .filter((item) => item?.magicType?.toLowerCase().includes("spell slot"))
+                    .map((item) => item?.parentClassId?.toLowerCase()),
+            ),
+        [suggestions.subclasses, characterSubclass],
+    );
+
+    /** The slots the classes taken grant at a given split of their levels. */
+    const slotsForLevels = useCallback(
+        (classLevels: number[]) =>
+            spellSlotsByLevel(
+                selectedClasses.map((item, index) => ({
+                    progression: item.spellcaster,
+                    id: item.id,
+                    level: classLevels[index],
+                    subclassCasts: slotCastingClassIds.has(item.id.toLowerCase()),
+                })),
+            ),
+        [selectedClasses, slotCastingClassIds],
+    );
+
     // The slots each spellbook block is headed with, from the class levels held
     // here. Memoised: pages 3 and 4 read the array itself, and a fresh one on
     // every keystroke would put all ten blocks through a re-render.
-    const spellSlots = useMemo(() => {
-        // Only a subclass casting off spell slots of its own adds to them —
-        // Eldritch Knight and Arcane Trickster, not a monk's ki spells.
-        const slotCastingClassIds = new Set(
-            splitList(characterSubclass)
-                .map((name) =>
-                    suggestions.subclasses.find(
-                        (item) => item.name.toLowerCase() === name.toLowerCase(),
-                    ),
-                )
-                .filter((item) => item?.magicType?.toLowerCase().includes("spell slot"))
-                .map((item) => item?.parentClassId?.toLowerCase()),
+    const spellSlots = useMemo(
+        () => slotsForLevels(hitDieClassLevels),
+        [slotsForLevels, hitDieClassLevels],
+    );
+
+    /**
+     * What keeps the level-driven fields alive in the downloaded HTML, where the
+     * Archive is out of reach: the dice the classes taken roll, and — for every
+     * level the player might edit their way to — how those classes split that
+     * level and the values which follow from it.
+     *
+     * Levelling up in a standalone file would otherwise leave the hit dice, hit
+     * points, class resource and spell slots reading for the level the sheet was
+     * downloaded at. Undefined while the classes are unknown, which leaves each
+     * of those fields exactly as it was written.
+     */
+    const exportDerivations = useMemo(() => {
+        const dice = selectedClasses.map((item) => item.hitDie ?? 0);
+        if (!dice.length || dice.some((die) => !die)) return undefined;
+
+        // Which of the classes taken keep a resource pool, by their position.
+        const pointClasses = selectedClasses.flatMap((item, index) =>
+            CLASS_POINT_LABELS[item.id] ?? item.pointLabel?.trim() ? [index] : [],
         );
 
-        return spellSlotsByLevel(
-            selectedClasses.map((item, index) => ({
-                progression: item.spellcaster,
-                id: item.id,
-                level: hitDieClassLevels[index],
-                subclassCasts: slotCastingClassIds.has(item.id.toLowerCase()),
-            })),
-        );
-    }, [selectedClasses, hitDieClassLevels, suggestions.subclasses, characterSubclass]);
+        const byLevel: Record<number, unknown> = {};
+        for (let level = 1; level <= MAX_CHARACTER_LEVEL; level += 1) {
+            const classLevels = splitLevels(level, dice.length);
+            byLevel[level] = {
+                proficiencyBonus: formatModifier(proficiencyBonusAt(level)),
+                hitDice: classLevels
+                    .map((levels, index) => `${levels}d${dice[index]}`)
+                    .join(" + "),
+                points: pointClasses.length
+                    ? pointClasses.map((index) => classLevels[index]).join(" + ")
+                    : dice.length > 1
+                      ? classLevels.join(" + ")
+                      : `${level}`,
+                slots: slotsForLevels(classLevels),
+                // A score of 1 to 30 puts the modifier between -5 and +10.
+                maxHitPoints: Object.fromEntries(
+                    Array.from({ length: 16 }, (_, index) => index - 5).map(
+                        (constitutionModifier) => [
+                            constitutionModifier,
+                            averageMaximumHitPoints(
+                                dice,
+                                classLevels,
+                                constitutionModifier,
+                            ),
+                        ],
+                    ),
+                ),
+            };
+        }
+        return JSON.stringify({ byLevel });
+    }, [selectedClasses, slotsForLevels]);
 
     // Page 2 fills its Species Traits panel from the Species named here, and
     // its Passive Perception from the Perception modifier this page derives.
@@ -1803,20 +1878,11 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
             return "";
         }
 
-        let maximum = 0;
-        selectedClasses.forEach((item, index) => {
-            const levels = hitDieClassLevels[index] ?? 0;
-            const die = item.hitDie ?? 0;
-            const averageGain = Math.floor(die / 2) + 1;
-
-            if (index === 0 && levels > 0) {
-                maximum += Math.max(1, die + constitutionModifier);
-                maximum +=
-                    Math.max(1, averageGain + constitutionModifier) * (levels - 1);
-            } else {
-                maximum += Math.max(1, averageGain + constitutionModifier) * levels;
-            }
-        });
+        const maximum = averageMaximumHitPoints(
+            selectedClasses.map((item) => item.hitDie ?? 0),
+            hitDieClassLevels,
+            constitutionModifier,
+        );
         return maximum > 0 ? `${maximum}` : "";
     }, [selectedClasses, hitDieClassLevels, constitutionModifier]);
     const [maximumHitPoints, setMaximumHitPoints] = useEditableAutoValue(
@@ -1941,6 +2007,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     return (
         <div
             className="cs-root relative bg-white"
+            data-cs-derived={exportDerivations}
             style={{ width: `${SHEET_WIDTH}px`, height: `${SHEET_HEIGHT}px` }}
         >
             <div className="absolute left-1/2 top-1/2 h-[3156.687px] w-[2220.373px] -translate-x-1/2 -translate-y-1/2">
@@ -1987,7 +2054,10 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                         className="text-[32.268px] font-medium not-italic leading-[normal] text-black"
                                     />
                                 </div>
-                                <div className="relative flex w-[258px] shrink-0 items-center gap-[18px] border-l-[3.227px] border-solid border-black px-[25.814px]">
+                                <div
+                                    data-cs="level"
+                                    className="relative flex w-[258px] shrink-0 items-center gap-[18px] border-l-[3.227px] border-solid border-black px-[25.814px]"
+                                >
                                     <p className="relative shrink-0 whitespace-nowrap text-[32.268px] font-medium not-italic leading-[normal] text-black">
                                         Level
                                     </p>
@@ -2046,6 +2116,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                             <div className="relative flex w-full shrink-0 items-center gap-[20.681px]">
                                 <div className="relative flex w-[402.649px] shrink-0 flex-col items-start gap-[20.681px]">
                                     <CounterCard
+                                        exportField="prof-bonus"
+                                        automaticValue={automaticProficiencyBonus}
                                         value={proficiencyBonus}
                                         onValueChange={setProficiencyBonus}
                                         label={
@@ -2150,7 +2222,11 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                     <div className="relative flex h-full shrink-0 flex-col items-stretch">
                                         <div className="relative flex h-full w-[690.272px] shrink-0 items-stretch gap-[18.645px] rounded-[29.918px] border-[3.561px] border-solid border-[#d40000] p-[18.645px]">
                                             <div className="relative flex w-[331.159px] shrink-0 flex-col items-stretch gap-[15.982px]">
-                                                <div className="relative flex h-[148.974px] w-full shrink-0 flex-col items-center justify-end rounded-[17.833px] border-[2.452px] border-solid border-black bg-[#f8f8f8] px-[41.472px] py-[16.553px]">
+                                                <div
+                                                    data-cs="hit-dice"
+                                                    data-cs-auto={automaticHitDice}
+                                                    className="relative flex h-[148.974px] w-full shrink-0 flex-col items-center justify-end rounded-[17.833px] border-[2.452px] border-solid border-black bg-[#f8f8f8] px-[41.472px] py-[16.553px]"
+                                                >
                                                     <FitInput
                                                         label="Hit die"
                                                         value={hitDieValue}
@@ -2208,7 +2284,11 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-center justify-end rounded-[18.395px] border-[2.516px] border-solid border-black bg-[#f8f8f8] p-[42.555px]">
+                                                <div
+                                                    data-cs="max-hit-points"
+                                                    data-cs-auto={automaticMaximumHitPoints}
+                                                    className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-center justify-end rounded-[18.395px] border-[2.516px] border-solid border-black bg-[#f8f8f8] p-[42.555px]"
+                                                >
                                                     <FitInput
                                                         label="Maximum hit points"
                                                         value={maximumHitPoints}
@@ -2236,6 +2316,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                     {[
                                         {
                                             label: "Speed",
+                                            exportField: undefined,
+                                            automaticValue: undefined,
                                             icon: <Icon src={asset("speed")} w={29.76} h={29.745} />,
                                             value: speed,
                                             setValue: setSpeed,
@@ -2244,6 +2326,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                         },
                                         {
                                             label: "Armor class",
+                                            exportField: "armor-class",
+                                            automaticValue: automaticArmorClass,
                                             icon: (
                                                 <Icon src={asset("armor-class")} w={27.778} h={29.619} />
                                             ),
@@ -2254,6 +2338,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                         },
                                         {
                                             label: "Initiative",
+                                            exportField: "initiative",
+                                            automaticValue: automaticInitiative,
                                             icon: (
                                                 <Icon src={asset("initiative")} w={24.87} h={21.761} />
                                             ),
@@ -2265,6 +2351,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                     ].map((stat) => (
                                         <div
                                             key={stat.label}
+                                            data-cs={stat.exportField}
+                                            data-cs-auto={stat.automaticValue}
                                             className="relative flex w-full items-center gap-[23.409px] overflow-clip rounded-[15.698px] bg-[#f8f8f8] p-[11.773px]"
                                         >
                                             <div className="relative flex shrink-0 flex-col items-center rounded-[8.778px] border-[1.898px] border-solid border-black bg-white px-[14.63px] py-[11.704px]">
@@ -2361,7 +2449,12 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                     Actions &amp; Spells casting
                                                 </p>
                                             </div>
-                                            <div className="relative flex h-[91px] w-[549px] shrink-0 items-center gap-[23.68px] overflow-clip rounded-[17px] border-[3.227px] border-solid border-black px-[23.68px]">
+                                            <div
+                                                data-cs="skill-save-dc"
+                                                data-cs-abilities={skillSaveAbility}
+                                                data-cs-auto={automaticSkillSaveDc}
+                                                className="relative flex h-[91px] w-[549px] shrink-0 items-center gap-[23.68px] overflow-clip rounded-[17px] border-[3.227px] border-solid border-black px-[23.68px]"
+                                            >
                                                 <p className="relative shrink-0 whitespace-nowrap text-[32.268px] font-medium not-italic leading-[normal] text-black">
                                                     Skill Save DC
                                                 </p>
@@ -2479,7 +2572,11 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                 className="absolute bottom-[220px] right-[47.535px] top-[23.768px] w-[calc(50%_-_59.419px)] text-[29.71px] font-medium not-italic leading-[normal] text-black"
                                             />
 
-                                            <div className="absolute left-[1016.4px] top-[995.7px] h-[189px] w-[261px] overflow-clip rounded-[17px] border-[3.227px] border-solid border-black">
+                                            <div
+                                                data-cs="class-points"
+                                                data-cs-auto={automaticPointValue}
+                                                className="absolute left-[1016.4px] top-[995.7px] h-[189px] w-[261px] overflow-clip rounded-[17px] border-[3.227px] border-solid border-black"
+                                            >
                                                 <FitInput
                                                     label={pointLabel}
                                                     value={pointValue}

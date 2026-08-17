@@ -60,8 +60,28 @@ export interface CharacterData {
         bonds?: string;
         flaws?: string;
     };
+    /**
+     * The proficiencies the character ends up with: what their species, class,
+     * subclass, background and feats grant, plus whatever they chose. Written
+     * by the creator from `proficiencyChoices`, and read by the sheet.
+     */
     proficiencies?: {
         skills: { name: string; proficient: boolean; expertise: boolean }[];
+        languages: string[];
+        tools: string[];
+        armor: string[];
+        weapons: string[];
+    };
+    /**
+     * The picks behind the proficiencies above, keyed by the choice that offered
+     * them ("choose 2 cleric skills"). Kept apart from the result so changing
+     * class drops only the picks that class was offering.
+     */
+    proficiencyChoices?: Record<string, string[]>;
+    /** Proficiencies added by hand, for homebrew the Archive has no rules for. */
+    customProficiencies?: {
+        skills: string[];
+        expertise: string[];
         languages: string[];
         tools: string[];
         armor: string[];

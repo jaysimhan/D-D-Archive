@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Download, Edit } from "lucide-react";
+import { Code2, Download, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
     CharacterSheetA4,
@@ -16,6 +16,7 @@ import {
     flattenFieldsForCapture,
     removeScreenOnlyControls,
 } from "../components/character-sheet/pdf-fields";
+import { useSheetSpells } from "../hooks/useSheetSuggestions";
 import { loadCompletedSheet } from "../lib/character-storage";
 
 /**
@@ -47,8 +48,13 @@ export function CharacterSheetPage() {
     const viewportRef = useRef<HTMLDivElement>(null);
     const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [scale, setScale] = useState(1);
-    const [downloading, setDownloading] = useState(false);
+    // Which download is in flight, so each button speaks for itself.
+    const [downloading, setDownloading] = useState<"pdf" | "html" | null>(null);
     const [failure, setFailure] = useState<"stale-build" | "failed" | null>(null);
+    // The spellbook rows carry a hover card in the HTML download, and this is
+    // where their spells come from. Already fetched for pages 3 and 4, so
+    // reading it here costs a cache hit rather than a request.
+    const spells = useSheetSpells();
 
     // The spellbook pages head every page with where the character's magic
     // comes from, which pages 1 and 2 hold between them: Class, Sub-class and
@@ -88,12 +94,49 @@ export function CharacterSheetPage() {
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     };
 
-    const downloadSheet = async () => {
+    /** The pages as drawn, or null when there is nothing to download yet. */
+    const readyPages = () => {
         const pages = pageRefs.current.filter((page): page is HTMLDivElement => Boolean(page));
-        if (!pages.length || downloading) return;
+        return pages.length && !downloading ? pages : null;
+    };
+
+    /**
+     * The same sheet as a standalone HTML file: the values as they stand, still
+     * editable, still adding up. See `html-export.ts` for what it keeps and what
+     * it has to leave behind.
+     */
+    const downloadHtml = async () => {
+        const pages = readyPages();
+        if (!pages) return;
 
         clearFieldFocus();
-        setDownloading(true);
+        setDownloading("html");
+        setFailure(null);
+        try {
+            const { downloadSheetHtml } = await import(
+                "../components/character-sheet/html-export"
+            );
+            await downloadSheetHtml({
+                pages,
+                spells,
+                title: initialCharacter?.name?.trim()
+                    ? `${initialCharacter.name.trim()} — Character Sheet`
+                    : "Character Sheet for D&D",
+            });
+        } catch (cause) {
+            console.error("Could not build the character sheet HTML", cause);
+            setFailure(isStaleBuild(cause) ? "stale-build" : "failed");
+        } finally {
+            setDownloading(null);
+        }
+    };
+
+    const downloadSheet = async () => {
+        const pages = readyPages();
+        if (!pages) return;
+
+        clearFieldFocus();
+        setDownloading("pdf");
         setFailure(null);
         try {
             await document.fonts?.ready;
@@ -166,7 +209,7 @@ export function CharacterSheetPage() {
             console.error("Could not build the character sheet PDF", cause);
             setFailure(isStaleBuild(cause) ? "stale-build" : "failed");
         } finally {
-            setDownloading(false);
+            setDownloading(null);
         }
     };
 
@@ -185,12 +228,22 @@ export function CharacterSheetPage() {
                 )}
                 <button
                     type="button"
+                    onClick={() => void downloadHtml()}
+                    disabled={Boolean(downloading)}
+                    title="A single file that opens in any browser, with every blank still editable"
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                    <Code2 className="size-4" aria-hidden />
+                    {downloading === "html" ? "Preparing HTML…" : "Download HTML"}
+                </button>
+                <button
+                    type="button"
                     onClick={() => void downloadSheet()}
-                    disabled={downloading}
+                    disabled={Boolean(downloading)}
                     className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                     <Download className="size-4" aria-hidden />
-                    {downloading ? "Preparing PDF…" : "Download PDF"}
+                    {downloading === "pdf" ? "Preparing PDF…" : "Download PDF"}
                 </button>
                 {failure && (
                     <p

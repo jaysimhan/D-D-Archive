@@ -35,7 +35,16 @@ export function createEmptyCharacter(): CharacterData {
         personality: {},
         proficiencies: {
             skills: [],
-            languages: ["Common"],
+            languages: [],
+            tools: [],
+            armor: [],
+            weapons: [],
+        },
+        proficiencyChoices: {},
+        customProficiencies: {
+            skills: [],
+            expertise: [],
+            languages: [],
             tools: [],
             armor: [],
             weapons: [],
@@ -77,6 +86,18 @@ function removeKey(key: string): void {
 const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
     Array.isArray(value) ? (value as T[]) : fallback;
 
+/** The proficiency picks, dropping any entry that is not a list of names. */
+function asRecordOfArrays(value: unknown): Record<string, string[]> {
+    if (!value || typeof value !== "object") return {};
+    const out: Record<string, string[]> = {};
+    for (const [key, picks] of Object.entries(value as Record<string, unknown>)) {
+        if (!Array.isArray(picks)) continue;
+        const names = picks.filter((pick): pick is string => typeof pick === "string");
+        if (names.length) out[key] = names;
+    }
+    return out;
+}
+
 /**
  * Anything read back may predate the current shape of CharacterData, and the
  * step components index into these fields without checking. Layering the
@@ -102,10 +123,21 @@ function normalizeCharacter(value: unknown): CharacterData | null {
         personality: { ...(stored.personality ?? {}) },
         proficiencies: {
             skills: asArray(stored.proficiencies?.skills),
-            languages: asArray(stored.proficiencies?.languages, ["Common"]),
+            languages: asArray(stored.proficiencies?.languages),
             tools: asArray(stored.proficiencies?.tools),
             armor: asArray(stored.proficiencies?.armor),
             weapons: asArray(stored.proficiencies?.weapons),
+        },
+        // A draft saved before the step followed the rules has no picks to
+        // restore; the creator rebuilds the granted half from the character.
+        proficiencyChoices: asRecordOfArrays(stored.proficiencyChoices),
+        customProficiencies: {
+            skills: asArray(stored.customProficiencies?.skills),
+            expertise: asArray(stored.customProficiencies?.expertise),
+            languages: asArray(stored.customProficiencies?.languages),
+            tools: asArray(stored.customProficiencies?.tools),
+            armor: asArray(stored.customProficiencies?.armor),
+            weapons: asArray(stored.customProficiencies?.weapons),
         },
         racialBonusAllocation: stored.racialBonusAllocation ?? {},
         hpRolls: Array.isArray(stored.hpRolls) ? stored.hpRolls : undefined,
