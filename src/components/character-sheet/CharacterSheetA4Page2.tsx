@@ -5,6 +5,7 @@ import { AutocompleteField } from "./AutocompleteField";
 import {
     SHEET_HEIGHT,
     SHEET_WIDTH,
+    SuggestTextArea,
     appendList,
     splitList,
     useEditableAutoValue,
@@ -297,19 +298,31 @@ function StatPanel({
     height,
     headerClassName = "",
     multiline = false,
+    options,
 }: {
     icon: ReactNode;
     label: string;
     height: number;
     headerClassName?: string;
     multiline?: boolean;
+    /**
+     * Suggest these from the Archive, one entry per line, as the Weapons and
+     * Tools blocks on page 1 do. Languages are picked this way; Size is not.
+     */
+    options?: string[];
 }) {
     return (
         <div
             className="relative flex w-full shrink-0 flex-col items-start rounded-[22.914px] border-[4.14px] border-solid p-[10.873px]"
             style={{ borderColor: YELLOW, height: `${height}px` }}
         >
-            <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-start justify-center gap-[20.831px] overflow-clip rounded-[16.665px] bg-[#f8f8f8] p-[12.499px]">
+            {/* Unclipped where it suggests: the menu opens past the panel, as
+                page 1's weapon blocks and the magic item rows below do. */}
+            <div
+                className={`relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-start justify-center gap-[20.831px] rounded-[16.665px] bg-[#f8f8f8] p-[12.499px] ${
+                    options ? "" : "overflow-clip"
+                }`}
+            >
                 <div className={`relative flex shrink-0 items-center gap-[16.665px] ${headerClassName}`}>
                     {icon}
                     <p className="relative shrink-0 whitespace-nowrap text-[31.064px] font-normal not-italic leading-[normal] text-black">
@@ -317,7 +330,13 @@ function StatPanel({
                     </p>
                 </div>
                 <div className="relative flex min-h-[1px] w-full flex-[1_0_0] flex-col items-center rounded-[9.319px] border-2 border-solid border-black bg-white px-[15.532px] py-[12.426px]">
-                    {multiline ? (
+                    {options ? (
+                        <SuggestTextArea
+                            label={label}
+                            options={options}
+                            className="text-[34px] font-medium not-italic leading-[1.3] text-black"
+                        />
+                    ) : multiline ? (
                         <textarea
                             aria-label={label}
                             className="relative h-full w-full text-[34px] font-medium not-italic leading-[1.3] text-black"
@@ -551,6 +570,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                 label="Languages"
                                 height={261}
                                 multiline
+                                options={suggestions.languages}
                                 headerClassName="justify-center px-[8.333px]"
                                 icon={<Icon src={asset("languages")} w={42.277} h={42.277} />}
                             />

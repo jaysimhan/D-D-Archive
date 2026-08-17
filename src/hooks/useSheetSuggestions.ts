@@ -40,6 +40,8 @@ export interface SheetSuggestions {
     armor: string[];
     weapons: string[];
     tools: string[];
+    /** Every language the Archive's species speak, for page 2's Languages. */
+    languages: string[];
     /** Every item, for the page 2 inventory. */
     items: string[];
     magicItems: string[];
@@ -102,6 +104,10 @@ const QUERY = `{
             "description": coalesce(description, @->description)
         }
     },
+    // No language document to read, so take the union of what species speak.
+    "languages": array::unique(
+        *[_type in ["species", "race"] && defined(languages)].languages[]
+    ),
     "armor": *[_type == "item" && type == "Armor" && defined(name)] | order(name asc).name,
     "weapons": *[_type == "item" && type == "Weapon" && defined(name)] | order(name asc).name,
     "tools": *[_type == "item" && type == "Tool" && defined(name)] | order(name asc).name,
@@ -122,6 +128,7 @@ const EMPTY: SheetSuggestions = {
     armor: [],
     weapons: [],
     tools: [],
+    languages: [],
     items: [],
     magicItems: [],
     feats: [],
@@ -141,6 +148,17 @@ function uniqueNames(values: unknown): string[] {
         out.push(name);
     }
     return out;
+}
+
+/**
+ * The languages, alphabetically. Species record them as free text, so this also
+ * drops the placeholders written among them — "one other" and its like. A
+ * language is a name, and a name is capitalised.
+ */
+function languageNames(values: unknown): string[] {
+    return uniqueNames(values)
+        .filter((name) => /^\p{Lu}/u.test(name))
+        .sort((a, b) => a.localeCompare(b));
 }
 
 function uniqueDocs<T extends { name?: string }>(values: unknown): T[] {
@@ -352,6 +370,7 @@ export function useSheetSuggestions(): SheetSuggestions {
                     armor: uniqueNames(result.armor),
                     weapons: uniqueNames(result.weapons),
                     tools: uniqueNames(result.tools),
+                    languages: languageNames(result.languages),
                     items: uniqueNames(result.items),
                     magicItems: uniqueNames(result.magicItems),
                     feats: uniqueDocs<{

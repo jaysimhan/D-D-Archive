@@ -717,15 +717,15 @@ export function SuggestInput({
 }
 
 /**
- * Weapons / Tools — the same Archive suggestions as SuggestInput, over a block
- * that holds a list rather than a single value.
+ * Weapons / Tools / Languages — the same Archive suggestions as SuggestInput,
+ * over a block that holds a list rather than a single value.
  *
  * One entry per line: the menu matches the line the caret is on, picking fills
  * that line and opens the next, and entries already listed drop out of the
  * menu, so several can be chosen in a row. It stays an ordinary textarea —
  * anything can still be typed.
  */
-function SuggestTextArea({
+export function SuggestTextArea({
     label,
     options,
     className,
