@@ -18,6 +18,16 @@ import {
 import type { CharacterData } from "../types/character-creator";
 
 /**
+ * html2canvas and jsPDF are fetched at the click rather than shipped with the
+ * page, and a deploy renames those files. A tab opened before the deploy asks
+ * for names the server no longer has, so the import rejects the moment the
+ * button is pressed — reloading the page is the only way out.
+ */
+const isStaleBuild = (cause: unknown) =>
+    cause instanceof Error &&
+    /dynamically imported module|module script failed/i.test(cause.message);
+
+/**
  * Hosts the A4 character sheet. The sheet is built at its native design size
  * (2480 x 3508), so this page scales it down to whatever width is available
  * rather than reflowing it — that keeps the layout identical at every size.
@@ -33,6 +43,7 @@ export function CharacterSheetPage({
     const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [scale, setScale] = useState(1);
     const [downloading, setDownloading] = useState(false);
+    const [failure, setFailure] = useState<"stale-build" | "failed" | null>(null);
 
     // The spellbook pages head every page with where the character's magic
     // comes from, which pages 1 and 2 hold between them: Class, Sub-class and
@@ -78,6 +89,7 @@ export function CharacterSheetPage({
 
         clearFieldFocus();
         setDownloading(true);
+        setFailure(null);
         try {
             await document.fonts?.ready;
             const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
@@ -142,6 +154,12 @@ export function CharacterSheetPage({
             }
 
             pdf.save("dnd-character-sheet.pdf");
+        } catch (cause) {
+            // Without this the click looked like it did nothing at all: the
+            // button flicked through "Preparing PDF…" and the reason was left
+            // in a promise nobody was reading.
+            console.error("Could not build the character sheet PDF", cause);
+            setFailure(isStaleBuild(cause) ? "stale-build" : "failed");
         } finally {
             setDownloading(false);
         }
@@ -169,6 +187,28 @@ export function CharacterSheetPage({
                     <Download className="size-4" aria-hidden />
                     {downloading ? "Preparing PDF…" : "Download PDF"}
                 </button>
+                {failure && (
+                    <p
+                        role="alert"
+                        className="flex w-full flex-wrap items-center justify-end gap-2 text-sm text-red-300"
+                    >
+                        {failure === "stale-build" ? (
+                            <>
+                                A newer version of the site went live while this page was open, so
+                                the PDF tools could not be fetched.
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.reload()}
+                                    className="rounded-lg border border-red-300/40 px-3 py-1 font-semibold text-red-200 transition-colors hover:bg-red-300/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200"
+                                >
+                                    Reload the page
+                                </button>
+                            </>
+                        ) : (
+                            "Something went wrong preparing the PDF — the browser console has the details."
+                        )}
+                    </p>
+                )}
             </div>
             <div
                 ref={viewportRef}
