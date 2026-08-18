@@ -2,3 +2,5 @@ node_modules
 dist
 .DS_Store
 ndjson-export/*.tar.gz
+.vercel
+.env*
