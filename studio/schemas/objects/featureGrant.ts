@@ -42,11 +42,31 @@ export const featureGrant = {
         },
         {
             name: 'schoolRestriction',
-            title: 'School Restriction',
+            title: 'Legacy School Restriction',
             type: 'reference',
             to: [{ type: 'magicSchool' }],
+            hidden: true,
+            description: 'Preserved for existing data. Use School Restrictions.',
+        },
+        {
+            name: 'schoolRestrictions',
+            title: 'School Restrictions',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'magicSchool' }] }],
+            options: { layout: 'tags' },
+            validation: (Rule: any) => Rule.unique(),
             hidden: ({ parent }: any) => parent?.grantType !== 'Spell Slot',
-            description: 'Optional school restriction (e.g. Illusion only)',
+            description: 'Optional. A spell may match any selected school (for example, Divination or Enchantment).',
+        },
+        {
+            name: 'classRestrictions',
+            title: 'Class Spell List Restrictions',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'class' }] }],
+            options: { layout: 'tags' },
+            validation: (Rule: any) => Rule.unique(),
+            hidden: ({ parent }: any) => parent?.grantType !== 'Spell Slot',
+            description: 'Optional. A spell may belong to any selected class spell list.',
         },
         // Resource Pool fields
         {

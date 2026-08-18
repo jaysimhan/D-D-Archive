@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, rulesetsField } from './common/source'
 
 export default {
     name: 'trait',
@@ -51,7 +51,9 @@ export default {
             initialValue: 1,
         },
         sourceField,
+        rulesetsField,
         editionField,
+        rulesetField,
         versionField,
     ],
     orderings: [

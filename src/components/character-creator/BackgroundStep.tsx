@@ -1,23 +1,25 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
-import { Background } from "../../types/dnd-types";
+import { Background, CharacterRuleset } from "../../types/dnd-types";
 import { useBackgrounds } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 
 // Background Step
 export function BackgroundStep({
     selected,
+    ruleset,
     onSelect,
 }: {
     selected?: Background;
+    ruleset: CharacterRuleset;
     onSelect: (background: Background) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [showNonCore, setShowNonCore] = useState(false);
 
     // Fetch backgrounds from Sanity
-    const { data: sanityBackgrounds, loading: backgroundsLoading } = useBackgrounds();
+    const { data: sanityBackgrounds, loading: backgroundsLoading } = useBackgrounds(ruleset);
     const allBackgrounds = sanityBackgrounds || [];
 
     const filteredBackgrounds = useMemo(() => {

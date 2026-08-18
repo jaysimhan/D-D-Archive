@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
-import { Class, Subclass } from "../../types/dnd-types";
+import { CharacterRuleset, Class, Subclass } from "../../types/dnd-types";
 import { useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 
@@ -9,11 +9,13 @@ import SanityImage from "../SanityImage";
 // Subclass Step
 export function SubclassStep({
     classData,
+    ruleset,
     selectedSubclass,
     level,
     onSelect,
 }: {
     classData: Class;
+    ruleset: CharacterRuleset;
     selectedSubclass?: Subclass;
     level: number;
     onSelect: (subclass: Subclass) => void;
@@ -22,7 +24,7 @@ export function SubclassStep({
     const [showNonCore, setShowNonCore] = useState(true);
 
     // Fetch subclasses from Sanity, fall back to mock data
-    const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses();
+    const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses(ruleset);
 
     const subclassLevel = classData.id === "cleric" ||
         classData.id === "sorcerer" ||

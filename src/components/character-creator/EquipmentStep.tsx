@@ -1,20 +1,22 @@
 import { useState, useMemo } from "react";
 import { Search, Loader2 } from "lucide-react";
-import { Class, Item } from "../../types/dnd-types";
+import { CharacterRuleset, Class, Item } from "../../types/dnd-types";
 import { useItems } from "../../hooks/useSanityData";
 
 // Equipment Step
 export function EquipmentStep({
     equipment,
+    ruleset,
     classData,
     onEquipmentChange,
 }: {
     equipment: Item[];
+    ruleset: CharacterRuleset;
     classData?: Class;
     onEquipmentChange: (equipment: Item[]) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
-    const { data: allItems, loading } = useItems();
+    const { data: allItems, loading } = useItems(ruleset);
 
     const availableItems = useMemo(() => {
         if (!allItems) return [];

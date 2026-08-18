@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { Search, User, Sparkles, Plus, Loader2 } from "lucide-react";
-import { Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
+import { CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
 import { useSpells } from "../../hooks/useSanityData";
 
 // Spell Selection Step - Slot Based
 export function SpellSelectionStep({
     classData,
+    ruleset,
     level,
     selectedSpells,
     onSpellsChange,
@@ -17,6 +18,7 @@ export function SpellSelectionStep({
     onMagicInitiateClassChange
 }: {
     classData: Class;
+    ruleset: CharacterRuleset;
     level: number;
     selectedSpells: Spell[];
     onSpellsChange: (spells: Spell[]) => void;
@@ -27,7 +29,7 @@ export function SpellSelectionStep({
     magicInitiateClass?: string;
     onMagicInitiateClassChange?: (cls: string) => void;
 }) {
-    const { data: allSpells, loading: spellsLoading } = useSpells();
+    const { data: allSpells, loading: spellsLoading } = useSpells(ruleset);
     const [activeSlot, setActiveSlot] = useState<{ level: number, index: number, source: string, choiceIndex?: number } | null>(null);
 
     // Magic Initiate Detection
@@ -197,6 +199,33 @@ export function SpellSelectionStep({
         ...createSlots(1, 1, "feat-ab-lvl1", "Aberrant Dragonmark")
     ] : [];
 
+    // Data-driven feat choices, including compound restrictions such as Fey
+    // Touched (Divination OR Enchantment) and choices spanning several class
+    // spell lists. Legacy hard-coded feats above continue to work unchanged.
+    const featChoices = feats.flatMap((feat) =>
+        (feat.grants || [])
+            .filter((grant) => grant.grantType === "Spell Slot")
+            .map((grant) => ({
+                name: feat.name,
+                choose: grant.slotCount || 1,
+                level: grant.slotLevel || 1,
+                schools: grant.schoolRestrictions || [],
+                classLists: grant.classRestrictions || [],
+            })),
+    );
+    const featChoiceSlots: { level: number, index: number, id: string, source: string, choiceIndex: number }[] = [];
+    featChoices.forEach((choice, choiceIndex) => {
+        for (let index = 0; index < choice.choose; index += 1) {
+            featChoiceSlots.push({
+                level: choice.level,
+                index: featChoiceSlots.length,
+                id: `feat-choice-${choiceIndex}-${index}`,
+                source: "Feat",
+                choiceIndex,
+            });
+        }
+    });
+
     // Racial Spell Slots
     const racialSlots: { level: number, index: number, id: string, source: string, choiceIndex: number }[] = [];
     racialChoices.forEach((choice, idx) => {
@@ -328,6 +357,7 @@ export function SpellSelectionStep({
                                         ...classSlots,
                                         ...magicInitiateSlots,
                                         ...aberrantSlots,
+                                        ...featChoiceSlots,
                                         ...racialSlots,
                                         ...subclassChoiceSlots
                                     ];
@@ -383,6 +413,7 @@ export function SpellSelectionStep({
 
     const hasSpellcasting = isClassCaster ||
         (subclass?.isSpellcaster) ||
+        featChoiceSlots.length > 0 ||
         hasMagicInitiate ||
         hasAberrantDragonmark ||
         hasRacialCantripChoice ||
@@ -392,7 +423,7 @@ export function SpellSelectionStep({
         (subrace?.spells && subrace.spells.length > 0) ||
         (subclass?.spells && subclass.spells.length > 0);
 
-    const totalSlots = classSlots.length + magicInitiateSlots.length + aberrantSlots.length + racialSlots.length + subclassChoiceSlots.length;
+    const totalSlots = classSlots.length + magicInitiateSlots.length + aberrantSlots.length + featChoiceSlots.length + racialSlots.length + subclassChoiceSlots.length;
 
     // Check for fixed racial spells that would be displayed
     const hasFixedSpells = (race?.racialKnownSpells && race.racialKnownSpells.length > 0) ||
@@ -452,6 +483,8 @@ export function SpellSelectionStep({
                 {hasMagicInitiate && renderSlotGroup(magicInitiateSlots, "Magic Initiate Spells", true)}
 
                 {hasAberrantDragonmark && renderSlotGroup(aberrantSlots, "Aberrant Dragonmark Spells")}
+
+                {featChoiceSlots.length > 0 && renderSlotGroup(featChoiceSlots, "Feat Spell Choices")}
 
                 {hasRacialCantripChoice && renderSlotGroup(racialSlots, "Racial Spell Choices")}
 
@@ -580,6 +613,9 @@ export function SpellSelectionStep({
                         : activeSlot.source === "Subclass" && (activeSlot as any).choiceIndex !== undefined
                             ? subclassChoices[(activeSlot as any).choiceIndex]
                             : undefined}
+                    featChoice={activeSlot.source === "Feat" && activeSlot.choiceIndex !== undefined
+                        ? featChoices[activeSlot.choiceIndex]
+                        : undefined}
                 />
             )}
         </div>
@@ -598,7 +634,8 @@ function SpellSelectionModal({
     race,
     subrace,
     allSpells,
-    racialChoice
+    racialChoice,
+    featChoice
 }: {
     classData: Class;
     slotLevel: number;
@@ -612,6 +649,7 @@ function SpellSelectionModal({
     subrace?: Subrace; // Add subrace prop
     allSpells: Spell[];
     racialChoice?: { list: string[]; name: string; school?: string; level?: number; spellList?: string }; // Specific choice block
+    featChoice?: { name: string; level: number; schools: string[]; classLists: string[] };
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [divineSoulFilter, setDivineSoulFilter] = useState<"all" | "sorcerer" | "cleric">("all");
@@ -649,6 +687,17 @@ function SpellSelectionModal({
 
         if (slotSource === "Aberrant Dragonmark") {
             targetClass = "sorcerer";
+        }
+
+        if (slotSource === "Feat" && featChoice) {
+            return allSpells.filter((spell) => {
+                if (spell.level !== slotLevel) return false;
+                if (currentSpells.some((existing) => existing.id === spell.id)) return false;
+                const matchesSchool = featChoice.schools.length === 0 || featChoice.schools.includes(spell.school);
+                const matchesClassList = featChoice.classLists.length === 0 ||
+                    featChoice.classLists.some((classId) => spell.classes.includes(classId));
+                return matchesSchool && matchesClassList;
+            });
         }
 
         // Racial Logic
@@ -689,7 +738,7 @@ function SpellSelectionModal({
             s.classes.includes(targetClass) &&
             !currentSpells.find(existing => existing.id === s.id)
         );
-    }, [classData, slotLevel, currentSpells, slotSource, magicInitiateClass, subclass, race, isDivineSoulSelection, divineSoulFilter, racialChoice, allSpells]);
+    }, [classData, slotLevel, currentSpells, slotSource, magicInitiateClass, subclass, race, isDivineSoulSelection, divineSoulFilter, racialChoice, featChoice, allSpells]);
 
     const filtered = spells.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
 

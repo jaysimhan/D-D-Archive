@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
 import { sanityClient } from '../lib/sanity';
-import type { Class, Subclass, Race, Background, Spell, Feat, Item, HomepageData } from '../types/dnd-types';
+import type { Class, Subclass, Race, Background, Spell, Feat, Item, HomepageData, CharacterRuleset } from '../types/dnd-types';
+
+function rulesetFilter(ruleset?: CharacterRuleset): string {
+    if (!ruleset) return '';
+    return ` && (
+        (defined(rulesets[0]) && $rulesetKey in rulesets[]->key.current) ||
+        (!defined(rulesets[0]) && defined(ruleset) && ruleset->key.current == $rulesetKey) ||
+        (!defined(rulesets[0]) && !defined(ruleset) && (edition == $edition || edition in ["Both", "5e"]))
+    )`;
+}
+
+function rulesetParams(ruleset?: CharacterRuleset): Record<string, string> {
+    return ruleset
+        ? { rulesetKey: `srd-${ruleset}`, edition: ruleset }
+        : {};
+}
 
 // Helper hook for Sanity queries
 function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
@@ -42,8 +57,8 @@ function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
 }
 
 // ===== CLASSES =====
-export function useClasses() {
-    return useSanityQuery<Class>(`*[_type == "class"] {
+export function useClasses(ruleset?: CharacterRuleset) {
+    return useSanityQuery<Class>(`*[_type == "class"${rulesetFilter(ruleset)}] {
         "id": slug.current,
         name,
         description,
@@ -61,13 +76,14 @@ export function useClasses() {
         traits[]->{name, description},
         proficiencies,
         source,
-        edition
-    } | order(name asc)`);
+        edition,
+        "rulesetKeys": rulesets[]->key.current
+    } | order(name asc)`, rulesetParams(ruleset));
 }
 
 // ===== SUBCLASSES =====
-export function useSubclasses() {
-    return useSanityQuery<Subclass>(`*[_type == "subclass"] {
+export function useSubclasses(ruleset?: CharacterRuleset) {
+    return useSanityQuery<Subclass>(`*[_type == "subclass"${rulesetFilter(ruleset)}] {
         "id": slug.current,
         name,
         description,
@@ -75,7 +91,7 @@ export function useSubclasses() {
             ...,
             asset->{ _id, url, metadata { lqip, dimensions } }
         },
-        parentClassId,
+        "parentClassId": coalesce(parentClass->slug.current, parentClassId),
         features,
         traits[]->{name, description},
         proficiencies,
@@ -94,7 +110,7 @@ export function useSubclasses() {
                 name,
                 "id": slug.current,
                 level,
-                school,
+                "school": coalesce(school->name, school),
                 castingTime,
                 range,
                 duration,
@@ -110,13 +126,14 @@ export function useSubclasses() {
             notes
         },
         source,
-        edition
-    } | order(name asc)`);
+        edition,
+        "rulesetKeys": rulesets[]->key.current
+    } | order(name asc)`, rulesetParams(ruleset));
 }
 
-export function useSubclassesByClass(classId: string) {
+export function useSubclassesByClass(classId: string, ruleset?: CharacterRuleset) {
     return useSanityQuery<Subclass>(
-        `*[_type == "subclass" && parentClassId == $classId] {
+        `*[_type == "subclass" && (parentClassId == $classId || parentClass->slug.current == $classId)${rulesetFilter(ruleset)}] {
             "id": slug.current,
             name,
             description,
@@ -124,7 +141,7 @@ export function useSubclassesByClass(classId: string) {
                 ...,
                 asset->{ _id, url, metadata { lqip, dimensions } }
             },
-            parentClassId,
+            "parentClassId": coalesce(parentClass->slug.current, parentClassId),
             features,
             traits[]->{name, description},
             proficiencies,
@@ -143,7 +160,7 @@ export function useSubclassesByClass(classId: string) {
                     name,
                     "id": slug.current,
                     level,
-                    school,
+                    "school": coalesce(school->name, school),
                     castingTime,
                     range,
                     duration,
@@ -161,25 +178,26 @@ export function useSubclassesByClass(classId: string) {
             source,
             edition
         } | order(name asc)`,
-        { classId }
+        { classId, ...rulesetParams(ruleset) }
     );
 }
 
 // ===== RACES =====
-export function useRaces() {
-    return useSanityQuery<Race>(`*[_type == "race"] {
+export function useRaces(ruleset?: CharacterRuleset) {
+    return useSanityQuery<Race>(`*[_type in ["race", "species"]${rulesetFilter(ruleset)}] {
         "id": slug.current,
+        "contentType": _type,
         name,
         description,
         image {
             ...,
             asset->{ _id, url, metadata { lqip, dimensions } }
         },
-        abilityScoreIncrease,
-        flexibleAbilityScores,
+        "abilityScoreIncrease": coalesce(abilityScoreIncrease, {}),
+        "flexibleAbilityScores": coalesce(flexibleAbilityScores, false),
         size,
         speed,
-        traits[]->{name, description},
+        "traits": coalesce(select(_type == "race" => traits[]->{name, description}, traits[]{name, description}), []),
         proficiencies,
         spells[]{
             name,
@@ -191,7 +209,7 @@ export function useRaces() {
                 name,
                 "id": slug.current,
                 level,
-                school,
+                "school": coalesce(school->name, school),
                 castingTime,
                 range,
                 duration,
@@ -206,17 +224,28 @@ export function useRaces() {
             spellLevel,
             notes
         },
-        languages,
-        isSpellcaster,
+        "languages": coalesce(languages, []),
+        "isSpellcaster": coalesce(
+            isSpellcaster,
+            count(grants[grantType in ["Specific Spell", "Spell Slot"]]) > 0
+        ),
         subraces,
-        source,
-        edition
-    } | order(name asc)`);
+        "source": coalesce(source, select(isHomebrew => "Homebrew", "Official")),
+        "edition": coalesce(edition, select(
+            count(rulesets) > 1 => "Both",
+            rulesets[0]->key.current == "srd-2014" => "2014",
+            rulesets[0]->key.current == "srd-2024" => "2024",
+            ruleset->key.current == "srd-2014" => "2014",
+            ruleset->key.current == "srd-2024" => "2024",
+            "Both"
+        )),
+        "rulesetKeys": rulesets[]->key.current
+    } | order(name asc)`, rulesetParams(ruleset));
 }
 
 // ===== BACKGROUNDS =====
-export function useBackgrounds() {
-    return useSanityQuery<Background>(`*[_type == "background"] {
+export function useBackgrounds(ruleset?: CharacterRuleset) {
+    return useSanityQuery<Background>(`*[_type == "background"${rulesetFilter(ruleset)}] {
         "id": slug.current,
         name,
         description,
@@ -232,30 +261,48 @@ export function useBackgrounds() {
         equipment,
         feature,
         source,
-        edition
-    } | order(name asc)`);
+        edition,
+        "rulesetKeys": rulesets[]->key.current
+    } | order(name asc)`, rulesetParams(ruleset));
 }
 
 // ===== SPELLS =====
-export function useSpells() {
-    return useSanityQuery<Spell>('*[_type == "spell"] { ..., "id": slug.current } | order(name asc)');
+export function useSpells(ruleset?: CharacterRuleset) {
+    return useSanityQuery<Spell>(`*[_type == "spell"${rulesetFilter(ruleset)}] {
+        ...,
+        "id": slug.current,
+        "school": coalesce(school->name, school)
+    } | order(name asc)`, rulesetParams(ruleset));
 }
 
-export function useSpellsByClass(classId: string) {
+export function useSpellsByClass(classId: string, ruleset?: CharacterRuleset) {
     return useSanityQuery<Spell>(
-        '*[_type == "spell" && $classId in classes] { ..., "id": slug.current } | order(level asc, name asc)',
-        { classId }
+        `*[_type == "spell" && $classId in classes${rulesetFilter(ruleset)}] {
+            ...,
+            "id": slug.current,
+            "school": coalesce(school->name, school)
+        } | order(level asc, name asc)`,
+        { classId, ...rulesetParams(ruleset) }
     );
 }
 
 // ===== FEATS =====
-export function useFeats() {
-    return useSanityQuery<Feat>('*[_type == "feat"] { ..., "id": slug.current } | order(name asc)');
+export function useFeats(ruleset?: CharacterRuleset) {
+    return useSanityQuery<Feat>(`*[_type == "feat"${rulesetFilter(ruleset)}] {
+        ...,
+        "id": slug.current,
+        grants[]{
+            ...,
+            "grantedSpell": grantedSpell->{..., "id": slug.current, "school": coalesce(school->name, school)},
+            "schoolRestrictions": coalesce(schoolRestrictions[]->name, select(defined(schoolRestriction) => [schoolRestriction->name], [])),
+            "classRestrictions": classRestrictions[]->slug.current
+        }
+    } | order(name asc)`, rulesetParams(ruleset));
 }
 
 // ===== ITEMS =====
-export function useItems() {
-    return useSanityQuery<Item>('*[_type == "item"] { ..., "id": slug.current } | order(name asc)');
+export function useItems(ruleset?: CharacterRuleset) {
+    return useSanityQuery<Item>(`*[_type == "item"${rulesetFilter(ruleset)}] { ..., "id": slug.current } | order(name asc)`, rulesetParams(ruleset));
 }
 
 // ===== MONSTERS =====
@@ -279,4 +326,3 @@ export function useHomepage() {
         footer
     }`);
 }
-

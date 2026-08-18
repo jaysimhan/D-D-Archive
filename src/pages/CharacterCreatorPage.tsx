@@ -18,6 +18,7 @@ export function CharacterCreatorPage() {
  * longer supports it.
  */
 export function CharacterCreatorEntry() {
-    const step = loadDraft()?.step ?? "race";
+    const draft = loadDraft();
+    const step = draft?.character.ruleset ? draft.step : "ruleset";
     return <Navigate to={`/creator/${step}`} replace />;
 }

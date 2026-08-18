@@ -1,4 +1,4 @@
-import { rulesetField, isHomebrewField, versionNotesField } from './common/source'
+import { rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'species',
@@ -35,6 +35,7 @@ export default {
                 hotspot: true,
             },
         },
+        rulesetsField,
         rulesetField,
         isHomebrewField,
         versionNotesField,
@@ -107,13 +108,13 @@ export default {
     preview: {
         select: {
             title: 'name',
-            ruleset: 'ruleset.name',
+            rulesets: 'rulesets',
         },
         prepare(selection: any) {
-            const { title, ruleset } = selection
+            const { title, rulesets } = selection
             return {
                 title,
-                subtitle: `Species | Ruleset: ${ruleset || 'Generic'}`,
+                subtitle: `Species | ${rulesets?.length === 2 ? '2014 + 2024' : `${rulesets?.length || 0} ruleset${rulesets?.length === 1 ? '' : 's'}`}`,
             }
         },
     },

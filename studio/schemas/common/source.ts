@@ -15,7 +15,7 @@ export const sourceField = {
 
 export const editionField = {
     name: 'edition',
-    title: 'Edition',
+    title: 'Legacy Edition',
     type: 'string',
     options: {
         list: [
@@ -25,7 +25,8 @@ export const editionField = {
         ],
     },
     initialValue: 'Both',
-    validation: (Rule: any) => Rule.required(),
+    description: 'Kept for existing documents. Use Rulesets for all new editing.',
+    hidden: true,
 }
 
 export const versionField = {
@@ -38,11 +39,22 @@ export const versionField = {
 
 export const rulesetField = {
     name: 'ruleset',
-    title: 'Ruleset',
+    title: 'Legacy Ruleset',
     type: 'reference',
     to: [{ type: 'ruleset' }],
-    description: 'Points to a ruleset document (e.g., srd-2014 or srd-2024) dictating which mechanical rules apply.',
-    validation: (Rule: any) => Rule.required(),
+    description: 'Kept for existing documents. Use Rulesets for all new editing.',
+    hidden: true,
+}
+
+/** A document may apply to 2014, 2024, or both without being duplicated. */
+export const rulesetsField = {
+    name: 'rulesets',
+    title: 'Rulesets',
+    type: 'array',
+    of: [{ type: 'reference', to: [{ type: 'ruleset' }] }],
+    options: { layout: 'tags' },
+    description: 'Choose D&D 2014, D&D 2024, or select both.',
+    validation: (Rule: any) => Rule.required().min(1).unique(),
 }
 
 export const isHomebrewField = {
@@ -61,4 +73,3 @@ export const versionNotesField = {
     rows: 3,
     description: 'Provides editors with a brief summary of what changed between the 2014 and 2024 versions of the entity.',
 }
-

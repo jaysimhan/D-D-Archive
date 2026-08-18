@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'background',
@@ -138,6 +138,7 @@ export default {
         sourceField,
         editionField,
         versionField,
+        rulesetsField,
         rulesetField,
         isHomebrewField,
         versionNotesField,

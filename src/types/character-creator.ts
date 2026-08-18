@@ -1,6 +1,7 @@
-import { Race, Class, Subclass, Background, AbilityScores, Spell, Feat, Item, Subrace } from "./dnd-types";
+import { Race, Class, Subclass, Background, AbilityScores, Spell, Feat, Item, Subrace, CharacterRuleset } from "./dnd-types";
 
 export type CreationStep =
+    | "ruleset"
     | "name"
     | "race"
     | "class"
@@ -21,6 +22,7 @@ export type CreationStep =
  * sees "spells"); this is only the vocabulary a URL is allowed to use.
  */
 export const CREATION_STEPS: CreationStep[] = [
+    "ruleset",
     "name",
     "race",
     "class",
@@ -41,6 +43,8 @@ export function isCreationStep(value: unknown): value is CreationStep {
 }
 
 export interface CharacterData {
+    /** Mechanical rules used for every Sanity-backed creator choice. */
+    ruleset?: CharacterRuleset;
     name: string;
     race?: Race;
     subrace?: Subrace;

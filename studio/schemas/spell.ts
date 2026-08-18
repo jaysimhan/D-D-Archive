@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'spell',
@@ -33,6 +33,13 @@ export default {
             type: 'reference',
             to: [{ type: 'magicSchool' }],
             validation: (Rule: any) => Rule.required(),
+        },
+        {
+            name: 'legacySchoolName',
+            title: 'Legacy School Name',
+            type: 'string',
+            hidden: true,
+            description: 'Original school text retained by the reference migration.',
         },
         {
             name: 'castingTime',
@@ -116,6 +123,7 @@ export default {
         sourceField,
         editionField,
         versionField,
+        rulesetsField,
         rulesetField,
         isHomebrewField,
         versionNotesField,

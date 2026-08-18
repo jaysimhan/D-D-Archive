@@ -1,18 +1,20 @@
 import { useState, useMemo } from "react";
 import { Search, Sparkles, Loader2 } from "lucide-react";
-import { Feat } from "../../types/dnd-types";
+import { CharacterRuleset, Feat } from "../../types/dnd-types";
 import { useFeats } from "../../hooks/useSanityData";
 
 // Feat Selection Step
 export function FeatSelectionStep({
     selectedFeats,
+    ruleset,
     onFeatsChange,
 }: {
     selectedFeats: Feat[];
+    ruleset: CharacterRuleset;
     onFeatsChange: (feats: Feat[]) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
-    const { data: allFeats, loading } = useFeats();
+    const { data: allFeats, loading } = useFeats(ruleset);
 
     const filteredFeats = useMemo(() => {
         if (!allFeats) return [];

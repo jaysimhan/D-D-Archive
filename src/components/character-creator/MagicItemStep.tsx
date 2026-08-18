@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Item } from "../../types/dnd-types";
+import { CharacterRuleset, Item } from "../../types/dnd-types";
 import { useItems } from "../../hooks/useSanityData";
 import { SearchBar } from "../SearchBar";
 import { SearchFilters } from "../../types/dnd-types";
@@ -8,13 +8,14 @@ import { ItemCard } from "../ItemCard";
 import { Info } from "lucide-react";
 
 interface MagicItemStepProps {
+    ruleset: CharacterRuleset;
     magicItem: Item[]; // Current selection (array for consistency with other steps, but usually 1)
     onMagicItemChange: (items: Item[]) => void;
     level: number;
 }
 
-export function MagicItemStep({ magicItem, onMagicItemChange, level }: MagicItemStepProps) {
-    const { data: allItems, loading } = useItems();
+export function MagicItemStep({ ruleset, magicItem, onMagicItemChange, level }: MagicItemStepProps) {
+    const { data: allItems, loading } = useItems(ruleset);
     const [filters, setFilters] = useState<SearchFilters>({
         query: "",
         itemCategory: "Magic Items",

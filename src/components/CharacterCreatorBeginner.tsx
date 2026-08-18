@@ -21,6 +21,7 @@ import {
 
 // Import Step Components
 import { NameStep } from "./character-creator/NameStep";
+import { RulesetStep } from "./character-creator/RulesetStep";
 import { RaceStep } from "./character-creator/RaceStep";
 import { ClassStep } from "./character-creator/ClassStep";
 import { SubclassStep } from "./character-creator/SubclassStep";
@@ -45,14 +46,14 @@ export function CharacterCreator() {
   );
 
   // Fetch subclasses here for the check
-  const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses();
+  const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses(characterData.ruleset);
 
   const allSubclasses = useMemo(() => {
     return sanitySubclasses || [];
   }, [sanitySubclasses]);
 
   const steps: CreationStep[] = useMemo(() => {
-    const baseSteps: CreationStep[] = ["race", "class"];
+    const baseSteps: CreationStep[] = ["ruleset", "race", "class"];
 
     // Add subclass step if character level requires it
     if (characterData.class) {
@@ -75,8 +76,12 @@ export function CharacterCreator() {
     const isClassCaster = characterData.class?.isSpellcaster === true || (characterData.class?.spellcaster && characterData.class.spellcaster !== 'none' && characterData.class.spellcaster !== 'None');
     const isRaceCaster = characterData.race?.isSpellcaster === true;
     const isSubclassCaster = characterData.subclass?.isSpellcaster === true || characterData.subclass?.spellcaster === true;
+    const hasFeatSpells = characterData.feats.some((feat) =>
+      (feat.spells?.length ?? 0) > 0 ||
+      feat.grants?.some((grant) => grant.grantType === "Specific Spell" || grant.grantType === "Spell Slot"),
+    );
 
-    if (isClassCaster || isRaceCaster || isSubclassCaster) {
+    if (isClassCaster || isRaceCaster || isSubclassCaster || hasFeatSpells) {
       baseSteps.push("spells");
     }
 
@@ -96,6 +101,8 @@ export function CharacterCreator() {
 
   const canLeaveStep = (step: CreationStep | undefined): boolean => {
     switch (step) {
+      case "ruleset":
+        return characterData.ruleset === "2014" || characterData.ruleset === "2024";
       case "race":
         return !!characterData.race;
       case "class":
@@ -217,6 +224,22 @@ export function CharacterCreator() {
     navigate("/character-sheet");
   };
 
+  const selectRuleset = (ruleset: "2014" | "2024") => {
+    setCharacterData((previous) => {
+      if (previous.ruleset === ruleset) return previous;
+      // Drafts created before rulesets existed keep every choice. The player
+      // can review them against the selected ruleset instead of losing work.
+      if (!previous.ruleset) return { ...previous, ruleset };
+      const fresh = createEmptyCharacter();
+      return {
+        ...fresh,
+        ruleset,
+        name: previous.name,
+        personality: previous.personality,
+      };
+    });
+  };
+
   const startOver = () => {
     if (!window.confirm("Discard this character and start from the beginning?")) return;
     clearDraft();
@@ -329,8 +352,16 @@ export function CharacterCreator() {
             <div className="p-4 md:p-8 min-h-[600px]">
               {/* Step Content */}
 
+              {currentStep === "ruleset" && (
+                <RulesetStep
+                  selected={characterData.ruleset}
+                  onSelect={selectRuleset}
+                />
+              )}
+
               {currentStep === "race" && (
                 <RaceStep
+                  ruleset={characterData.ruleset!}
                   race={characterData.race}
                   onChange={(race) =>
                     setCharacterData({ ...characterData, race })
@@ -339,6 +370,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "class" && (
                 <ClassStep
+                  ruleset={characterData.ruleset!}
                   selected={characterData.class}
                   level={characterData.level}
                   onSelect={(classData) =>
@@ -349,6 +381,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "subclass" && characterData.class && (
                 <SubclassStep
+                  ruleset={characterData.ruleset!}
                   classData={characterData.class}
                   selectedSubclass={characterData.subclass}
                   level={characterData.level}
@@ -357,6 +390,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "feats" && (
                 <FeatSelectionStep
+                  ruleset={characterData.ruleset!}
                   selectedFeats={characterData.feats}
                   onFeatsChange={(feats) => setCharacterData({ ...characterData, feats })}
                 />
@@ -377,6 +411,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "proficiencies" && (
                 <ProficiencyStep
+                  ruleset={characterData.ruleset!}
                   character={characterData}
                   onChange={(patch) =>
                     setCharacterData((prev) => ({
@@ -388,12 +423,14 @@ export function CharacterCreator() {
               )}
               {currentStep === "background" && (
                 <BackgroundStep
+                  ruleset={characterData.ruleset!}
                   selected={characterData.background}
                   onSelect={(background) => setCharacterData({ ...characterData, background })}
                 />
               )}
               {currentStep === "spells" && characterData.class && (
                 <SpellSelectionStep
+                  ruleset={characterData.ruleset!}
                   classData={characterData.class}
                   level={characterData.level}
                   selectedSpells={characterData.selectedSpells}
@@ -425,6 +462,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "equipment" && (
                 <EquipmentStep
+                  ruleset={characterData.ruleset!}
                   equipment={characterData.equipment}
                   classData={characterData.class}
                   onEquipmentChange={(equipment) => setCharacterData({ ...characterData, equipment })}
@@ -432,6 +470,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "magic-item" && (
                 <MagicItemStep
+                  ruleset={characterData.ruleset!}
                   magicItem={characterData.magicItems || []}
                   onMagicItemChange={(items) => setCharacterData({ ...characterData, magicItems: items })}
                   level={characterData.level}

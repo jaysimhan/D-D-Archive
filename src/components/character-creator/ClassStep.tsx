@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
-import { Class } from "../../types/dnd-types";
+import { CharacterRuleset, Class } from "../../types/dnd-types";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 
@@ -9,11 +9,13 @@ import SanityImage from "../SanityImage";
 // Class Step with Search - Limited to Level 1-3
 export function ClassStep({
     selected,
+    ruleset,
     level,
     onSelect,
     onLevelChange,
 }: {
     selected?: Class;
+    ruleset: CharacterRuleset;
     level: number;
     onSelect: (classData: Class) => void;
     onLevelChange: (level: number) => void;
@@ -29,7 +31,7 @@ export function ClassStep({
     const [showNonCore, setShowNonCore] = useState(false);
 
     // Fetch subclasses for details display
-    const { data: sanitySubclasses } = useSubclasses();
+    const { data: sanitySubclasses } = useSubclasses(ruleset);
     const allSubclasses = useMemo(() => sanitySubclasses || [], [sanitySubclasses]);
 
     const relatedSubclasses = useMemo(() => {
@@ -38,7 +40,7 @@ export function ClassStep({
     }, [selected, allSubclasses]);
 
     // Fetch classes from Sanity
-    const { data: sanityClasses, loading: classesLoading } = useClasses();
+    const { data: sanityClasses, loading: classesLoading } = useClasses(ruleset);
     const allClasses = useMemo(() => sanityClasses || [], [sanityClasses]);
 
     const filteredClasses = useMemo(() => {

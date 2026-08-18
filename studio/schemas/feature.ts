@@ -1,4 +1,4 @@
-import { rulesetField, isHomebrewField, versionNotesField } from './common/source'
+import { rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'feature',
@@ -40,6 +40,7 @@ export default {
             to: [{ type: 'feature' }],
             description: 'For handling 2024 revisions of 2014 features. Points to the feature this replaces or revision of this feature.',
         },
+        rulesetsField,
         rulesetField,
         isHomebrewField,
         versionNotesField,
@@ -48,13 +49,13 @@ export default {
         select: {
             title: 'name',
             subtitle: 'acquiredAtLevel',
-            ruleset: 'ruleset.name',
+            rulesets: 'rulesets',
         },
         prepare(selection: any) {
-            const { title, subtitle, ruleset } = selection
+            const { title, subtitle, rulesets } = selection
             return {
                 title,
-                subtitle: `Lvl ${subtitle || 1} | Ruleset: ${ruleset || 'Generic'}`,
+                subtitle: `Lvl ${subtitle || 1} | ${rulesets?.length === 2 ? '2014 + 2024' : `${rulesets?.length || 0} ruleset${rulesets?.length === 1 ? '' : 's'}`}`,
             }
         },
     },

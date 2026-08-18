@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField } from './common/source'
+import { sourceField, editionField, versionField, rulesetField, rulesetsField } from './common/source'
 
 export default {
     name: 'race',
@@ -37,7 +37,9 @@ export default {
             },
         },
         sourceField,
+        rulesetsField,
         editionField,
+        rulesetField,
         versionField,
         {
             name: 'flexibleAbilityScores',

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Check, ChevronDown, Info, Lock, ScrollText, Search } from "lucide-react";
 import { CharacterData } from "../../types/character-creator";
+import type { CharacterRuleset } from "../../types/dnd-types";
 import { useItems } from "../../hooks/useSanityData";
 import { ARMOR_CATEGORIES, SKILL_GROUPS, SKILLS } from "../../data/proficiency-rules";
 import {
@@ -33,9 +34,11 @@ import {
  */
 export function ProficiencyStep({
     character,
+    ruleset,
     onChange,
 }: {
     character: CharacterData;
+    ruleset: CharacterRuleset;
     /**
      * A patch, or a function of the character as it stands. Every pick here goes
      * through the function form: two taps in quick succession would otherwise
@@ -370,6 +373,7 @@ export function ProficiencyStep({
 
                 {/* ---------------- Anything the rules here miss ---------------- */}
                 <CustomSection
+                    ruleset={ruleset}
                     custom={custom}
                     skillsProficient={SKILLS.filter((name) => skillViews[name].proficient)}
                     onChange={setCustom}
@@ -644,10 +648,12 @@ function ChoiceSection({
  */
 function CustomSection({
     custom,
+    ruleset,
     skillsProficient,
     onChange,
 }: {
     custom: NonNullable<CharacterData["customProficiencies"]>;
+    ruleset: CharacterRuleset;
     skillsProficient: string[];
     onChange: (kind: keyof NonNullable<CharacterData["customProficiencies"]>, values: string[]) => void;
 }) {
@@ -655,7 +661,7 @@ function CustomSection({
     const [searchType, setSearchType] = useState<"tools" | "armor" | "weapons">("tools");
     const [searchTerm, setSearchTerm] = useState("");
     const [language, setLanguage] = useState("");
-    const { data: allItems, loading: itemsLoading } = useItems();
+    const { data: allItems, loading: itemsLoading } = useItems(ruleset);
 
     const added =
         custom.skills.length + custom.expertise.length + custom.languages.length

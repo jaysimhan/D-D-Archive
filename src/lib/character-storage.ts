@@ -24,6 +24,7 @@ export interface CreatorDraft {
 
 export function createEmptyCharacter(): CharacterData {
     return {
+        ruleset: undefined,
         name: "",
         level: 1,
         abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
@@ -113,6 +114,7 @@ function normalizeCharacter(value: unknown): CharacterData | null {
     return {
         ...empty,
         ...stored,
+        ruleset: stored.ruleset === "2014" || stored.ruleset === "2024" ? stored.ruleset : undefined,
         name: typeof stored.name === "string" ? stored.name : empty.name,
         level: typeof stored.level === "number" ? stored.level : empty.level,
         abilityScores: { ...empty.abilityScores, ...(stored.abilityScores ?? {}) },
@@ -153,7 +155,7 @@ export function loadDraft(): CreatorDraft | null {
         // A step that no longer exists would leave the creator with nowhere to
         // land, so an unrecognised one is dropped and the creator picks up at
         // the first step the draft has actually earned.
-        step: isCreationStep(stored?.step) ? stored.step : "race",
+        step: isCreationStep(stored?.step) ? stored.step : "ruleset",
         character,
     };
 }

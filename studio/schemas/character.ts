@@ -47,6 +47,14 @@ export default {
             validation: (Rule: any) => Rule.required(),
         },
         {
+            name: 'ruleset',
+            title: 'Character Ruleset',
+            type: 'reference',
+            to: [{ type: 'ruleset' }],
+            description: 'The single ruleset used to build and advance this character.',
+            group: 'identity',
+        },
+        {
             name: 'avatar',
             title: 'Avatar Image',
             type: 'image',

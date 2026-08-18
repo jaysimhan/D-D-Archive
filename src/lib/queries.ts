@@ -41,7 +41,7 @@ export const ALL_CLASSES_QUERY = `*[_type == "class"] | order(name asc) {
             name,
             "id": slug.current,
             level,
-            school,
+            "school": coalesce(school->name, school),
             castingTime,
             range,
             duration,
@@ -97,7 +97,7 @@ export const CLASS_BY_ID_QUERY = `*[_type == "class" && slug.current == $id][0] 
             name,
             "id": slug.current,
             level,
-            school,
+            "school": coalesce(school->name, school),
             castingTime,
             range,
             duration,
@@ -211,7 +211,7 @@ export const ALL_SPELLS_QUERY = `*[_type == "spell"] | order(name asc) {
   "id": slug.current,
   name,
   level,
-  school,
+  "school": coalesce(school->name, school),
   castingTime,
   range,
   components,
@@ -231,7 +231,7 @@ export const SPELLS_BY_CLASS_QUERY = `*[_type == "spell" && $classId in classes]
   "id": slug.current,
   name,
   level,
-  school,
+  "school": coalesce(school->name, school),
   castingTime,
   range,
   components,
@@ -251,7 +251,7 @@ export const SPELLS_BY_LEVEL_QUERY = `*[_type == "spell" && level == $level] | o
   "id": slug.current,
   name,
   level,
-  school,
+  "school": coalesce(school->name, school),
   castingTime,
   range,
   components,
@@ -277,7 +277,13 @@ export const ALL_FEATS_QUERY = `*[_type == "feat"] | order(name asc) {
   edition,
   version,
   prerequisites,
-  benefits
+  benefits,
+  grants[]{
+    ...,
+    "grantedSpell": grantedSpell->{..., "id": slug.current, "school": coalesce(school->name, school)},
+    "schoolRestrictions": coalesce(schoolRestrictions[]->name, select(defined(schoolRestriction) => [schoolRestriction->name], [])),
+    "classRestrictions": classRestrictions[]->slug.current
+  }
 }`;
 
 // ===== ITEMS =====
@@ -344,4 +350,3 @@ export const ALL_MONSTERS_QUERY = `*[_type == "monster"] | order(name asc) {
   edition,
   version
 }`;
-

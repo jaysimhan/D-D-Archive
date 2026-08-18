@@ -2,6 +2,7 @@
 // Supports both 2014 and 2024 editions
 
 export type Edition = "2014" | "2024" | "Both" | "5e" | string;
+export type CharacterRuleset = "2014" | "2024";
 export type Source = "Official" | "Homebrew" | "Unofficial" | string;
 
 // Sanity Image asset with metadata for optimized loading
@@ -255,6 +256,18 @@ export interface Spell {
   version: number;
 }
 
+export interface FeatureGrant {
+  grantType: 'Specific Spell' | 'Spell Slot' | 'Resource Pool';
+  grantedSpell?: Spell;
+  slotLevel?: number;
+  slotCount?: number;
+  schoolRestrictions?: SpellSchool[];
+  classRestrictions?: string[];
+  resourceName?: string;
+  maxAmount?: number;
+  resetCondition?: 'Short Rest' | 'Long Rest' | 'Dawn';
+}
+
 // ===== Feat System =====
 export interface Feat {
   id: string;
@@ -273,6 +286,7 @@ export interface Feat {
   };
   proficiencies?: ProficiencyRule[];
   spells?: SpellGrant[];
+  grants?: FeatureGrant[];
   benefits: {
     abilityScoreIncrease?: Partial<AbilityScores>;
     flexibleAbilityIncrease?: {

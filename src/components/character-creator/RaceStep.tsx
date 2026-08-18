@@ -1,23 +1,26 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
-import { Race } from "../../types/dnd-types";
+import { CharacterRuleset, Race } from "../../types/dnd-types";
 import { useRaces } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 
 // Race Selection Step
 export function RaceStep({
     race,
+    ruleset,
     onChange,
 }: {
     race?: Race;
+    ruleset: CharacterRuleset;
     onChange: (race: Race) => void;
 }) {
+    const ancestryLabel = ruleset === "2024" ? "Species" : "Race";
     const [showNonCore, setShowNonCore] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
     // Fetch races from Sanity
-    const { data: sanityRaces, loading: racesLoading } = useRaces();
+    const { data: sanityRaces, loading: racesLoading } = useRaces(ruleset);
 
     const displayRaces = useMemo(() => {
         // Use Sanity data
@@ -50,7 +53,7 @@ export function RaceStep({
             <div className="flex-1 w-full">
                 <div className="flex flex-col gap-4 mb-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-3xl font-bold text-white font-serif">Race <span className="text-base font-normal text-gray-400 ml-2 font-sans">Choose the character Race.</span></h2>
+                        <h2 className="text-3xl font-bold text-white font-serif">{ancestryLabel} <span className="text-base font-normal text-gray-400 ml-2 font-sans">Choose the character {ancestryLabel.toLowerCase()}.</span></h2>
 
                         <label className="flex items-center cursor-pointer group">
                             <div className="relative">
@@ -69,7 +72,7 @@ export function RaceStep({
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Search races..."
+                            placeholder={`Search ${ancestryLabel.toLowerCase()}...`}
                             className="w-full pl-10 pr-4 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-white placeholder-gray-500"
                         />
                     </div>

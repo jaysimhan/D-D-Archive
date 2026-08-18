@@ -1,3 +1,5 @@
+import { editionField, rulesetField, rulesetsField } from './common/source'
+
 export default {
     name: 'weaponProperty',
     title: 'Weapon Property',
@@ -25,6 +27,9 @@ export default {
             title: 'Description',
             type: 'text',
         },
+        rulesetsField,
+        editionField,
+        rulesetField,
     ],
     preview: {
         select: {
