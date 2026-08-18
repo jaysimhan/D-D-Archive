@@ -18,6 +18,7 @@ import {
 } from "../components/character-sheet/pdf-fields";
 import { useSheetSpells } from "../hooks/useSheetSuggestions";
 import { loadCompletedSheet } from "../lib/character-storage";
+import { collectCharacterSpells } from "../utils/character-spells";
 
 /**
  * html2canvas and jsPDF are fetched at the click rather than shipped with the
@@ -44,7 +45,12 @@ export function CharacterSheetPage() {
     // The sheet's fields seed themselves from this on their first render only,
     // so the character has to be in hand before that render — hence a lazy
     // initial state over an effect.
-    const [initialCharacter] = useState(() => loadCompletedSheet() ?? undefined);
+    const [initialCharacter] = useState(() => {
+        const stored = loadCompletedSheet();
+        return stored
+            ? { ...stored, selectedSpells: collectCharacterSpells(stored) }
+            : undefined;
+    });
     const viewportRef = useRef<HTMLDivElement>(null);
     const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [scale, setScale] = useState(1);

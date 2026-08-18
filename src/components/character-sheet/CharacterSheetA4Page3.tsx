@@ -725,6 +725,15 @@ function SpellRow({
                     className="h-full text-[28px] font-medium not-italic leading-[normal] text-black"
                 />
                 <SchoolTag school={resolved?.school} className="text-[19px]" />
+                {spell?.freeCastReset && (
+                    <span
+                        data-cs="free-cast"
+                        title={`One free cast per ${spell.freeCastReset.toLowerCase()}${spell.canUseSpellSlots ? "; spell slots also allowed" : ""}`}
+                        className="shrink-0 rounded-full border-2 border-[#6b21a8] bg-[#f3e8ff] px-[9px] py-[2px] text-[16px] font-bold leading-none text-[#6b21a8]"
+                    >
+                        1/LR{spell.canUseSpellSlots ? " + slots" : ""}
+                    </span>
+                )}
                 {resolved && (
                     // Held back while the blank is being typed into, so the
                     // card never sits over its own suggestions.

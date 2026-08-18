@@ -3,6 +3,7 @@ import {
     type CharacterData,
     type CreationStep,
 } from "../types/character-creator";
+import type { Spell, SpellSchool } from "../types/dnd-types";
 
 /**
  * The creator used to hold the whole character in React state, so a refresh —
@@ -87,6 +88,36 @@ function removeKey(key: string): void {
 const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
     Array.isArray(value) ? (value as T[]) : fallback;
 
+const SPELL_SCHOOLS = new Set<SpellSchool>([
+    "Abjuration", "Conjuration", "Divination", "Enchantment",
+    "Evocation", "Illusion", "Necromancy", "Transmutation",
+]);
+
+/** Old public queries could persist the Sanity school reference itself. */
+function normalizeStoredSpell(value: unknown): Spell | null {
+    if (!value || typeof value !== "object") return null;
+    const spell = value as Spell & {
+        school?: unknown;
+        legacySchoolName?: unknown;
+    };
+    const referencedName = spell.school && typeof spell.school === "object"
+        ? (spell.school as { name?: unknown }).name
+        : undefined;
+    const candidate = typeof spell.school === "string"
+        ? spell.school
+        : typeof spell.legacySchoolName === "string"
+            ? spell.legacySchoolName
+            : typeof referencedName === "string"
+                ? referencedName
+                : "Unknown";
+    return {
+        ...spell,
+        // Unknown is intentionally tolerated for a homebrew/legacy record; it
+        // is render-safe and the live archive refresh can replace it by id.
+        school: (SPELL_SCHOOLS.has(candidate as SpellSchool) ? candidate : "Unknown") as SpellSchool,
+    };
+}
+
 /** The proficiency picks, dropping any entry that is not a list of names. */
 function asRecordOfArrays(value: unknown): Record<string, string[]> {
     if (!value || typeof value !== "object") return {};
@@ -118,7 +149,9 @@ function normalizeCharacter(value: unknown): CharacterData | null {
         name: typeof stored.name === "string" ? stored.name : empty.name,
         level: typeof stored.level === "number" ? stored.level : empty.level,
         abilityScores: { ...empty.abilityScores, ...(stored.abilityScores ?? {}) },
-        selectedSpells: asArray(stored.selectedSpells),
+        selectedSpells: asArray(stored.selectedSpells)
+            .map(normalizeStoredSpell)
+            .filter((spell): spell is Spell => Boolean(spell)),
         feats: asArray(stored.feats),
         equipment: asArray(stored.equipment),
         magicItems: asArray(stored.magicItems),

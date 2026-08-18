@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { Search, User, Sparkles, Plus, Loader2 } from "lucide-react";
-import { CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
+import { Background, CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
 import { useSpells } from "../../hooks/useSanityData";
+import { collectAutomaticSpells } from "../../utils/character-spells";
+import { metamagicChoiceLimit } from "../../utils/combat-progression";
 
 // Spell Selection Step - Slot Based
 export function SpellSelectionStep({
@@ -14,8 +16,13 @@ export function SpellSelectionStep({
     subclass,
     race,
     subrace, // Added subrace
+    background,
     magicInitiateClass,
     onMagicInitiateClassChange
+    ,metamagicChoices = []
+    ,onMetamagicChange
+    ,featSpellcastingAbilities = {}
+    ,onFeatSpellcastingAbilityChange
 }: {
     classData: Class;
     ruleset: CharacterRuleset;
@@ -26,15 +33,31 @@ export function SpellSelectionStep({
     subclass?: Subclass;
     race?: Race;
     subrace?: Subrace;
+    background?: Background;
     magicInitiateClass?: string;
     onMagicInitiateClassChange?: (cls: string) => void;
+    metamagicChoices?: string[];
+    onMetamagicChange?: (choices: string[]) => void;
+    featSpellcastingAbilities?: Record<string, "INT" | "WIS" | "CHA">;
+    onFeatSpellcastingAbilityChange?: (featId: string, ability: "INT" | "WIS" | "CHA") => void;
 }) {
-    const { data: allSpells, loading: spellsLoading } = useSpells(ruleset);
-    const [activeSlot, setActiveSlot] = useState<{ level: number, index: number, source: string, choiceIndex?: number } | null>(null);
+    const { data: allSpells, loading: spellsLoading, error: spellsError } = useSpells(ruleset);
+    const [activeSlot, setActiveSlot] = useState<{ id: string, level: number, index: number, source: NonNullable<Spell["selectionSource"]>, choiceIndex?: number, flexibleLevel?: boolean } | null>(null);
 
     // Magic Initiate Detection
     const hasMagicInitiate = feats.some(f => f.name.includes("Magic Initiate"));
     const hasAberrantDragonmark = feats.some(f => f.name.includes("Aberrant Dragonmark"));
+    const hasMetamagicAdept = feats.some((feat) => feat.name === "Metamagic Adept");
+    const metamagicLimit = metamagicChoiceLimit(classData.id, level, feats);
+    const automaticSpells = useMemo(() => collectAutomaticSpells({
+        feats,
+        race,
+        subrace,
+        class: classData,
+        subclass,
+        level,
+        selectedSpells,
+    }), [feats, race, subrace, classData, subclass, level, selectedSpells]);
 
     // Racial Magic Detection
     const racialChoices = [
@@ -54,6 +77,7 @@ export function SpellSelectionStep({
             level: s.spellLevel,
             list: s.specificSpells?.map(sp => sp.id) || [],
             spellList: s.spellList,
+            replacesSpellId: s.replacesSpellId,
         }))
     ];
     const hasRacialCantripChoice = racialChoices.length > 0;
@@ -89,6 +113,7 @@ export function SpellSelectionStep({
 
         // Specific overrides for accuracy (still needed for exact 5e rules until we add 'cantripsKnown' to schema)
         if (["bard", "druid"].includes(classData.id)) cantrips = 2;
+        if (classData.id === "sorcerer") cantrips = 4;
         if (classData.id === "warmage") cantrips = 4;
         if (level >= 4 && (type === 'full' || type === 'pact')) cantrips += 1;
 
@@ -167,6 +192,15 @@ export function SpellSelectionStep({
             }
         }
 
+        // Sorcerers learn a total number of leveled spells; spell slots are not
+        // additional spells known. Keep the beginner UI's two level buckets
+        // within the official 2/3/4 known progression for levels 1–3.
+        if (classData.id === "sorcerer") {
+            if (level === 1) { level1 = 2; level2 = 0; }
+            if (level === 2) { level1 = 3; level2 = 0; }
+            if (level >= 3) { level1 = 2; level2 = 2; }
+        }
+
         return { cantrips, level1, level2 };
     };
 
@@ -181,11 +215,17 @@ export function SpellSelectionStep({
         }));
     };
 
-    const classSlots = [
-        ...createSlots(classCapacities.cantrips, 0, "class-cantrip", "Class"),
-        ...createSlots(classCapacities.level1, 1, "class-lvl1", "Class"),
-        ...createSlots(classCapacities.level2, 2, "class-lvl2", "Class"),
-    ];
+    const classSlots = classData.id === "sorcerer"
+        ? [
+            ...createSlots(classCapacities.cantrips, 0, "class-cantrip", "Class"),
+            ...createSlots(level === 1 ? 2 : level === 2 ? 3 : 4, level >= 3 ? 2 : 1, "class-known", "Class")
+                .map((slot) => ({ ...slot, flexibleLevel: true })),
+        ]
+        : [
+            ...createSlots(classCapacities.cantrips, 0, "class-cantrip", "Class"),
+            ...createSlots(classCapacities.level1, 1, "class-lvl1", "Class"),
+            ...createSlots(classCapacities.level2, 2, "class-lvl2", "Class"),
+        ];
 
     // Magic Initiate Slots
     const magicInitiateSlots = hasMagicInitiate ? [
@@ -208,9 +248,13 @@ export function SpellSelectionStep({
             .map((grant) => ({
                 name: feat.name,
                 choose: grant.slotCount || 1,
-                level: grant.slotLevel || 1,
+                level: grant.slotLevel ?? 1,
                 schools: grant.schoolRestrictions || [],
                 classLists: grant.classRestrictions || [],
+                spellIds: grant.spellRestrictions?.map((spell) => spell.id) || [],
+                freeCastReset: feat.name.startsWith("Strixhaven Initiate") && (grant.slotLevel ?? 1) === 1
+                    ? "Long Rest" as const
+                    : undefined,
             })),
     );
     const featChoiceSlots: { level: number, index: number, id: string, source: string, choiceIndex: number }[] = [];
@@ -250,6 +294,7 @@ export function SpellSelectionStep({
             level: s.spellLevel,
             list: s.specificSpells?.map(sp => sp.id) || [],
             spellList: s.spellList,
+            replacesSpellId: s.replacesSpellId,
         }))
     ];
 
@@ -266,12 +311,29 @@ export function SpellSelectionStep({
     });
 
 
-    const removeSpell = (spellId: string) => {
-        onSpellsChange(selectedSpells.filter(s => s.id !== spellId));
+    const removeSpell = (slotId: string, spellId: string) => {
+        onSpellsChange(selectedSpells.filter(s =>
+            s.selectionSlotId ? s.selectionSlotId !== slotId : s.id !== spellId
+        ));
     };
 
     const selectSpell = (spell: Spell) => {
-        onSpellsChange([...selectedSpells, spell]);
+        if (!activeSlot) return;
+        const assigned = {
+            ...spell,
+            selectionSlotId: activeSlot.id,
+            selectionSource: activeSlot.source,
+            ...(activeSlot.source === "Feat" && activeSlot.choiceIndex !== undefined && featChoices[activeSlot.choiceIndex]?.freeCastReset
+                ? { freeCastReset: featChoices[activeSlot.choiceIndex].freeCastReset, canUseSpellSlots: true }
+                : {}),
+            ...(activeSlot.source === "Subclass" && activeSlot.choiceIndex !== undefined && subclassChoices[activeSlot.choiceIndex]?.replacesSpellId
+                ? { replacesSpellId: subclassChoices[activeSlot.choiceIndex].replacesSpellId }
+                : {}),
+        };
+        onSpellsChange([
+            ...selectedSpells.filter((selected) => selected.selectionSlotId !== activeSlot.id),
+            assigned,
+        ]);
         setActiveSlot(null);
     };
 
@@ -307,7 +369,7 @@ export function SpellSelectionStep({
                     return (
                         <div key={lvl} className="mb-4 last:mb-0">
                             <h4 className="text-sm font-semibold text-brand-400 mb-2 uppercase tracking-wide">
-                                {lvl === 0 ? "Cantrips" : `Level ${lvl} Spells`}
+                                {lvl === 0 ? "Cantrips" : lvlSlots.some((slot) => slot.flexibleLevel) ? `Level 1–${lvl} Spells Known` : `Level ${lvl} Spells`}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {lvlSlots.map((slot) => {
@@ -365,7 +427,10 @@ export function SpellSelectionStep({
                                     const slotsOfSameLevel = allSlotsCombined.filter(s => s.level === lvl);
                                     const myGlobalIndexForLevel = slotsOfSameLevel.findIndex(s => s.id === slot.id);
 
-                                    const filledSpell = globalLevelSpells[myGlobalIndexForLevel];
+                                    // New selections are attached to a durable slot identity. The
+                                    // positional fallback keeps pre-fix drafts readable.
+                                    const filledSpell = selectedSpells.find(s => s.selectionSlotId === slot.id)
+                                        ?? globalLevelSpells.filter(s => !s.selectionSlotId)[myGlobalIndexForLevel];
 
                                     return (
                                         <div key={slot.id} className="relative group">
@@ -376,7 +441,7 @@ export function SpellSelectionStep({
                                                         <div className="text-xs text-gray-500">{filledSpell.school}</div>
                                                     </div>
                                                     <button
-                                                        onClick={() => removeSpell(filledSpell.id)}
+                                                        onClick={() => removeSpell(slot.id, filledSpell.id)}
                                                         className="text-gray-500 hover:text-red-400 p-1 flex-shrink-0"
                                                     >
                                                         <User className="w-4 h-4 rotate-45" />
@@ -385,10 +450,12 @@ export function SpellSelectionStep({
                                             ) : (
                                                 <button
                                                     onClick={() => setActiveSlot({
+                                                        id: slot.id,
                                                         level: slot.level,
                                                         index: slot.index,
                                                         source: slot.source,
-                                                        choiceIndex: slot.choiceIndex
+                                                        choiceIndex: slot.choiceIndex,
+                                                        flexibleLevel: slot.flexibleLevel,
                                                     })}
                                                     className="w-full p-3 border-2 border-dashed border-zinc-700 rounded-lg text-gray-500 hover:border-brand-500 hover:text-brand-400 hover:bg-brand-900/10 transition-all flex items-center justify-center gap-2"
                                                 >
@@ -430,7 +497,30 @@ export function SpellSelectionStep({
         (subrace?.racialKnownSpells && subrace.racialKnownSpells.length > 0) ||
         (race?.spells && race.spells.some(s => s.mode === 'fixed')) ||
         (subrace?.spells && subrace.spells.some(s => s.mode === 'fixed')) ||
-        (subclass?.spells && subclass.spells.some(s => s.mode === 'fixed'));
+        (classData?.spells && classData.spells.some(s => s.mode === 'fixed')) ||
+        (subclass?.spells && subclass.spells.some(s => s.mode === 'fixed')) ||
+        automaticSpells.some((spell) =>
+            feats.some((feat) => feat.grants?.some((grant) => grant.grantedSpell?.id === spell.id))
+        );
+
+    if (spellsLoading) {
+        return (
+            <div className="min-h-[500px] flex flex-col items-center justify-center gap-4 text-gray-400">
+                <Loader2 className="w-9 h-9 animate-spin text-brand-500" />
+                <p>Loading your spell choices…</p>
+            </div>
+        );
+    }
+
+    if (spellsError) {
+        return (
+            <div className="min-h-[500px] flex flex-col items-center justify-center gap-3 text-center">
+                <Sparkles className="w-10 h-10 text-red-400" />
+                <h2 className="text-xl font-bold text-gray-100">Spells could not be loaded</h2>
+                <p className="max-w-md text-gray-400">Your progress is safe. Check the connection and reopen this step.</p>
+            </div>
+        );
+    }
 
     // If no slots to display AND no fixed spells, show the "No Spellcasting" message
     if (totalSlots === 0 && !hasFixedSpells) {
@@ -478,6 +568,31 @@ export function SpellSelectionStep({
             </div>
 
             <div className="max-w-3xl mx-auto space-y-8">
+                {feats.filter((feat) => feat.name.startsWith("Strixhaven Initiate")).map((feat) => (
+                    <div key={`casting-${feat.id}`} className="flex items-center justify-between gap-4 rounded-xl border border-amber-700/40 bg-amber-950/20 p-4">
+                        <div><h3 className="font-bold text-amber-300">{feat.name}</h3><p className="text-sm text-gray-400">Feat spellcasting ability</p></div>
+                        <select value={featSpellcastingAbilities[feat.id] || "CHA"} onChange={(event) => onFeatSpellcastingAbilityChange?.(feat.id, event.target.value as "INT" | "WIS" | "CHA")} className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white">
+                            <option value="INT">Intelligence</option><option value="WIS">Wisdom</option><option value="CHA">Charisma</option>
+                        </select>
+                    </div>
+                ))}
+                {metamagicLimit > 0 && (
+                    <div className="bg-purple-900/20 p-6 rounded-xl border border-purple-500/30">
+                        <h3 className="text-lg font-bold text-purple-300">Metamagic</h3>
+                        <p className="text-sm text-purple-400 mb-4">
+                            Choose {metamagicLimit} options. {hasMetamagicAdept && "The feat also grants 2 Sorcery Points, usable only for Metamagic; they return on a Long Rest."}
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {["Careful Spell", "Distant Spell", "Empowered Spell", "Extended Spell", "Heightened Spell", "Quickened Spell", "Seeking Spell", "Subtle Spell", "Transmuted Spell", "Twinned Spell"].map((option) => {
+                                const selected = metamagicChoices.includes(option);
+                                return <button key={option} type="button" onClick={() => {
+                                    if (selected) onMetamagicChange?.(metamagicChoices.filter((choice) => choice !== option));
+                                    else if (metamagicChoices.length < metamagicLimit) onMetamagicChange?.([...metamagicChoices, option]);
+                                }} className={`rounded-lg border p-2 text-sm ${selected ? "border-purple-400 bg-purple-800/50 text-white" : "border-zinc-700 text-gray-400"}`}>{option}</button>;
+                            })}
+                        </div>
+                    </div>
+                )}
                 {(classSlots.length > 0) && renderSlotGroup(classSlots, `${classData?.name || "Class"} Spells`)}
 
                 {hasMagicInitiate && renderSlotGroup(magicInitiateSlots, "Magic Initiate Spells", true)}
@@ -489,6 +604,52 @@ export function SpellSelectionStep({
                 {hasRacialCantripChoice && renderSlotGroup(racialSlots, "Racial Spell Choices")}
 
                 {subclassChoiceSlots.length > 0 && renderSlotGroup(subclassChoiceSlots, `${subclass?.name || "Subclass"} Spell Choices`)}
+
+                {(() => {
+                    const classSpellIds = new Set(
+                        (classData.spells || [])
+                            .filter((grant) => grant.mode === "fixed" && grant.level <= level)
+                            .flatMap((grant) => grant.specificSpells || [])
+                            .map((spell) => spell.id),
+                    );
+                    const classSpells = automaticSpells.filter((spell) => classSpellIds.has(spell.id));
+                    if (classSpells.length === 0) return null;
+                    return (
+                        <div className="bg-blue-900/20 p-6 rounded-xl border border-blue-500/30 mb-6">
+                            <h3 className="text-lg font-bold text-blue-300 mb-2">Class Spells</h3>
+                            <p className="text-sm text-blue-400 mb-4">Your class grants these spells automatically.</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {classSpells.map((spell) => (
+                                    <div key={`class-fixed-${spell.id}`} className="p-3 bg-zinc-900 border border-blue-500/50 rounded-lg">
+                                        <div className="font-semibold text-gray-200 truncate">{spell.name}</div>
+                                        <div className="text-xs text-gray-500">{spell.school}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {(() => {
+                    const featSpells = automaticSpells.filter((spell) =>
+                        feats.some((feat) => feat.grants?.some((grant) => grant.grantedSpell?.id === spell.id))
+                    );
+                    if (featSpells.length === 0) return null;
+                    return (
+                        <div className="bg-amber-900/20 p-6 rounded-xl border border-amber-500/30 mb-6">
+                            <h3 className="text-lg font-bold text-amber-300 mb-2">Feat Spells</h3>
+                            <p className="text-sm text-amber-400 mb-4">Your feat grants these spells automatically.</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {featSpells.map((spell) => (
+                                    <div key={`feat-fixed-${spell.id}`} className="p-3 bg-zinc-900 border border-amber-500/50 rounded-lg">
+                                        <div className="font-semibold text-gray-200 truncate">{spell.name}</div>
+                                        <div className="text-xs text-gray-500">{spell.school}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* Fixed Racial Spells Display */}
                 {(() => {
@@ -602,12 +763,14 @@ export function SpellSelectionStep({
                     slotSource={activeSlot.source}
                     onSelect={selectSpell}
                     onClose={() => setActiveSlot(null)}
-                    currentSpells={selectedSpells}
+                    currentSpells={[...selectedSpells, ...automaticSpells]}
                     magicInitiateClass={magicInitiateClass}
                     subclass={subclass}
                     race={race}
                     subrace={subrace}
                     allSpells={allSpells}
+                    expandedSpellIds={(background?.expandedSpells || []).map((spell) => spell.id)}
+                    flexibleLevel={activeSlot.flexibleLevel}
                     racialChoice={activeSlot.source === "Racial" && (activeSlot as any).choiceIndex !== undefined
                         ? racialChoices[(activeSlot as any).choiceIndex]
                         : activeSlot.source === "Subclass" && (activeSlot as any).choiceIndex !== undefined
@@ -635,7 +798,9 @@ function SpellSelectionModal({
     subrace,
     allSpells,
     racialChoice,
-    featChoice
+    featChoice,
+    expandedSpellIds,
+    flexibleLevel,
 }: {
     classData: Class;
     slotLevel: number;
@@ -649,7 +814,9 @@ function SpellSelectionModal({
     subrace?: Subrace; // Add subrace prop
     allSpells: Spell[];
     racialChoice?: { list: string[]; name: string; school?: string; level?: number; spellList?: string }; // Specific choice block
-    featChoice?: { name: string; level: number; schools: string[]; classLists: string[] };
+    featChoice?: { name: string; level: number; schools: string[]; classLists: string[]; spellIds: string[] };
+    expandedSpellIds: string[];
+    flexibleLevel?: boolean;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [divineSoulFilter, setDivineSoulFilter] = useState<"all" | "sorcerer" | "cleric">("all");
@@ -669,7 +836,7 @@ function SpellSelectionModal({
         // specialized logic for Divine Soul Class Slots
         if (isDivineSoulSelection) {
             return allSpells.filter(s =>
-                s.level === slotLevel &&
+                (flexibleLevel ? s.level >= 1 && s.level <= slotLevel : s.level === slotLevel) &&
                 !currentSpells.find(existing => existing.id === s.id) &&
                 (
                     divineSoulFilter === "all" ? (s.classes.includes("sorcerer") || s.classes.includes("cleric")) :
@@ -693,6 +860,7 @@ function SpellSelectionModal({
             return allSpells.filter((spell) => {
                 if (spell.level !== slotLevel) return false;
                 if (currentSpells.some((existing) => existing.id === spell.id)) return false;
+                if (featChoice.spellIds.length > 0 && !featChoice.spellIds.includes(spell.id)) return false;
                 const matchesSchool = featChoice.schools.length === 0 || featChoice.schools.includes(spell.school);
                 const matchesClassList = featChoice.classLists.length === 0 ||
                     featChoice.classLists.some((classId) => spell.classes.includes(classId));
@@ -701,7 +869,7 @@ function SpellSelectionModal({
         }
 
         // Racial Logic
-        if (slotSource === "Racial" && racialChoice) {
+        if ((slotSource === "Racial" || slotSource === "Subclass") && racialChoice) {
             return allSpells.filter(s => {
                 // Check level cap
                 if (racialChoice.level !== undefined && s.level > racialChoice.level) return false;
@@ -734,11 +902,11 @@ function SpellSelectionModal({
 
         // Default: Class spell selection (targetClass already set above)
         return allSpells.filter(s =>
-            s.level === slotLevel &&
-            s.classes.includes(targetClass) &&
+            (flexibleLevel ? s.level >= 1 && s.level <= slotLevel : s.level === slotLevel) &&
+            (s.classes.includes(targetClass) || (slotSource === "Class" && expandedSpellIds.includes(s.id))) &&
             !currentSpells.find(existing => existing.id === s.id)
         );
-    }, [classData, slotLevel, currentSpells, slotSource, magicInitiateClass, subclass, race, isDivineSoulSelection, divineSoulFilter, racialChoice, featChoice, allSpells]);
+    }, [classData, slotLevel, currentSpells, slotSource, magicInitiateClass, subclass, race, isDivineSoulSelection, divineSoulFilter, racialChoice, featChoice, allSpells, expandedSpellIds, flexibleLevel]);
 
     const filtered = spells.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -750,7 +918,7 @@ function SpellSelectionModal({
             <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden border border-zinc-800">
                 <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900 flex-wrap gap-2">
                     <h3 className="font-bold text-lg text-gray-100">
-                        Select {slotLevel === 0 ? "Cantrip" : `Level ${slotLevel} Spell`}
+                        Select {slotLevel === 0 ? "Cantrip" : flexibleLevel ? `Level 1–${slotLevel} Spell` : `Level ${slotLevel} Spell`}
                         {slotSource === "Magic Initiate" && magicInitiateClass && <span className="text-brand-400 ml-2">({magicInitiateClass})</span>}
                         {slotSource === "Aberrant Dragonmark" && <span className="text-red-400 ml-2">(Sorcerer)</span>}
                     </h3>
@@ -832,7 +1000,11 @@ function SpellSelectionModal({
                     })}
                     {filtered.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
-                            {slotSource === "Magic Initiate" && !magicInitiateClass ? "Select a class above." : `No spells found matching "${searchTerm}"`}
+                            {slotSource === "Magic Initiate" && !magicInitiateClass
+                                ? "Select a class above."
+                                : slotSource === "Feat" && featChoice
+                                    ? `No eligible spell matches “${searchTerm}”. Allowed: level ${featChoice.level}${featChoice.classLists.length ? ` from ${featChoice.classLists.join(" or ")}` : ""}${featChoice.schools.length ? `; ${featChoice.schools.join(" or ")} school` : ""}.`
+                                    : `No spells found matching "${searchTerm}"`}
                         </div>
                     )}
                 </div>

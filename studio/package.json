@@ -13,7 +13,15 @@
     "migrate:rulesets": "sanity exec migrations/migrate-rulesets.ts --with-user-token",
     "migrate:rulesets:apply": "sanity exec migrations/migrate-rulesets.ts --with-user-token -- --apply",
     "migrate:spell-schools": "sanity exec migrations/link-spell-schools.ts --with-user-token",
-    "migrate:spell-schools:apply": "sanity exec migrations/link-spell-schools.ts --with-user-token -- --apply"
+    "migrate:spell-schools:apply": "sanity exec migrations/link-spell-schools.ts --with-user-token -- --apply",
+    "sync:srd-spells": "sanity exec migrations/sync-srd-spells.ts --with-user-token",
+    "sync:srd-spells:apply": "sanity exec migrations/sync-srd-spells.ts --with-user-token -- --apply",
+    "add:lunar-strixhaven-build": "sanity exec migrations/add-lunar-strixhaven-build.ts --with-user-token",
+    "add:lunar-strixhaven-build:apply": "sanity exec migrations/add-lunar-strixhaven-build.ts --with-user-token -- --apply",
+    "add:ironclad-time-mage": "sanity exec migrations/add-ironclad-time-mage.ts --with-user-token",
+    "add:ironclad-time-mage:apply": "sanity exec migrations/add-ironclad-time-mage.ts --with-user-token -- --apply",
+    "add:alert-monk-metamagic": "sanity exec migrations/add-alert-monk-metamagic.ts --with-user-token",
+    "add:alert-monk-metamagic:apply": "sanity exec migrations/add-alert-monk-metamagic.ts --with-user-token -- --apply"
     },
     "dependencies": {
         "@sanity/icons": "^2.11.0",

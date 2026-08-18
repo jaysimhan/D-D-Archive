@@ -29,7 +29,7 @@ export const featureGrant = {
             name: 'slotLevel',
             title: 'Slot Level',
             type: 'number',
-            validation: (Rule: any) => Rule.min(1).max(9),
+            validation: (Rule: any) => Rule.min(0).max(9),
             hidden: ({ parent }: any) => parent?.grantType !== 'Spell Slot',
         },
         {
@@ -39,6 +39,16 @@ export const featureGrant = {
             initialValue: 1,
             validation: (Rule: any) => Rule.min(1),
             hidden: ({ parent }: any) => parent?.grantType !== 'Spell Slot',
+        },
+        {
+            name: 'spellRestrictions',
+            title: 'Specific Spell Options',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'spell' }] }],
+            options: { layout: 'tags' },
+            validation: (Rule: any) => Rule.unique(),
+            hidden: ({ parent }: any) => parent?.grantType !== 'Spell Slot',
+            description: 'Optional exact list of spells allowed for this choice.',
         },
         {
             name: 'schoolRestriction',
@@ -57,6 +67,14 @@ export const featureGrant = {
             validation: (Rule: any) => Rule.unique(),
             hidden: ({ parent }: any) => parent?.grantType !== 'Spell Slot',
             description: 'Optional. A spell may match any selected school (for example, Divination or Enchantment).',
+        },
+        {
+            name: 'schoolRestrictionNames',
+            title: 'School Restriction Names (Fallback)',
+            type: 'array',
+            of: [{ type: 'string' }],
+            hidden: true,
+            description: 'Public-query fallback maintained alongside school references.',
         },
         {
             name: 'classRestrictions',

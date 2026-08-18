@@ -77,6 +77,7 @@ export interface SpellGrant {
   recharge?: 'at-will' | 'short-rest' | 'long-rest' | 'day';
   spellLevel?: number; // New
   notes?: string; // New
+  replacesSpellId?: string;
 }
 
 export interface Race {
@@ -217,6 +218,10 @@ export interface Background {
     name: string;
     description: string;
   };
+  /** A background may grant a starting feat (Strixhaven backgrounds do). */
+  feats?: Feat[];
+  /** Spells added to this character's class list; these are choices, not free spells known. */
+  expandedSpells?: Spell[];
 }
 
 // ===== Spell System =====
@@ -228,7 +233,8 @@ export type SpellSchool =
   | "Evocation"
   | "Illusion"
   | "Necromancy"
-  | "Transmutation";
+  | "Transmutation"
+  | "Unknown";
 
 export interface Spell {
   id: string;
@@ -254,6 +260,13 @@ export interface Spell {
   source: Source;
   edition: Edition;
   version: number;
+  /** Creator-only provenance. Optional so archived spells and old drafts remain valid. */
+  selectionSlotId?: string;
+  selectionSource?: "Class" | "Magic Initiate" | "Aberrant Dragonmark" | "Feat" | "Racial" | "Subclass" | "Automatic";
+  /** Creator-only casting entitlement for spells granted by a feat or ancestry. */
+  freeCastReset?: "Short Rest" | "Long Rest" | "Dawn";
+  canUseSpellSlots?: boolean;
+  replacesSpellId?: string;
 }
 
 export interface FeatureGrant {
@@ -263,6 +276,8 @@ export interface FeatureGrant {
   slotCount?: number;
   schoolRestrictions?: SpellSchool[];
   classRestrictions?: string[];
+  /** Exact spell options for constrained choices such as Strixhaven cantrips. */
+  spellRestrictions?: Spell[];
   resourceName?: string;
   maxAmount?: number;
   resetCondition?: 'Short Rest' | 'Long Rest' | 'Dawn';
@@ -337,6 +352,12 @@ export interface Item {
   weight?: number;
   toolCategory?: string;
   properties?: string[];
+  itemCategory?: string;
+  armorClass?: {
+    base?: number;
+    dexterityModifier?: "full" | "max2" | "none";
+    stealthDisadvantage?: boolean;
+  };
   source: Source;
   edition: Edition;
   version: number;

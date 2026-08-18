@@ -19,6 +19,9 @@ import {
 } from "./markers";
 import { useEditableAutoValue } from "./use-editable-auto-value";
 import { spellSlotsByLevel, type SpellSlots } from "./spell-slots";
+import { finalAbilityScores } from "../../utils/ability-scores";
+import { calculateArmorClass } from "../../utils/armor-class";
+import { alertInitiativeBonus, classPointAmount, featResourceAmount, walkingSpeed } from "../../utils/combat-progression";
 import {
     classGrantsSpells,
     speciesGrantsSpells,
@@ -1517,8 +1520,9 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         Partial<Record<string, number | null>>
     >(() => {
         if (!initialCharacter) return {};
+        const scores = finalAbilityScores(initialCharacter);
         return Object.fromEntries(
-            Object.entries(initialCharacter.abilityScores).map(([ability, score]) => [
+            Object.entries(scores).map(([ability, score]) => [
                 ability,
                 abilityModifier(score),
             ]),
@@ -1628,17 +1632,16 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         const label = CLASS_POINT_LABELS[item.id] ?? item.pointLabel?.trim();
         return label ? [{ label, classIndex: index }] : [];
     });
-    const pointLabel = pointResources.length
-        ? pointResources.map((resource) => resource.label).join(" + ")
-        : "Points";
-    const automaticPointValue = pointResources.length
-        ? pointResources
-              .map((resource) => hitDieClassLevels[resource.classIndex])
-              .filter((value) => Number.isFinite(value))
-              .join(" + ")
-        : isMulticlass
-          ? hitDieClassLevels.join(" + ")
-          : characterLevel;
+    const resourceTotals = new Map<string, number>();
+    for (const resource of pointResources) {
+        const classId = selectedClasses[resource.classIndex]?.id ?? "";
+        const amount = classPointAmount(classId, hitDieClassLevels[resource.classIndex] ?? 0);
+        if (Number.isFinite(amount) && amount > 0) resourceTotals.set(resource.label, (resourceTotals.get(resource.label) ?? 0) + amount);
+    }
+    const adeptSorceryPoints = featResourceAmount(initialCharacter?.feats ?? [], "Sorcery Points");
+    if (adeptSorceryPoints) resourceTotals.set("Sorcery Points", (resourceTotals.get("Sorcery Points") ?? 0) + adeptSorceryPoints);
+    const pointLabel = resourceTotals.size ? [...resourceTotals.keys()].join(" + ") : "Points";
+    const automaticPointValue = resourceTotals.size ? [...resourceTotals.values()].join(" + ") : "";
     const pointValue =
         pointOverride?.source === automaticPointValue
             ? pointOverride.value
@@ -1685,8 +1688,11 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     const selectedSpecies = suggestions.species.find(
         (item) => item.name.toLowerCase() === species.trim().toLowerCase(),
     );
-    const automaticSpeed =
-        typeof selectedSpecies?.speed === "number" ? `${selectedSpecies.speed}` : "";
+    const monkIndex = selectedClasses.findIndex((item) => item.id === "monk");
+    const monkLevel = monkIndex >= 0 ? (hitDieClassLevels[monkIndex] ?? 0) : 0;
+    const automaticSpeed = typeof selectedSpecies?.speed === "number"
+        ? `${walkingSpeed(selectedSpecies.speed, monkLevel, initialCharacter?.equipment ?? [])}`
+        : "";
     const [speed, setSpeed] = useEditableAutoValue(automaticSpeed);
 
     // The spellbook pages head every page with where the character's magic
@@ -1861,10 +1867,16 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     ]);
 
     const dexterityModifier = abilityModifiers.DEX;
-    const automaticArmorClass =
-        typeof dexterityModifier === "number" ? `${10 + dexterityModifier}` : "";
-    const automaticInitiative =
-        typeof dexterityModifier === "number" ? formatModifier(dexterityModifier) : "";
+    const automaticArmorClass = typeof dexterityModifier === "number"
+        ? `${calculateArmorClass(initialCharacter?.equipment ?? [], dexterityModifier)}`
+        : "";
+    const automaticInitiative = typeof dexterityModifier === "number"
+        ? formatModifier(dexterityModifier + alertInitiativeBonus(
+            initialCharacter?.feats ?? [],
+            initialCharacter?.ruleset,
+            Number.isInteger(totalLevel) ? totalLevel : 1,
+        ))
+        : "";
     const [armorClass, setArmorClass] = useEditableAutoValue(automaticArmorClass);
     const [initiative, setInitiative] = useEditableAutoValue(automaticInitiative);
 
@@ -1889,13 +1901,19 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         automaticMaximumHitPoints,
     );
 
-    const creatorClassFeatures =
+    const creatorClassFeaturesBase =
         initialCharacter?.class &&
         splitList(characterClass).some(
             (name) => name.toLowerCase() === initialCharacter.class?.name.toLowerCase(),
         )
             ? formatFeatures(initialCharacter.class.features, initialCharacter.level)
             : "";
+    const creatorClassFeatures = [
+        creatorClassFeaturesBase,
+        initialCharacter?.metamagicChoices?.length
+            ? `Metamagic: ${initialCharacter.metamagicChoices.join(", ")}`
+            : "",
+    ].filter(Boolean).join("\n\n");
     const automaticClassFeatures = selectedClasses.length
         ? selectedClasses
               .map((item, index) =>

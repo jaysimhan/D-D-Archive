@@ -128,6 +128,17 @@ export function SpellCard({ spell }: SpellCardProps) {
             </span>
           ))}
         </p>
+        {(spell.subclasses?.length || 0) > 0 && (
+          <p className="mt-1 text-xs text-gray-500">
+            <span>Granted by: </span>
+            {spell.subclasses!.map((subclass, index) => (
+              <span key={subclass} className="text-gray-400">
+                {subclass.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
+                {index < spell.subclasses!.length - 1 ? ", " : ""}
+              </span>
+            ))}
+          </p>
+        )}
       </div>
     </div>
   );

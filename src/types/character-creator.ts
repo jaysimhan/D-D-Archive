@@ -58,6 +58,8 @@ export interface CharacterData {
     equipment: Item[];
     magicItems?: Item[];
     magicInitiateClass?: string;
+    metamagicChoices?: string[];
+    featSpellcastingAbilities?: Record<string, "INT" | "WIS" | "CHA">;
     personality: {
         traits?: string;
         ideals?: string;

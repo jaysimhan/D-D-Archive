@@ -49,7 +49,6 @@ function proficiencyBonus(level: number) {
  * HTML download, which keeps deriving the panel's bonus after the fact.
  */
 export const PASSIVE_PERCEPTION_FEATS: Record<string, number> = {
-    alert: 5,
     observant: 5,
 };
 
@@ -448,7 +447,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     const suggestions = useSheetSuggestions();
     const characterFeats = formatEntries(initialCharacter?.feats ?? []);
 
-    // Held as well as reported: Alert and Observant raise passive Perception,
+    // Held as well as reported: Observant raises passive Perception,
     // and the panel is where this page learns the character has taken them.
     const [feats, setFeats] = useState(characterFeats);
     const featOptions = suggestions.feats;

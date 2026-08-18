@@ -205,7 +205,7 @@ export interface SheetSpell {
 const SPELLS_QUERY = `*[_type == "spell" && defined(name)] | order(name asc) {
     name,
     level,
-    "school": coalesce(school->name, school),
+    "school": coalesce(school->name, legacySchoolName, "Unknown"),
     castingTime,
     range,
     components,

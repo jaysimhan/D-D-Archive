@@ -210,6 +210,11 @@ export const spellGrant = {
             description: 'For Fixed mode (the spell you get) or Choice mode (the specific list to pick from).',
         },
         {
+            name: 'replacesSpell', title: 'Replaces Spell', type: 'reference',
+            to: [{ type: 'spell' }],
+            description: 'For a replacement choice, the automatic spell removed when this slot is filled.',
+        },
+        {
             name: 'ability',
             title: 'Spellcasting Ability',
             type: 'string',

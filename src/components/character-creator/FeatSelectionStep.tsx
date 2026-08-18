@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, Sparkles, Loader2 } from "lucide-react";
-import { CharacterRuleset, Feat } from "../../types/dnd-types";
+import { CharacterRuleset, Class, Feat, Subclass } from "../../types/dnd-types";
 import { useFeats } from "../../hooks/useSanityData";
 
 // Feat Selection Step
@@ -8,10 +8,16 @@ export function FeatSelectionStep({
     selectedFeats,
     ruleset,
     onFeatsChange,
+    lockedFeatIds = [],
+    classData,
+    subclass,
 }: {
     selectedFeats: Feat[];
     ruleset: CharacterRuleset;
     onFeatsChange: (feats: Feat[]) => void;
+    lockedFeatIds?: string[];
+    classData?: Class;
+    subclass?: Subclass;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const { data: allFeats, loading } = useFeats(ruleset);
@@ -24,6 +30,7 @@ export function FeatSelectionStep({
     }, [searchTerm, allFeats]);
 
     const toggleFeat = (feat: Feat) => {
+        if (lockedFeatIds.includes(feat.id)) return;
         if (selectedFeats.find((f) => f.id === feat.id)) {
             onFeatsChange(selectedFeats.filter((f) => f.id !== feat.id));
         } else {
@@ -62,10 +69,19 @@ export function FeatSelectionStep({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-2">
                 {filteredFeats.map((feat) => {
                     const isSelected = selectedFeats.find((f) => f.id === feat.id);
+                    const isLocked = lockedFeatIds.includes(feat.id);
+                    const requiresSpellcasting = feat.name === "Metamagic Adept";
+                    const hasSpellcasting = Boolean(
+                        classData?.isSpellcaster ||
+                        (classData?.spellcaster && !["none", "None"].includes(classData.spellcaster)) ||
+                        subclass?.isSpellcaster || subclass?.spellcaster,
+                    );
+                    const unavailable = requiresSpellcasting && !hasSpellcasting;
                     return (
                         <button
                             key={feat.id}
                             onClick={() => toggleFeat(feat)}
+                            disabled={isLocked || unavailable}
                             className={`text-left p-3 border rounded-lg transition-all ${isSelected
                                 ? "border-amber-500 bg-amber-900/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                                 : "border-zinc-800 bg-zinc-900/40 hover:border-amber-500/50 hover:bg-zinc-800"
@@ -74,6 +90,8 @@ export function FeatSelectionStep({
                             <div className="flex justify-between items-start mb-1">
                                 <h4 className={`font-semibold font-serif ${isSelected ? 'text-amber-400' : 'text-gray-200'}`}>{feat.name}</h4>
                                 <div className="flex gap-1">
+                                    {isLocked && <span className="text-xs px-2 py-1 bg-amber-950 text-amber-300 rounded border border-amber-700">Background</span>}
+                                    {unavailable && <span className="text-xs px-2 py-1 bg-red-950 text-red-300 rounded border border-red-800">Requires Spellcasting</span>}
                                     <span className="text-xs px-2 py-1 bg-zinc-800 text-gray-400 rounded border border-zinc-700">
                                         {feat.source}
                                     </span>

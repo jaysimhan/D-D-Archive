@@ -56,24 +56,28 @@ export default {
         {
             name: 'components',
             title: 'Components',
-            type: 'array',
-            of: [{ type: 'string' }],
-            options: {
-                list: [
-                    { title: 'Verbal (V)', value: 'V' },
-                    { title: 'Somatic (S)', value: 'S' },
-                    { title: 'Material (M)', value: 'M' },
-                ],
-            },
+            type: 'object',
+            fields: [
+                { name: 'verbal', title: 'Verbal (V)', type: 'boolean', initialValue: false },
+                { name: 'somatic', title: 'Somatic (S)', type: 'boolean', initialValue: false },
+                { name: 'material', title: 'Material (M)', type: 'boolean', initialValue: false },
+                {
+                    name: 'materialDescription',
+                    title: 'Material Component Details',
+                    type: 'text',
+                    rows: 2,
+                    hidden: ({ parent }: any) => !parent?.material,
+                },
+            ],
             validation: (Rule: any) => Rule.required(),
         },
         {
             name: 'materialCost',
-            title: 'Material Component Details',
+            title: 'Legacy Material Component Details',
             type: 'text',
             rows: 2,
-            hidden: ({ parent }: any) => !parent?.components?.includes('M'),
-            description: 'Visible only when "Material (M)" is checked in components.',
+            hidden: true,
+            description: 'Preserved for older records. New details live inside Components.',
         },
         {
             name: 'duration',
@@ -96,8 +100,8 @@ export default {
         {
             name: 'description',
             title: 'Description',
-            type: 'array',
-            of: [{ type: 'block' }],
+            type: 'text',
+            rows: 10,
             validation: (Rule: any) => Rule.required(),
         },
         {
@@ -119,6 +123,13 @@ export default {
             type: 'array',
             of: [{ type: 'string' }],
             description: 'IDs of classes that can cast this spell',
+        },
+        {
+            name: 'subclasses',
+            title: 'Granted by Subclasses',
+            type: 'array',
+            of: [{ type: 'reference', to: [{ type: 'subclass' }] }],
+            description: 'Reverse links maintained from subclass spell grants by the SRD spell sync.',
         },
         sourceField,
         editionField,

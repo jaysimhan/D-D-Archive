@@ -5,9 +5,11 @@ import type { Class, Subclass, Race, Background, Spell, Feat, Item, HomepageData
 function rulesetFilter(ruleset?: CharacterRuleset): string {
     if (!ruleset) return '';
     return ` && (
-        (defined(rulesets[0]) && $rulesetKey in rulesets[]->key.current) ||
-        (!defined(rulesets[0]) && defined(ruleset) && ruleset->key.current == $rulesetKey) ||
-        (!defined(rulesets[0]) && !defined(ruleset) && (edition == $edition || edition in ["Both", "5e"]))
+        $rulesetKey in rulesets[]._key ||
+        $rulesetKey in rulesets[]->key.current ||
+        ruleset._key == $rulesetKey ||
+        ruleset->key.current == $rulesetKey ||
+        edition == $edition || edition in ["Both", "5e"]
     )`;
 }
 
@@ -72,11 +74,34 @@ export function useClasses(ruleset?: CharacterRuleset) {
         spellcaster,
         isSpellcaster,
         spellcastingAbility,
-        features,
+        spells[]{
+            name,
+            level,
+            mode,
+            count,
+            spellList,
+            specificSpells[]->{
+                ...,
+                "id": slug.current,
+                "school": coalesce(school->name, legacySchoolName, "Unknown"),
+                "subclasses": subclasses[]->slug.current
+            },
+            ability,
+            recharge,
+            spellLevel,
+            notes
+            ,"replacesSpellId": replacesSpell->slug.current
+        },
+        features[]{
+            "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+            "name": coalesce(name, @->name),
+            "description": coalesce(description, @->description)
+        },
         traits[]->{name, description},
         proficiencies,
         source,
         edition,
+        subclassLevel,
         "rulesetKeys": rulesets[]->key.current
     } | order(name asc)`, rulesetParams(ruleset));
 }
@@ -107,10 +132,11 @@ export function useSubclasses(ruleset?: CharacterRuleset) {
             count,
             spellList,
             specificSpells[]->{
+                ...,
                 name,
                 "id": slug.current,
                 level,
-                "school": coalesce(school->name, school),
+                "school": coalesce(school->name, legacySchoolName, "Unknown"),
                 castingTime,
                 range,
                 duration,
@@ -124,6 +150,7 @@ export function useSubclasses(ruleset?: CharacterRuleset) {
             recharge,
             spellLevel,
             notes
+            ,"replacesSpellId": replacesSpell->slug.current
         },
         source,
         edition,
@@ -142,7 +169,11 @@ export function useSubclassesByClass(classId: string, ruleset?: CharacterRuleset
                 asset->{ _id, url, metadata { lqip, dimensions } }
             },
             "parentClassId": coalesce(parentClass->slug.current, parentClassId),
-            features,
+            features[]{
+                "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+                "name": coalesce(name, @->name),
+                "description": coalesce(description, @->description)
+            },
             traits[]->{name, description},
             proficiencies,
             magicType,
@@ -157,10 +188,11 @@ export function useSubclassesByClass(classId: string, ruleset?: CharacterRuleset
                 count,
                 spellList,
                 specificSpells[]->{
+                    ...,
                     name,
                     "id": slug.current,
                     level,
-                    "school": coalesce(school->name, school),
+                    "school": coalesce(school->name, legacySchoolName, "Unknown"),
                     castingTime,
                     range,
                     duration,
@@ -174,6 +206,7 @@ export function useSubclassesByClass(classId: string, ruleset?: CharacterRuleset
                 recharge,
                 spellLevel,
                 notes
+                ,"replacesSpellId": replacesSpell->slug.current
             },
             source,
             edition
@@ -206,10 +239,11 @@ export function useRaces(ruleset?: CharacterRuleset) {
             count,
             spellList,
             specificSpells[]->{
+                ...,
                 name,
                 "id": slug.current,
                 level,
-                "school": coalesce(school->name, school),
+                "school": coalesce(school->name, legacySchoolName, "Unknown"),
                 castingTime,
                 range,
                 duration,
@@ -222,7 +256,8 @@ export function useRaces(ruleset?: CharacterRuleset) {
             ability,
             recharge,
             spellLevel,
-            notes
+                notes
+                ,"replacesSpellId": replacesSpell->slug.current
         },
         "languages": coalesce(languages, []),
         "isSpellcaster": coalesce(
@@ -260,6 +295,23 @@ export function useBackgrounds(ruleset?: CharacterRuleset) {
         languages,
         equipment,
         feature,
+        feats[]->{
+            ...,
+            "id": slug.current,
+            grants[]{
+                ...,
+                "grantedSpell": grantedSpell->{..., "id": slug.current, "school": coalesce(school->name, legacySchoolName, "Unknown")},
+                "schoolRestrictions": coalesce(schoolRestrictionNames, schoolRestrictions[]->name, select(defined(schoolRestriction) => [schoolRestriction->name], [])),
+                "classRestrictions": classRestrictions[]->slug.current,
+                "spellRestrictions": spellRestrictions[]->{..., "id": slug.current, "school": coalesce(school->name, legacySchoolName, "Unknown")}
+            }
+        },
+        expandedSpells[]->{
+            ...,
+            "id": slug.current,
+            "school": coalesce(school->name, legacySchoolName, "Unknown"),
+            "subclasses": subclasses[]->slug.current
+        },
         source,
         edition,
         "rulesetKeys": rulesets[]->key.current
@@ -271,7 +323,8 @@ export function useSpells(ruleset?: CharacterRuleset) {
     return useSanityQuery<Spell>(`*[_type == "spell"${rulesetFilter(ruleset)}] {
         ...,
         "id": slug.current,
-        "school": coalesce(school->name, school)
+        "school": coalesce(school->name, legacySchoolName, "Unknown"),
+        "subclasses": subclasses[]->slug.current
     } | order(name asc)`, rulesetParams(ruleset));
 }
 
@@ -280,7 +333,8 @@ export function useSpellsByClass(classId: string, ruleset?: CharacterRuleset) {
         `*[_type == "spell" && $classId in classes${rulesetFilter(ruleset)}] {
             ...,
             "id": slug.current,
-            "school": coalesce(school->name, school)
+            "school": coalesce(school->name, legacySchoolName, "Unknown"),
+            "subclasses": subclasses[]->slug.current
         } | order(level asc, name asc)`,
         { classId, ...rulesetParams(ruleset) }
     );
@@ -293,9 +347,10 @@ export function useFeats(ruleset?: CharacterRuleset) {
         "id": slug.current,
         grants[]{
             ...,
-            "grantedSpell": grantedSpell->{..., "id": slug.current, "school": coalesce(school->name, school)},
-            "schoolRestrictions": coalesce(schoolRestrictions[]->name, select(defined(schoolRestriction) => [schoolRestriction->name], [])),
-            "classRestrictions": classRestrictions[]->slug.current
+            "grantedSpell": grantedSpell->{..., "id": slug.current, "school": coalesce(school->name, legacySchoolName, "Unknown")},
+            "schoolRestrictions": coalesce(schoolRestrictionNames, schoolRestrictions[]->name, select(defined(schoolRestriction) => [schoolRestriction->name], [])),
+            "classRestrictions": classRestrictions[]->slug.current,
+            "spellRestrictions": spellRestrictions[]->{..., "id": slug.current, "school": coalesce(school->name, legacySchoolName, "Unknown")}
         }
     } | order(name asc)`, rulesetParams(ruleset));
 }

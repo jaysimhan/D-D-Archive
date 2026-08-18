@@ -4,6 +4,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { CharacterRuleset, Class } from "../../types/dnd-types";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
+import { subclassLevelFor } from "../../utils/class-progression";
 
 
 // Class Step with Search - Limited to Level 1-3
@@ -20,13 +21,7 @@ export function ClassStep({
     onSelect: (classData: Class) => void;
     onLevelChange: (level: number) => void;
 }) {
-    const getSubclassLevel = (classId: string): number => {
-        const level1 = ["cleric", "sorcerer", "warlock"];
-        const level2 = ["druid", "wizard"];
-        if (level1.includes(classId)) return 1;
-        if (level2.includes(classId)) return 2;
-        return 3; // Default for others (Artificer, Barbarian, Bard, Fighter, Monk, Paladin, Ranger, Rogue, and homebrew)
-    };
+    const getSubclassLevel = (classData: Class): number => subclassLevelFor(classData, ruleset);
     const [searchTerm, setSearchTerm] = useState("");
     const [showNonCore, setShowNonCore] = useState(false);
 
@@ -271,11 +266,11 @@ export function ClassStep({
                                     <h4 className="font-bold text-gray-200 text-sm mb-2 flex items-center justify-between">
                                         Available Subclasses
                                         <span className="ml-2 text-xs font-normal text-gray-500 bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700">
-                                            Features unlock at Lv {getSubclassLevel(selected.id)}
+                                            Features unlock at Lv {getSubclassLevel(selected)}
                                         </span>
                                     </h4>
                                     <p className="text-xs text-brand-400/80 mb-3 font-medium italic">
-                                        You chose your subclass at Level {getSubclassLevel(selected.id)}
+                                        You chose your subclass at Level {getSubclassLevel(selected)}
                                     </p>
                                     <div className="space-y-3">
                                         {relatedSubclasses.map(sub => {

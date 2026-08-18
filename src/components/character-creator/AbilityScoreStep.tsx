@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Minus, Plus } from "lucide-react";
 import { AbilityScores, Race, Feat, Subrace } from "../../types/dnd-types";
+import { POINT_BUY_BUDGET, pointBuyCost } from "../../utils/ability-scores";
 
 type AbilityKey = keyof AbilityScores;
 
@@ -198,10 +199,11 @@ export function AbilityScoreStep({
     // Handle score increment/decrement
     const adjustScore = (ability: AbilityKey, delta: number) => {
         const currentScore = scores[ability];
-        const newScore = Math.max(1, Math.min(20, currentScore + delta));
+        const candidate = Math.max(8, Math.min(15, currentScore + delta));
+        const nextScores = { ...scores, [ability]: candidate };
+        if (pointBuyCost(nextScores) > POINT_BUY_BUDGET) return;
         onScoresChange({
-            ...scores,
-            [ability]: newScore,
+            ...nextScores,
         });
     };
 
@@ -209,7 +211,10 @@ export function AbilityScoreStep({
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-6">
                 <h2 className="text-3xl font-bold text-white mb-1 font-serif">Ability Scores</h2>
-                <p className="text-gray-400">Assign the 6 Ability Scores.</p>
+                <p className="text-gray-400">Assign scores with the standard 27-point buy (8–15 before bonuses).</p>
+                <p className="mt-2 text-sm font-semibold text-brand-300">
+                    {POINT_BUY_BUDGET - pointBuyCost(scores)} points remaining
+                </p>
                 {isFlexible && (
                     <div className="mt-2 text-sm text-brand-300 bg-brand-950/50 p-3 rounded-md border border-brand-800">
                         <p className="font-bold">🎲 Flexible Race Rules:</p>
@@ -225,7 +230,7 @@ export function AbilityScoreStep({
             {/* Table Header */}
             <div className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center mb-2 px-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
                 <div></div>
-                <div className="text-center">Brut Score</div>
+                <div className="text-center">Base Score</div>
                 <div className="text-center">Racial Bonus</div>
                 <div className="text-center">Feat Bonus</div>
                 <div className="text-center">Final Score</div>
@@ -253,7 +258,7 @@ export function AbilityScoreStep({
                             <div className="flex items-center justify-center gap-3">
                                 <button
                                     onClick={() => adjustScore(ability, -1)}
-                                    disabled={baseScore <= 1}
+                                    disabled={baseScore <= 8}
                                     className="w-8 h-8 flex items-center justify-center bg-zinc-800 text-gray-400 rounded-lg hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Minus className="w-4 h-4" />
@@ -263,7 +268,7 @@ export function AbilityScoreStep({
                                 </div>
                                 <button
                                     onClick={() => adjustScore(ability, 1)}
-                                    disabled={baseScore >= 20}
+                                    disabled={baseScore >= 15 || pointBuyCost({ ...scores, [ability]: baseScore + 1 }) > POINT_BUY_BUDGET}
                                     className="w-8 h-8 flex items-center justify-center bg-zinc-800 text-gray-400 rounded-lg hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Plus className="w-4 h-4" />

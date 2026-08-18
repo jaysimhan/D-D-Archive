@@ -11,13 +11,19 @@ import {
   saveDraft,
   type CreatorDraft,
 } from "../lib/character-storage";
-import { useSubclasses } from "../hooks/useSanityData";
+import { useBackgrounds, useClasses, useFeats, useRaces, useSpells, useSubclasses } from "../hooks/useSanityData";
 import {
   buildProficiencyPlan,
   EMPTY_CUSTOM,
   pruneSelections,
   resolveProficiencies,
 } from "../utils/proficiency-plan";
+import {
+  collectCharacterSpells,
+  refreshCharacterSpellData,
+  withoutSpellSource,
+} from "../utils/character-spells";
+import { subclassLevelFor } from "../utils/class-progression";
 
 // Import Step Components
 import { NameStep } from "./character-creator/NameStep";
@@ -47,17 +53,38 @@ export function CharacterCreator() {
 
   // Fetch subclasses here for the check
   const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses(characterData.ruleset);
+  const { data: sanityClasses } = useClasses(characterData.ruleset);
+  const { data: sanityRaces } = useRaces(characterData.ruleset);
+  const { data: sanityFeats } = useFeats(characterData.ruleset);
+  const { data: sanitySpells } = useSpells(characterData.ruleset);
+  const { data: sanityBackgrounds } = useBackgrounds(characterData.ruleset);
 
   const allSubclasses = useMemo(() => {
     return sanitySubclasses || [];
   }, [sanitySubclasses]);
+
+  // Drafts intentionally store complete objects so they work offline, but the
+  // archive may have repaired a spell school or grant since the draft was
+  // saved. Refresh matching records by id and retain local-only/homebrew data.
+  useEffect(() => {
+    if (!sanityClasses.length && !sanityRaces.length && !sanitySubclasses.length &&
+        !sanityFeats.length && !sanitySpells.length && !sanityBackgrounds.length) return;
+    setCharacterData((current) => refreshCharacterSpellData(current, {
+      classes: sanityClasses,
+      races: sanityRaces,
+      subclasses: sanitySubclasses,
+      feats: sanityFeats,
+      spells: sanitySpells,
+      backgrounds: sanityBackgrounds,
+    }));
+  }, [sanityClasses, sanityRaces, sanitySubclasses, sanityFeats, sanitySpells, sanityBackgrounds]);
 
   const steps: CreationStep[] = useMemo(() => {
     const baseSteps: CreationStep[] = ["ruleset", "race", "class"];
 
     // Add subclass step if character level requires it
     if (characterData.class) {
-      const subclassLevel = characterData.class.subclassLevel || 3;
+      const subclassLevel = subclassLevelFor(characterData.class, characterData.ruleset);
 
       // Check if there are any subclasses available for this class
       const hasSubclasses = allSubclasses.some(s => s.parentClassId === characterData.class?.id);
@@ -97,7 +124,15 @@ export function CharacterCreator() {
     baseSteps.push("personality"); // Matches "Character Details"
 
     return baseSteps;
-  }, [characterData.class, characterData.level, characterData.feats, characterData.race, allSubclasses]);
+  }, [
+    characterData.class,
+    characterData.level,
+    characterData.feats,
+    characterData.race,
+    characterData.subrace,
+    characterData.subclass,
+    allSubclasses,
+  ]);
 
   const canLeaveStep = (step: CreationStep | undefined): boolean => {
     switch (step) {
@@ -220,7 +255,10 @@ export function CharacterCreator() {
   const canProgress = () => canLeaveStep(currentStep);
 
   const completeCharacter = () => {
-    saveCompletedSheet(characterData);
+    saveCompletedSheet({
+      ...characterData,
+      selectedSpells: collectCharacterSpells(characterData),
+    });
     navigate("/character-sheet");
   };
 
@@ -364,7 +402,12 @@ export function CharacterCreator() {
                   ruleset={characterData.ruleset!}
                   race={characterData.race}
                   onChange={(race) =>
-                    setCharacterData({ ...characterData, race })
+                    setCharacterData({
+                      ...characterData,
+                      race,
+                      subrace: undefined,
+                      selectedSpells: withoutSpellSource(characterData.selectedSpells, "Racial"),
+                    })
                   }
                 />
               )}
@@ -374,9 +417,21 @@ export function CharacterCreator() {
                   selected={characterData.class}
                   level={characterData.level}
                   onSelect={(classData) =>
-                    setCharacterData({ ...characterData, class: classData, subclass: undefined })
+                    setCharacterData({
+                      ...characterData,
+                      class: classData,
+                      subclass: undefined,
+                      selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
+                    })
                   }
-                  onLevelChange={(level) => setCharacterData({ ...characterData, level })}
+                  onLevelChange={(level) => setCharacterData({
+                    ...characterData,
+                    level,
+                    subclass: characterData.class && level >= subclassLevelFor(characterData.class, characterData.ruleset)
+                      ? characterData.subclass
+                      : undefined,
+                    selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
+                  })}
                 />
               )}
               {currentStep === "subclass" && characterData.class && (
@@ -385,14 +440,35 @@ export function CharacterCreator() {
                   classData={characterData.class}
                   selectedSubclass={characterData.subclass}
                   level={characterData.level}
-                  onSelect={(subclass) => setCharacterData({ ...characterData, subclass })}
+                  onSelect={(subclass) => setCharacterData({
+                    ...characterData,
+                    subclass,
+                    selectedSpells: withoutSpellSource(characterData.selectedSpells, "Subclass"),
+                  })}
                 />
               )}
               {currentStep === "feats" && (
                 <FeatSelectionStep
                   ruleset={characterData.ruleset!}
                   selectedFeats={characterData.feats}
-                  onFeatsChange={(feats) => setCharacterData({ ...characterData, feats })}
+                  lockedFeatIds={(characterData.background?.feats || []).map((feat) => feat.id)}
+                  classData={characterData.class}
+                  subclass={characterData.subclass}
+                  onFeatsChange={(feats) => setCharacterData({
+                    ...characterData,
+                    feats,
+                    metamagicChoices: (characterData.metamagicChoices || []).slice(
+                      0,
+                      (characterData.class?.id === "sorcerer" && characterData.level >= 2 ? 2 : 0) +
+                        (feats.some((feat) => feat.name === "Metamagic Adept") ? 2 : 0),
+                    ),
+                    selectedSpells: withoutSpellSource(
+                      characterData.selectedSpells,
+                      "Feat",
+                      "Magic Initiate",
+                      "Aberrant Dragonmark",
+                    ),
+                  })}
                 />
               )}
               {currentStep === "abilities" && (
@@ -425,7 +501,25 @@ export function CharacterCreator() {
                 <BackgroundStep
                   ruleset={characterData.ruleset!}
                   selected={characterData.background}
-                  onSelect={(background) => setCharacterData({ ...characterData, background })}
+                  onSelect={(background) => {
+                    const previousGranted = new Set((characterData.background?.feats || []).map((feat) => feat.id));
+                    const manualFeats = characterData.feats.filter((feat) => !previousGranted.has(feat.id));
+                    const feats = [...manualFeats, ...(background.feats || [])].filter(
+                      (feat, index, list) => list.findIndex((candidate) => candidate.id === feat.id) === index,
+                    );
+                    setCharacterData({
+                      ...characterData,
+                      background,
+                      feats,
+                      selectedSpells: withoutSpellSource(characterData.selectedSpells, "Feat", "Class"),
+                      featSpellcastingAbilities: {
+                        ...characterData.featSpellcastingAbilities,
+                        ...Object.fromEntries((background.feats || [])
+                          .filter((feat) => feat.name.startsWith("Strixhaven Initiate"))
+                          .map((feat) => [feat.id, "CHA"])),
+                      },
+                    });
+                  }}
                 />
               )}
               {currentStep === "spells" && characterData.class && (
@@ -440,8 +534,21 @@ export function CharacterCreator() {
                   }
                   feats={characterData.feats}
                   subclass={characterData.subclass}
+                  subrace={characterData.subrace}
+                  background={characterData.background}
                   magicInitiateClass={characterData.magicInitiateClass}
-                  onMagicInitiateClassChange={(cls) => setCharacterData({ ...characterData, magicInitiateClass: cls })}
+                  onMagicInitiateClassChange={(cls) => setCharacterData({
+                    ...characterData,
+                    magicInitiateClass: cls,
+                    selectedSpells: withoutSpellSource(characterData.selectedSpells, "Magic Initiate"),
+                  })}
+                  metamagicChoices={characterData.metamagicChoices}
+                  onMetamagicChange={(metamagicChoices) => setCharacterData({ ...characterData, metamagicChoices })}
+                  featSpellcastingAbilities={characterData.featSpellcastingAbilities}
+                  onFeatSpellcastingAbilityChange={(featId, ability) => setCharacterData({
+                    ...characterData,
+                    featSpellcastingAbilities: { ...characterData.featSpellcastingAbilities, [featId]: ability },
+                  })}
                 />
               )}
               {currentStep === "hp" && (
@@ -465,6 +572,8 @@ export function CharacterCreator() {
                   ruleset={characterData.ruleset!}
                   equipment={characterData.equipment}
                   classData={characterData.class}
+                  race={characterData.race}
+                  armorProficiencies={characterData.proficiencies?.armor}
                   onEquipmentChange={(equipment) => setCharacterData({ ...characterData, equipment })}
                 />
               )}

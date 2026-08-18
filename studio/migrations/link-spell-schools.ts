@@ -27,6 +27,7 @@ async function run() {
     '*[_type == "magicSchool"]{_id, name}',
   )
   const schoolIds = new Map(existingSchools.map(({ _id, name }) => [name.toLowerCase(), _id]))
+  const schoolNames = new Map(existingSchools.map(({ _id, name }) => [_id, name]))
 
   for (const [name, description] of SCHOOL_DEFINITIONS) {
     const key = name.toLowerCase()
@@ -79,6 +80,7 @@ async function run() {
       grantType?: string
       schoolRestriction?: { _ref?: string }
       schoolRestrictions?: Array<{ _ref?: string }>
+      schoolRestrictionNames?: string[]
     }>
   }>>(
     '*[_type in ["feat", "species", "class", "item"] && count(grants[grantType == "Spell Slot"]) > 0]{_id, _type, name, grants}',
@@ -87,17 +89,24 @@ async function run() {
   let migratedGrants = 0
   for (const document of grantDocuments) {
     const nextGrants = document.grants.map((grant) => {
-      if (grant.grantType !== 'Spell Slot' || grant.schoolRestrictions?.length) return grant
-      const refs = document._type === 'feat' && document.name === 'Fey Touched'
-        ? ['divination', 'enchantment'].map((name) => schoolIds.get(name)!)
-        : grant.schoolRestriction?._ref
-          ? [grant.schoolRestriction._ref]
-          : []
+      if (grant.grantType !== 'Spell Slot') return grant
+      const refs = grant.schoolRestrictions?.map(({ _ref }) => _ref).filter((ref): ref is string => Boolean(ref)).length
+        ? grant.schoolRestrictions.map(({ _ref }) => _ref).filter((ref): ref is string => Boolean(ref))
+        : document._type === 'feat' && document.name === 'Fey Touched'
+          ? ['divination', 'enchantment'].map((name) => schoolIds.get(name)!)
+          : grant.schoolRestriction?._ref
+            ? [grant.schoolRestriction._ref]
+            : []
       if (!refs.length) return grant
+      const names = refs.map((ref) => schoolNames.get(ref)).filter((name): name is string => Boolean(name))
+      const hasAllRefs = grant.schoolRestrictions?.length === refs.length
+      const hasNames = JSON.stringify(grant.schoolRestrictionNames || []) === JSON.stringify(names)
+      if (hasAllRefs && hasNames) return grant
       migratedGrants += 1
       return {
         ...grant,
         schoolRestrictions: refs.map((ref) => ({ _type: 'reference', _key: ref, _ref: ref })),
+        schoolRestrictionNames: names,
       }
     })
     if (JSON.stringify(nextGrants) === JSON.stringify(document.grants)) continue

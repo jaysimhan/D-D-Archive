@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, Loader2 } from "lucide-react";
-import { CharacterRuleset, Class, Item } from "../../types/dnd-types";
+import { CharacterRuleset, Class, Item, Race } from "../../types/dnd-types";
 import { useItems } from "../../hooks/useSanityData";
 
 // Equipment Step
@@ -8,11 +8,15 @@ export function EquipmentStep({
     equipment,
     ruleset,
     classData,
+    race,
+    armorProficiencies = [],
     onEquipmentChange,
 }: {
     equipment: Item[];
     ruleset: CharacterRuleset;
     classData?: Class;
+    race?: Race;
+    armorProficiencies?: string[];
     onEquipmentChange: (equipment: Item[]) => void;
 }) {
     const [searchTerm, setSearchTerm] = useState("");
@@ -69,7 +73,15 @@ export function EquipmentStep({
 
     const isNotRecommended = (item: Item) => {
         if (!classData) return false;
-        if (["monk", "wizard", "sorcerer"].includes(classData.id) && item.type === "Armor") return true;
+        const inheritedArmor = [
+            ...armorProficiencies,
+            ...(race?.proficiencies || [])
+                .filter((rule) => rule.type === "armor" && rule.mode === "fixed")
+                .flatMap((rule) => rule.armorOptions || rule.options || []),
+        ].map((name) => name.toLowerCase());
+        const armorKind = item.properties?.find((property) => /^(light|medium|heavy) armor$/i.test(property));
+        const isProficient = !!armorKind && inheritedArmor.includes(armorKind.toLowerCase());
+        if (["monk", "wizard", "sorcerer"].includes(classData.id) && item.type === "Armor" && !isProficient) return true;
         // Add more logic as needed
         return false;
     };
