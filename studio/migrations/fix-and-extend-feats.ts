@@ -123,12 +123,13 @@ function abilityFields(seed: FeatSeed) {
   }
 }
 
-function seedPatch(seed: FeatSeed, existing?: ExistingFeat) {
+function seedPatch(seed: FeatSeed, existing?: ExistingFeat, pinTo2024 = false) {
   const { abilityScoreIncrease, flexibleAbilityIncrease } = abilityFields(seed)
   const level = seed.level ?? CATEGORY_LEVEL[seed.category]
-  // A feat printed in both editions stays available to both; the ones the 2024
-  // books introduced are pinned to the 2024 ruleset.
-  const onlyNew = NEW_IN_2024.has(normalize(seed.name)) || SPLIT_BY_EDITION.includes(seed.name)
+  // A feat printed in both editions stays available to both. Ones the 2024
+  // books introduced, and ones whose 2014 printing lives in its own document,
+  // are pinned to the 2024 ruleset so neither edition lists them twice.
+  const onlyNew = pinTo2024 || NEW_IN_2024.has(normalize(seed.name)) || SPLIT_BY_EDITION.includes(seed.name)
   const edition = onlyNew ? '2024' : 'Both'
   const rulesets = onlyNew ? [R24] : [R14, R24]
 
@@ -164,6 +165,21 @@ async function run() {
   const catalogueNames = new Set(FEATS_2024.map((seed) => normalize(seed.name)))
   const legacyNames = new Set(LEGACY_2014_FEATS.map(normalize))
 
+  // Matching a seed by name alone is ambiguous: "Alert" is two documents, one
+  // per edition, and a Map keyed by name keeps only whichever came back last.
+  // The seed's own document id and slug are unique, so they are tried first.
+  const byId = new Map(existing.map((feat) => [feat._id, feat]))
+  const bySlug = new Map(
+    existing.flatMap((feat) => (feat.slug?.current ? [[feat.slug.current, feat] as const] : [])),
+  )
+  const sameNameGroups = new Map<string, ExistingFeat[]>()
+  for (const feat of existing) {
+    const key = normalize(feat.name)
+    sameNameGroups.set(key, [...(sameNameGroups.get(key) ?? []), feat])
+  }
+  /** Documents already dealt with, so the sweeps below leave them alone. */
+  const handled = new Set<string>()
+
   let tx = client.transaction()
   const log = { ruleset: 0, patched: 0, created: 0, legacy: 0, homebrew: 0, flexed: 0, split: 0, pinned: 0 }
   const notes: string[] = []
@@ -178,46 +194,57 @@ async function run() {
   } as any)
   log.ruleset += 1
 
-  // 2. Bring every catalogue feat in line, creating only what is genuinely absent.
+  // 2. Bring every catalogue feat in line, creating only what is genuinely
+  //    absent. Where a second document already carries the same name, that one
+  //    is the 2014 printing: it keeps the 2014 ruleset and the catalogue's
+  //    document is pinned to 2024, so neither edition lists the feat twice.
   for (const seed of FEATS_2024) {
-    const match = SPLIT_BY_EDITION.includes(seed.name) ? undefined : byName.get(normalize(seed.name))
-    const patch = seedPatch(seed, match)
+    const sameName = sameNameGroups.get(normalize(seed.name)) ?? []
+    // Feats whose editions diverge must never adopt the legacy document, or the
+    // first run would overwrite the 2014 rules with the 2024 ones.
+    const forceSplit = SPLIT_BY_EDITION.includes(seed.name)
+    const match = byId.get(`feat-${seed.slug}`)
+      ?? bySlug.get(seed.slug)
+      ?? (!forceSplit && sameName.length === 1 ? sameName[0] : undefined)
+    const twins = sameName.filter((feat) => feat._id !== match?._id)
+    const patch = seedPatch(seed, match, twins.length > 0)
 
     if (match) {
       tx = tx.patch(match._id, (p) => p.set(patch))
+      handled.add(match._id)
       log.patched += 1
       if (!match.featCategory) notes.push(`  category  ${seed.name} → ${seed.category}`)
     } else {
       tx = tx.createOrReplace({ _id: `feat-${seed.slug}`, _type: 'feat', ...patch } as any)
+      handled.add(`feat-${seed.slug}`)
       log.created += 1
       notes.push(`  create    ${seed.name} (${seed.category})`)
     }
+
+    for (const twin of twins) {
+      tx = tx.patch(twin._id, (p) => p.set({
+        edition: '2014',
+        rulesets: [R14],
+        featCategory: twin.featCategory ?? seed.category,
+      }))
+      handled.add(twin._id)
+      log.split += 1
+      notes.push(`  split     ${twin.name} (${twin._id}) kept as the 2014 printing`)
+    }
   }
 
-  // 3. Feats whose 2024 shape needed its own document leave the original on 2014.
-  for (const name of SPLIT_BY_EDITION) {
-    const match = byName.get(normalize(name))
-    if (!match) continue
-    tx = tx.patch(match._id, (p) => p.set({
-      edition: '2014',
-      rulesets: [R14],
-      featCategory: 'General',
-      prerequisites: { level: 1 },
-    }))
-    log.split += 1
-    notes.push(`  split     ${name} — existing document kept as the 2014 printing`)
-  }
-
-  // 4. Pin pre-2024 published feats to the 2014 ruleset.
+  // 4. Pin pre-2024 published feats to the 2014 ruleset. Documents step 2 has
+  //    already placed are skipped, so a legacy twin keeps the category it was
+  //    just given instead of being relabelled twice.
   for (const feat of existing) {
-    const key = normalize(feat.name)
-    if (!legacyNames.has(key)) continue
-    if (catalogueNames.has(key) && !SPLIT_BY_EDITION.some((name) => normalize(name) === key)) continue
+    if (handled.has(feat._id)) continue
+    if (!legacyNames.has(normalize(feat.name))) continue
     tx = tx.patch(feat._id, (p) => p.set({
       edition: '2014',
       rulesets: [R14],
       featCategory: feat.featCategory ?? 'General',
     }))
+    handled.add(feat._id)
     log.legacy += 1
   }
 
@@ -226,7 +253,7 @@ async function run() {
   const overrides = new Map(Object.entries(RULESET_OVERRIDES).map(([name, ruleset]) => [normalize(name), ruleset]))
   for (const feat of existing) {
     const key = normalize(feat.name)
-    if (catalogueNames.has(key) || legacyNames.has(key)) continue
+    if (handled.has(feat._id) || catalogueNames.has(key) || legacyNames.has(key)) continue
     const pinned = overrides.get(key)
     tx = tx.patch(feat._id, (p) => p.set({
       edition: pinned ?? 'Both',
