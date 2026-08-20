@@ -3,7 +3,21 @@ import { Search, User, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Background, CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
 import { useSpells } from "../../hooks/useSanityData";
 import { collectAutomaticSpells } from "../../utils/character-spells";
-import { metamagicChoiceLimit } from "../../utils/combat-progression";
+import { isMetamagicFeat, metamagicChoiceLimit } from "../../utils/combat-progression";
+
+/** The ten Sorcerer Metamagic options; both editions offer the same list. */
+const METAMAGIC_OPTIONS = [
+    "Careful Spell",
+    "Distant Spell",
+    "Empowered Spell",
+    "Extended Spell",
+    "Heightened Spell",
+    "Quickened Spell",
+    "Seeking Spell",
+    "Subtle Spell",
+    "Transmuted Spell",
+    "Twinned Spell",
+];
 
 // Spell Selection Step - Slot Based
 export function SpellSelectionStep({
@@ -47,8 +61,15 @@ export function SpellSelectionStep({
     // Magic Initiate Detection
     const hasMagicInitiate = feats.some(f => f.name.includes("Magic Initiate"));
     const hasAberrantDragonmark = feats.some(f => f.name.includes("Aberrant Dragonmark"));
-    const hasMetamagicAdept = feats.some((feat) => feat.name === "Metamagic Adept");
+    const metamagicFeat = feats.find(isMetamagicFeat);
+    const sorcererMetamagicChoices = classData.id === "sorcerer" && level >= 2 ? 2 : 0;
     const metamagicLimit = metamagicChoiceLimit(classData.id, level, feats);
+    // A Sorcerer who also took the feat picks four options, so name where each
+    // pair came from instead of leaving them to work out why the count grew.
+    const metamagicSources = [
+        sorcererMetamagicChoices ? `${sorcererMetamagicChoices} from ${classData.name}` : "",
+        metamagicFeat ? `2 from ${metamagicFeat.name}` : "",
+    ].filter(Boolean);
     const automaticSpells = useMemo(() => collectAutomaticSpells({
         feats,
         race,
@@ -578,17 +599,24 @@ export function SpellSelectionStep({
                 ))}
                 {metamagicLimit > 0 && (
                     <div className="bg-purple-900/20 p-6 rounded-xl border border-purple-500/30">
-                        <h3 className="text-lg font-bold text-purple-300">Metamagic</h3>
+                        <div className="flex items-start justify-between gap-4">
+                            <h3 className="text-lg font-bold text-purple-300">Metamagic</h3>
+                            <span className={`text-sm font-semibold ${metamagicChoices.length === metamagicLimit ? "text-purple-300" : "text-purple-500"}`}>
+                                {metamagicChoices.length} / {metamagicLimit} chosen
+                            </span>
+                        </div>
                         <p className="text-sm text-purple-400 mb-4">
-                            Choose {metamagicLimit} options. {hasMetamagicAdept && "The feat also grants 2 Sorcery Points, usable only for Metamagic; they return on a Long Rest."}
+                            Choose {metamagicLimit} options{metamagicSources.length > 1 ? ` (${metamagicSources.join(", ")})` : ""}.
+                            {metamagicFeat && ` ${metamagicFeat.name} also grants 2 Sorcery Points, usable only for Metamagic; they return on a Long Rest.`}
                         </p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {["Careful Spell", "Distant Spell", "Empowered Spell", "Extended Spell", "Heightened Spell", "Quickened Spell", "Seeking Spell", "Subtle Spell", "Transmuted Spell", "Twinned Spell"].map((option) => {
+                            {METAMAGIC_OPTIONS.map((option) => {
                                 const selected = metamagicChoices.includes(option);
-                                return <button key={option} type="button" onClick={() => {
+                                const full = !selected && metamagicChoices.length >= metamagicLimit;
+                                return <button key={option} type="button" disabled={full} onClick={() => {
                                     if (selected) onMetamagicChange?.(metamagicChoices.filter((choice) => choice !== option));
                                     else if (metamagicChoices.length < metamagicLimit) onMetamagicChange?.([...metamagicChoices, option]);
-                                }} className={`rounded-lg border p-2 text-sm ${selected ? "border-purple-400 bg-purple-800/50 text-white" : "border-zinc-700 text-gray-400"}`}>{option}</button>;
+                                }} className={`rounded-lg border p-2 text-sm transition-colors ${selected ? "border-purple-400 bg-purple-800/50 text-white" : full ? "border-zinc-800 text-gray-600 cursor-not-allowed" : "border-zinc-700 text-gray-400 hover:border-purple-500/60 hover:text-purple-200"}`}>{option}</button>;
                             })}
                         </div>
                     </div>

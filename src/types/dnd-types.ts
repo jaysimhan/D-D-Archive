@@ -284,6 +284,16 @@ export interface FeatureGrant {
 }
 
 // ===== Feat System =====
+
+/**
+ * How a feat may be taken. The 2024 rules sort every feat into one of these,
+ * and the creator hands out a different number of slots per category; feats
+ * carried over from 2014 have no category of their own and count as General.
+ */
+export type FeatCategory = "Origin" | "General" | "Fighting Style" | "Epic Boon";
+
+export const FEAT_CATEGORIES: FeatCategory[] = ["Origin", "General", "Fighting Style", "Epic Boon"];
+
 export interface Feat {
   id: string;
   name: string;
@@ -292,6 +302,7 @@ export interface Feat {
   source: Source;
   edition: Edition;
   version: number;
+  featCategory?: FeatCategory;
   prerequisites?: {
     level?: number;
     abilityScore?: Partial<AbilityScores>;
@@ -305,8 +316,15 @@ export interface Feat {
   benefits: {
     abilityScoreIncrease?: Partial<AbilityScores>;
     flexibleAbilityIncrease?: {
+      /** Total points the feat hands out, spread over the options below. */
       amount: number;
+      /** Empty or absent means any ability score is fair game. */
       options: AbilityScore[];
+      /**
+       * Most half feats cap one ability at +1; the 2024 Ability Score
+       * Improvement feat allows +2 to a single score instead.
+       */
+      maxPerAbility?: number;
     };
     spells?: string[]; // Spell IDs granted by this feat
     features?: string[];

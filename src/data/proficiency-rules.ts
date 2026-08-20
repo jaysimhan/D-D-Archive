@@ -643,6 +643,24 @@ export const FEAT_RULES: Record<string, RuleGrant> = {
     "Squat Nimbleness": {
         choices: [{ kind: "skill", count: 1, options: ["Acrobatics", "Athletics"] }],
     },
+    // ===== 2024 Player's Handbook =====
+    "Keen Mind": {
+        choices: [{
+            kind: "skill",
+            count: 1,
+            options: ["Arcana", "History", "Investigation", "Nature", "Religion"],
+            optionsLabel: "Intelligence skills",
+        }],
+    },
+    Observant: {
+        choices: [{ kind: "skill", count: 1, options: ["Insight", "Investigation", "Perception"] }],
+    },
+    "Tavern Brawler": { weapons: ["Improvised Weapons"] },
+    // The Epic Boon hands over every skill outright, then doubles two of them.
+    "Boon of Skill": {
+        skills: SKILL_GROUPS.flatMap((group) => group.skills),
+        choices: [{ kind: "expertise", count: 2 }],
+    },
 };
 
 /**

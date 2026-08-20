@@ -60,6 +60,12 @@ export interface CharacterData {
     magicInitiateClass?: string;
     metamagicChoices?: string[];
     featSpellcastingAbilities?: Record<string, "INT" | "WIS" | "CHA">;
+    /**
+     * Where each half feat's flexible ability increase was spent, keyed by feat
+     * id: { "feat-fey-touched": { WIS: 1 } }. Held apart from `abilityScores`
+     * so dropping the feat drops its bonus with it.
+     */
+    featAbilityChoices?: Record<string, Partial<AbilityScores>>;
     personality: {
         traits?: string;
         ideals?: string;

@@ -3,7 +3,7 @@ import {
     type CharacterData,
     type CreationStep,
 } from "../types/character-creator";
-import type { Spell, SpellSchool } from "../types/dnd-types";
+import type { AbilityScores, Spell, SpellSchool } from "../types/dnd-types";
 
 /**
  * The creator used to hold the whole character in React state, so a refresh —
@@ -131,6 +131,27 @@ function asRecordOfArrays(value: unknown): Record<string, string[]> {
 }
 
 /**
+ * Half-feat picks, keyed by feat id. Drafts written before the picks were
+ * stored on the character held a single ability name per feat, so anything that
+ * is not a positive number is dropped rather than reaching an ability total.
+ */
+function asAbilityChoices(value: unknown): Record<string, Partial<AbilityScores>> {
+    if (!value || typeof value !== "object") return {};
+    const out: Record<string, Partial<AbilityScores>> = {};
+    for (const [featId, choice] of Object.entries(value as Record<string, unknown>)) {
+        if (!choice || typeof choice !== "object") continue;
+        const points: Record<string, number> = {};
+        for (const [ability, amount] of Object.entries(choice as Record<string, unknown>)) {
+            if (typeof amount === "number" && Number.isFinite(amount) && amount > 0) {
+                points[ability] = Math.floor(amount);
+            }
+        }
+        if (Object.keys(points).length) out[featId] = points as Partial<AbilityScores>;
+    }
+    return out;
+}
+
+/**
  * Anything read back may predate the current shape of CharacterData, and the
  * step components index into these fields without checking. Layering the
  * stored values over a fresh character keeps every field present and the right
@@ -175,6 +196,7 @@ function normalizeCharacter(value: unknown): CharacterData | null {
             weapons: asArray(stored.customProficiencies?.weapons),
         },
         racialBonusAllocation: stored.racialBonusAllocation ?? {},
+        featAbilityChoices: asAbilityChoices(stored.featAbilityChoices),
         hpRolls: Array.isArray(stored.hpRolls) ? stored.hpRolls : undefined,
     };
 }

@@ -2,6 +2,14 @@ import { useState, useEffect, useMemo } from "react";
 import { Minus, Plus } from "lucide-react";
 import { AbilityScores, Race, Feat, Subrace } from "../../types/dnd-types";
 import { POINT_BUY_BUDGET, pointBuyCost } from "../../utils/ability-scores";
+import {
+    featAbilityBonuses,
+    flexibleAbilityAmount,
+    flexibleAbilityOptions,
+    halfFeats,
+    toggleFeatAbilityPoint,
+    unspentAbilityPoints,
+} from "../../utils/feats";
 
 type AbilityKey = keyof AbilityScores;
 
@@ -33,6 +41,8 @@ export function AbilityScoreStep({
     onScoresChange,
     racialBonusAllocation,
     onRacialBonusChange,
+    featAbilityChoices,
+    onFeatAbilityChoicesChange,
 }: {
     scores: AbilityScores;
     race?: Race;
@@ -41,6 +51,8 @@ export function AbilityScoreStep({
     onScoresChange: (scores: AbilityScores) => void;
     racialBonusAllocation?: RacialBonusAllocation;
     onRacialBonusChange?: (allocation: RacialBonusAllocation) => void;
+    featAbilityChoices?: Record<string, Partial<AbilityScores>>;
+    onFeatAbilityChoicesChange?: (choices: Record<string, Partial<AbilityScores>>) => void;
 }) {
     const abilities: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
@@ -108,10 +120,14 @@ export function AbilityScoreStep({
     };
 
     // --- Feat Logic State ---
-    const flexibleFeats = useMemo(() => feats?.filter(f => f.benefits?.flexibleAbilityIncrease) || [], [feats]);
-    const [featAllocations, setFeatAllocations] = useState<Record<string, AbilityKey>>({});
-
-    // Initialize defaults for feats if needed (or just leave empty)
+    // Held on the character rather than in this step: the picks have to outlive
+    // navigating away, and the sheet reads the same field for its modifiers.
+    const flexibleFeats = useMemo(() => halfFeats(feats ?? []), [feats]);
+    const featAllocations = featAbilityChoices ?? {};
+    const unplacedPoints = useMemo(
+        () => flexibleFeats.reduce((total, feat) => total + unspentAbilityPoints(feat, featAllocations), 0),
+        [flexibleFeats, featAllocations],
+    );
 
 
 
@@ -129,28 +145,11 @@ export function AbilityScoreStep({
     };
 
     // Get feat bonus for an ability
-    const getFeatBonus = (ability: AbilityKey): number => {
-        let bonus = 0;
-
-        // Fixed bonuses
-        feats?.forEach(feat => {
-            if (feat.benefits?.abilityScoreIncrease?.[ability]) {
-                bonus += feat.benefits.abilityScoreIncrease[ability] || 0;
-            }
-        });
-
-        // Flexible bonuses
-        Object.entries(featAllocations).forEach(([featId, allocatedAbility]) => {
-            if (allocatedAbility === ability) {
-                // Find feat to get amount, default 1
-                const feat = feats?.find(f => f.id === featId);
-                const amount = feat?.benefits?.flexibleAbilityIncrease?.amount || 1;
-                bonus += amount;
-            }
-        });
-
-        return bonus;
-    };
+    const featBonuses = useMemo(
+        () => featAbilityBonuses(feats ?? [], featAllocations),
+        [feats, featAllocations],
+    );
+    const getFeatBonus = (ability: AbilityKey): number => featBonuses[ability];
 
     // Handle Matrix Toggle
     const handleToggle = (ability: AbilityKey, colIndex: number) => {
@@ -182,18 +181,8 @@ export function AbilityScoreStep({
     };
 
     // Handle Feat Toggle
-    const handleFeatToggle = (ability: AbilityKey, featId: string) => {
-        setFeatAllocations(prev => {
-            const current = prev[featId];
-            const newAlloc = { ...prev };
-
-            if (current === ability) {
-                delete newAlloc[featId]; // Toggle off
-            } else {
-                newAlloc[featId] = ability; // Switch to this ability
-            }
-            return newAlloc;
-        });
+    const handleFeatToggle = (ability: AbilityKey, feat: Feat) => {
+        onFeatAbilityChoicesChange?.(toggleFeatAbilityPoint(feat, ability, featAllocations));
     };
 
     // Handle score increment/decrement
@@ -323,26 +312,33 @@ export function AbilityScoreStep({
 
                                 {/* Flexible Feat Bubbles */}
                                 <div className="flex gap-1 mt-1">
-                                    {flexibleFeats.map((feat, idx) => {
-                                        const isSelected = featAllocations[feat.id] === ability;
+                                    {flexibleFeats.map((feat) => {
+                                        const placed = featAllocations[feat.id]?.[ability] ?? 0;
+                                        const isSelected = placed > 0;
 
                                         // Check if this ability is allowed options
-                                        const options = feat.benefits?.flexibleAbilityIncrease?.options; // array of AbilityKey
-                                        const isAllowed = !options || options.length === 0 || options.includes(ability);
+                                        const isAllowed = flexibleAbilityOptions(feat).includes(ability);
+                                        const remaining = unspentAbilityPoints(feat, featAllocations);
+                                        const total = flexibleAbilityAmount(feat);
 
                                         return (
                                             <button
                                                 key={feat.id}
-                                                onClick={() => isAllowed && handleFeatToggle(ability, feat.id)}
+                                                onClick={() => isAllowed && handleFeatToggle(ability, feat)}
                                                 disabled={!isAllowed}
                                                 className={`
-                                                    w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center transition-all
-                                                    ${isSelected ? 'bg-amber-500 border-amber-500' : 'bg-transparent'}
+                                                    w-5 h-5 rounded-full border text-[10px] font-bold flex items-center justify-center transition-all
+                                                    ${isSelected ? 'bg-amber-500 border-amber-500 text-zinc-950' : 'bg-transparent border-gray-600 text-transparent'}
                                                     ${!isAllowed ? 'opacity-20 cursor-not-allowed border-gray-800 bg-gray-900' : 'cursor-pointer hover:border-amber-400'}
+                                                    ${!isSelected && isAllowed && remaining > 0 ? 'ring-1 ring-amber-500/40' : ''}
                                                 `}
-                                                title={feat.name + (!isAllowed ? " (Not available for this stat)" : "")}
+                                                title={
+                                                    isAllowed
+                                                        ? `${feat.name}: ${placed} of ${total} placed here${remaining ? ` — ${remaining} left to place` : ""}`
+                                                        : `${feat.name} cannot raise ${ABILITY_NAMES[ability]}`
+                                                }
                                             >
-                                                {/* Optional: Small indicator? */}
+                                                {placed > 1 ? placed : ""}
                                             </button>
                                         )
                                     })}
@@ -365,10 +361,32 @@ export function AbilityScoreStep({
 
             {/* Feat bonuses summary if any */}
             {(flexibleFeats.length > 0) && (
-                <div className="mt-4 pt-4 border-t border-zinc-800">
+                <div className="mt-4 pt-4 border-t border-zinc-800 space-y-2">
                     <p className="text-sm text-amber-400">
                         ✨ Select circles in "Feat Bonus" to assign flexible increases from your feats.
                     </p>
+                    <ul className="text-sm text-gray-400 space-y-1">
+                        {flexibleFeats.map((feat) => {
+                            const remaining = unspentAbilityPoints(feat, featAllocations);
+                            const total = flexibleAbilityAmount(feat);
+                            return (
+                                <li key={feat.id} className="flex items-center justify-between gap-3">
+                                    <span>
+                                        <span className="text-gray-200">{feat.name}</span>
+                                        <span className="text-gray-500"> — +{total} to {flexibleAbilityOptions(feat).map((option) => ABILITY_NAMES[option]).join(", ")}</span>
+                                    </span>
+                                    <span className={remaining ? "text-amber-400 font-semibold" : "text-emerald-400"}>
+                                        {remaining ? `${remaining} to place` : "placed"}
+                                    </span>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    {unplacedPoints > 0 && (
+                        <p className="text-sm text-amber-300 bg-amber-950/30 border border-amber-800/50 rounded-md p-2">
+                            {unplacedPoints} feat ability point{unplacedPoints === 1 ? "" : "s"} still unplaced — they will not reach your sheet until assigned.
+                        </p>
+                    )}
                 </div>
             )}
         </div>

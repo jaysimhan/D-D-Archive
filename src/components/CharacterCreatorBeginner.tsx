@@ -24,6 +24,9 @@ import {
   withoutSpellSource,
 } from "../utils/character-spells";
 import { subclassLevelFor } from "../utils/class-progression";
+import { metamagicChoiceLimit } from "../utils/combat-progression";
+import { pruneFeatAbilityChoices, trimFeatsToBudget } from "../utils/feats";
+import { finalAbilityScores } from "../utils/ability-scores";
 
 // Import Step Components
 import { NameStep } from "./character-creator/NameStep";
@@ -401,14 +404,19 @@ export function CharacterCreator() {
                 <RaceStep
                   ruleset={characterData.ruleset!}
                   race={characterData.race}
-                  onChange={(race) =>
+                  onChange={(race) => {
+                    // Only Humans get the second level-1 feat, so moving away
+                    // from Human takes that slot — and its feat — back.
+                    const feats = trimFeatsToBudget(characterData.feats, characterData.level, race);
                     setCharacterData({
                       ...characterData,
                       race,
                       subrace: undefined,
+                      feats,
+                      featAbilityChoices: pruneFeatAbilityChoices(feats, characterData.featAbilityChoices),
                       selectedSpells: withoutSpellSource(characterData.selectedSpells, "Racial"),
-                    })
-                  }
+                    });
+                  }}
                 />
               )}
               {currentStep === "class" && (
@@ -424,14 +432,26 @@ export function CharacterCreator() {
                       selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
                     })
                   }
-                  onLevelChange={(level) => setCharacterData({
-                    ...characterData,
-                    level,
-                    subclass: characterData.class && level >= subclassLevelFor(characterData.class, characterData.ruleset)
-                      ? characterData.subclass
-                      : undefined,
-                    selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
-                  })}
+                  onLevelChange={(level) => {
+                    // Levelling down hands feat slots back, so anything that no
+                    // longer fits goes — along with the ability points it placed.
+                    const feats = trimFeatsToBudget(
+                      characterData.feats,
+                      level,
+                      characterData.race,
+                      characterData.subrace,
+                    );
+                    setCharacterData({
+                      ...characterData,
+                      level,
+                      feats,
+                      featAbilityChoices: pruneFeatAbilityChoices(feats, characterData.featAbilityChoices),
+                      subclass: characterData.class && level >= subclassLevelFor(characterData.class, characterData.ruleset)
+                        ? characterData.subclass
+                        : undefined,
+                      selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
+                    });
+                  }}
                 />
               )}
               {currentStep === "subclass" && characterData.class && (
@@ -454,14 +474,19 @@ export function CharacterCreator() {
                   lockedFeatIds={(characterData.background?.feats || []).map((feat) => feat.id)}
                   classData={characterData.class}
                   subclass={characterData.subclass}
+                  level={characterData.level}
+                  race={characterData.race}
+                  subrace={characterData.subrace}
+                  abilityScores={finalAbilityScores(characterData)}
                   onFeatsChange={(feats) => setCharacterData({
                     ...characterData,
                     feats,
                     metamagicChoices: (characterData.metamagicChoices || []).slice(
                       0,
-                      (characterData.class?.id === "sorcerer" && characterData.level >= 2 ? 2 : 0) +
-                        (feats.some((feat) => feat.name === "Metamagic Adept") ? 2 : 0),
+                      metamagicChoiceLimit(characterData.class?.id ?? "", characterData.level, feats),
                     ),
+                    // A dropped feat takes its ability increase with it.
+                    featAbilityChoices: pruneFeatAbilityChoices(feats, characterData.featAbilityChoices),
                     selectedSpells: withoutSpellSource(
                       characterData.selectedSpells,
                       "Feat",
@@ -482,6 +507,11 @@ export function CharacterCreator() {
                   racialBonusAllocation={characterData.racialBonusAllocation}
                   onRacialBonusChange={(racialBonusAllocation) =>
                     setCharacterData({ ...characterData, racialBonusAllocation })
+                  }
+                  subrace={characterData.subrace}
+                  featAbilityChoices={characterData.featAbilityChoices}
+                  onFeatAbilityChoicesChange={(featAbilityChoices) =>
+                    setCharacterData({ ...characterData, featAbilityChoices })
                   }
                 />
               )}

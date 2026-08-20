@@ -36,6 +36,22 @@ export default {
             },
         },
         {
+            name: 'featCategory',
+            title: 'Category',
+            description: 'How the feat may be taken. Origin feats are level-1 picks; General feats replace an Ability Score Improvement.',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Origin', value: 'Origin' },
+                    { title: 'General', value: 'General' },
+                    { title: 'Fighting Style', value: 'Fighting Style' },
+                    { title: 'Epic Boon', value: 'Epic Boon' },
+                ],
+                layout: 'radio',
+            },
+            initialValue: 'General',
+        },
+        {
             name: 'prerequisites',
             title: 'Prerequisites',
             type: 'object',
@@ -63,6 +79,13 @@ export default {
                 {
                     name: 'class',
                     title: 'Class IDs',
+                    type: 'array',
+                    of: [{ type: 'string' }]
+                },
+                {
+                    name: 'features',
+                    title: 'Required Features',
+                    description: 'Printed feature prerequisites, e.g. "Spellcasting or Pact Magic".',
                     type: 'array',
                     of: [{ type: 'string' }]
                 },
@@ -94,6 +117,13 @@ export default {
                         {
                             name: 'amount',
                             title: 'Amount',
+                            type: 'number',
+                            initialValue: 1,
+                        },
+                        {
+                            name: 'maxPerAbility',
+                            title: 'Max Per Ability',
+                            description: 'Most half feats cap one score at +1; the Ability Score Improvement feat allows 2.',
                             type: 'number',
                             initialValue: 1,
                         },

@@ -14,11 +14,25 @@ import {
 import type { CharacterData } from "../src/types/character-creator";
 import type { Background, Class, Feat, Item, Race, Spell, Subclass } from "../src/types/dnd-types";
 import { finalAbilityScores, pointBuyCost } from "../src/utils/ability-scores";
+import {
+  ASI_LEVELS,
+  blockingPrerequisites,
+  featAbilityBonuses,
+  featBudget,
+  flexibleAbilityOptions,
+  hasUnspentAbilityPoints,
+  pruneFeatAbilityChoices,
+  toggleFeatAbilityPoint,
+  trimFeatsToBudget,
+  unmetPrerequisites,
+} from "../src/utils/feats";
 import { calculateArmorClass } from "../src/utils/armor-class";
 import {
   alertInitiativeBonus,
   classPointAmount,
   featResourceAmount,
+  featSorceryPoints,
+  hasMetamagicFeat,
   monkUnarmoredMovementBonus,
   metamagicChoiceLimit,
   walkingSpeed,
@@ -326,6 +340,135 @@ assert.ok(metamagicAdept.grants?.some((grant) => grant.resetCondition === "Long 
 assert.equal(metamagicChoiceLimit("wizard", 3, [metamagicAdept]), 2, "Metamagic Adept does not offer two choices to a non-Sorcerer caster");
 assert.equal(metamagicChoiceLimit("sorcerer", 3, [metamagicAdept]), 4, "Sorcerer + Metamagic Adept does not offer four distinct choices");
 
+// The 2024 ruleset only ever offers "Metamagic Initiate", and that document has
+// no Resource Pool grant, so the feat has to reach the sheet on its name alone.
+const metamagicInitiate = feats.find((item) => item.name === "Metamagic Initiate");
+assert.ok(metamagicInitiate, "Metamagic Initiate missing");
+assert.ok(hasMetamagicFeat([metamagicInitiate]), "Metamagic Initiate is not recognised as a Metamagic feat");
+assert.equal(featResourceAmount([metamagicInitiate], "Sorcery Points"), 0, "Metamagic Initiate gained a grant; drop the name-based fallback");
+assert.equal(featSorceryPoints([metamagicInitiate]), 2, "Metamagic Initiate did not grant 2 Sorcery Points");
+assert.equal(featSorceryPoints([metamagicAdept]), 2, "Metamagic Adept Sorcery Points were double counted");
+assert.equal(classPointAmount("sorcerer", 3) + featSorceryPoints([metamagicInitiate]), 5, "Sorcerer 3 + Metamagic Initiate sheet pool is not 5");
+assert.equal(metamagicChoiceLimit("wizard", 3, [metamagicInitiate]), 2, "Metamagic Initiate does not offer two choices to a non-Sorcerer caster");
+assert.equal(metamagicChoiceLimit("sorcerer", 3, [metamagicInitiate]), 4, "Sorcerer + Metamagic Initiate does not offer four distinct choices");
+assert.equal(metamagicChoiceLimit("sorcerer", 1, [metamagicInitiate]), 2, "level-1 Sorcerer should only get the feat's two options");
+assert.equal(metamagicChoiceLimit("sorcerer", 3, []), 2, "Sorcerer without the feat should only get two options");
+
+// ===== Feats: slots, prerequisites and half-feat ability increases =====
+
+// One unified pool: a feat is a feat, so level 1 grants one and Humans two.
+// The creator stops at level 3, so no Ability Score Improvement feat is reachable.
+const human = races.find((item) => item.name === "Human");
+assert.ok(human, "Human species missing");
+assert.equal(featBudget(1, undefined), 1, "a level-1 character should get one feat");
+assert.equal(featBudget(1, human), 2, "a level-1 Human should get two feats");
+assert.equal(featBudget(3, undefined), 1, "the creator's level cap should still grant one feat");
+assert.equal(featBudget(3, human), 2, "a level-3 Human should still get two feats");
+assert.equal(featBudget(4, undefined), 2, "level 4 should add an Ability Score Improvement feat");
+assert.equal(featBudget(20, human), 7, "a level-20 Human should reach seven feats");
+assert.deepEqual(ASI_LEVELS, [4, 8, 12, 16, 19]);
+
+// Half feats have to reach an ability score, which is what was broken: the pick
+// lived in the step's own state and never landed on the character.
+const feyTouchedFeat = feats.find((item) => item.name === "Fey Touched");
+assert.ok(feyTouchedFeat, "Fey Touched missing");
+assert.ok(
+  flexibleAbilityOptions(feyTouchedFeat).length > 0,
+  "Fey Touched offers no abilities to raise",
+);
+const withChoice = toggleFeatAbilityPoint(feyTouchedFeat, "WIS", {});
+assert.equal(withChoice[feyTouchedFeat.id]?.WIS, 1, "half-feat point was not recorded");
+assert.equal(
+  featAbilityBonuses([feyTouchedFeat], withChoice).WIS,
+  1,
+  "half-feat point did not reach the ability totals",
+);
+assert.ok(!hasUnspentAbilityPoints([feyTouchedFeat], withChoice), "placed point still counted as unspent");
+assert.ok(hasUnspentAbilityPoints([feyTouchedFeat], {}), "unplaced point was not reported");
+
+// Clicking a full ability clears it, so a single point can be moved.
+assert.deepEqual(
+  toggleFeatAbilityPoint(feyTouchedFeat, "WIS", withChoice)[feyTouchedFeat.id],
+  undefined,
+  "a placed point could not be taken back",
+);
+
+// The same choice has to survive into the sheet's ability scores.
+const halfFeatCharacter = {
+  ...character,
+  race: undefined,
+  subrace: undefined,
+  feats: [feyTouchedFeat],
+  abilityScores: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+  featAbilityChoices: withChoice,
+} as CharacterData;
+assert.equal(finalAbilityScores(halfFeatCharacter).WIS, 11, "half feat did not raise the sheet's Wisdom");
+assert.equal(
+  finalAbilityScores({ ...halfFeatCharacter, featAbilityChoices: {} }).WIS,
+  10,
+  "an unplaced half-feat point should not raise a score",
+);
+
+// Dropping the feat drops its increase with it.
+assert.deepEqual(pruneFeatAbilityChoices([], withChoice), {}, "a removed feat kept its ability bonus");
+assert.deepEqual(
+  pruneFeatAbilityChoices([feyTouchedFeat], withChoice),
+  withChoice,
+  "a kept feat lost its ability bonus",
+);
+
+// Fixed increases still apply alongside the chosen ones.
+const actor = feats.find((item) => item.name === "Actor");
+if (actor?.benefits?.abilityScoreIncrease?.CHA) {
+  assert.equal(featAbilityBonuses([actor], {}).CHA, 1, "Actor's printed +1 Charisma was lost");
+}
+
+// Prerequisites: ability scores are advisory because the creator asks for feats
+// before it asks for scores, but level and spellcasting genuinely block.
+const ritualCaster = feats.find((item) => item.name === "Ritual Caster");
+if (ritualCaster?.prerequisites?.abilityScore) {
+  const reasons = unmetPrerequisites(ritualCaster, { level: 1, abilityScores: { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 } });
+  assert.ok(reasons.some((reason) => reason.kind === "ability" && reason.advisory), "ability prerequisite should be advisory");
+}
+const metamagicFeatForPrereq = feats.find((item) => item.name === "Metamagic Initiate");
+assert.ok(metamagicFeatForPrereq, "Metamagic Initiate missing");
+assert.ok(
+  blockingPrerequisites(metamagicFeatForPrereq, { level: 4 }).some((reason) => reason.kind === "feature"),
+  "a non-caster should not be able to take a Metamagic feat",
+);
+assert.equal(
+  blockingPrerequisites(metamagicFeatForPrereq, { level: 4, class: { isSpellcaster: true } as Class }).length,
+  0,
+  "a caster was blocked from a Metamagic feat",
+);
+
+// A feat is never taken twice.
+assert.ok(
+  blockingPrerequisites(feyTouchedFeat, { level: 4, feats: [{ ...feyTouchedFeat, id: "other-copy" }] })
+    .some((reason) => reason.kind === "duplicate"),
+  "the same feat could be taken twice",
+);
+
+// Levelling down, or moving off Human, hands the slots back rather than leaving
+// stale feats — and their ability points — on the character.
+const threeFeats = ["a", "b", "c"].map((suffix) => ({ ...feyTouchedFeat, id: `feat-${suffix}` }));
+assert.equal(trimFeatsToBudget(threeFeats, 20, human).length, 3, "a level-20 Human should keep three feats");
+assert.deepEqual(
+  trimFeatsToBudget(threeFeats, 1, undefined).map((item) => item.id),
+  ["feat-a"],
+  "levelling down to 1 should leave a single feat",
+);
+assert.deepEqual(
+  trimFeatsToBudget(threeFeats, 1, human).map((item) => item.id),
+  ["feat-a", "feat-b"],
+  "a level-1 Human should keep two feats",
+);
+assert.deepEqual(
+  trimFeatsToBudget(threeFeats, 3, human).map((item) => item.id),
+  ["feat-a", "feat-b"],
+  "the creator's level cap should keep a Human at two feats",
+);
+
 // Exercise the actual persistence boundary used by /creator and
 // /character-sheet, including a malformed school value saved by the old query.
 const memory = new Map<string, string>();
@@ -368,5 +511,16 @@ console.log(JSON.stringify({
   alertInitiative: { level3_2014: 7, level3_2024: 4, level5_2024: 5 },
   monkWalkingSpeed: { level1: 30, level3: 40, level18: 60, armoredLevel18: 30 },
   metamagicAdept: { featChoices: 2, sorcerer3Choices: 4, sorcerer3Points: 5, reset: "Long Rest" },
+  metamagicInitiate: { featChoices: 2, sorcerer3Choices: 4, sorcerer3Points: 5, pointsFrom: "feat text" },
+  featSlots: {
+    level1: featBudget(1, undefined),
+    level1Human: featBudget(1, human),
+    level3Human: featBudget(3, human),
+  },
+  halfFeats: {
+    example: feyTouchedFeat.name,
+    options: flexibleAbilityOptions(feyTouchedFeat),
+    reachesSheet: finalAbilityScores(halfFeatCharacter).WIS,
+  },
   assertions: "passed",
 }, null, 2));

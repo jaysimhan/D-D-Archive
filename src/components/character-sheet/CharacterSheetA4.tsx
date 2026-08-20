@@ -21,7 +21,7 @@ import { useEditableAutoValue } from "./use-editable-auto-value";
 import { spellSlotsByLevel, type SpellSlots } from "./spell-slots";
 import { finalAbilityScores } from "../../utils/ability-scores";
 import { calculateArmorClass } from "../../utils/armor-class";
-import { alertInitiativeBonus, classPointAmount, featResourceAmount, walkingSpeed } from "../../utils/combat-progression";
+import { alertInitiativeBonus, classPointAmount, featSorceryPoints, walkingSpeed } from "../../utils/combat-progression";
 import {
     classGrantsSpells,
     speciesGrantsSpells,
@@ -1638,8 +1638,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         const amount = classPointAmount(classId, hitDieClassLevels[resource.classIndex] ?? 0);
         if (Number.isFinite(amount) && amount > 0) resourceTotals.set(resource.label, (resourceTotals.get(resource.label) ?? 0) + amount);
     }
-    const adeptSorceryPoints = featResourceAmount(initialCharacter?.feats ?? [], "Sorcery Points");
-    if (adeptSorceryPoints) resourceTotals.set("Sorcery Points", (resourceTotals.get("Sorcery Points") ?? 0) + adeptSorceryPoints);
+    const metamagicSorceryPoints = featSorceryPoints(initialCharacter?.feats ?? []);
+    if (metamagicSorceryPoints) resourceTotals.set("Sorcery Points", (resourceTotals.get("Sorcery Points") ?? 0) + metamagicSorceryPoints);
     const pointLabel = resourceTotals.size ? [...resourceTotals.keys()].join(" + ") : "Points";
     const automaticPointValue = resourceTotals.size ? [...resourceTotals.values()].join(" + ") : "";
     const pointValue =
