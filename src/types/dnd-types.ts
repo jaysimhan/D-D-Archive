@@ -165,7 +165,9 @@ export interface Class {
   spellcaster?: "full" | "half" | "half-up" | "third" | "pact" | "special" | "None" | "none";
   isSpellcaster?: boolean;
   spellcastingAbility?: AbilityScore;
+  spellLists?: string[];
   features: Feature[];
+  startingEquipment?: string[];
   traits?: { name: string; description: string }[];
   subclasses: Subclass[]; // Auto-detected from Subclass.parentClassId
   subclassLevel?: number; // Level at which subclass is selected (1-3)

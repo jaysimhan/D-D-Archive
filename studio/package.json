@@ -33,7 +33,9 @@
     "repair:validation": "sanity exec migrations/repair-validation-blockers.ts --with-user-token",
     "repair:validation:apply": "sanity exec migrations/repair-validation-blockers.ts --with-user-token -- --apply",
     "normalize:rulesets": "sanity exec migrations/normalize-ruleset-coverage.ts --with-user-token",
-    "normalize:rulesets:apply": "sanity exec migrations/normalize-ruleset-coverage.ts --with-user-token -- --apply"
+    "normalize:rulesets:apply": "sanity exec migrations/normalize-ruleset-coverage.ts --with-user-token -- --apply",
+    "adapt:alchemist": "sanity exec migrations/adapt-pasted-alchemist.ts --with-user-token",
+    "adapt:alchemist:apply": "sanity exec migrations/adapt-pasted-alchemist.ts --with-user-token -- --apply"
   },
   "dependencies": {
     "@sanity/icons": "^2.11.0",

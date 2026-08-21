@@ -130,6 +130,27 @@ export default {
             },
         },
         {
+            name: 'spellLists',
+            title: 'Spell Lists',
+            type: 'array',
+            of: [{ type: 'string' }],
+            hidden: ({ document }: any) => !document?.isSpellcaster,
+            options: {
+                list: [
+                    { title: 'Artificer', value: 'artificer' },
+                    { title: 'Bard', value: 'bard' },
+                    { title: 'Cleric', value: 'cleric' },
+                    { title: 'Druid', value: 'druid' },
+                    { title: 'Paladin', value: 'paladin' },
+                    { title: 'Ranger', value: 'ranger' },
+                    { title: 'Sorcerer', value: 'sorcerer' },
+                    { title: 'Warlock', value: 'warlock' },
+                    { title: 'Wizard', value: 'wizard' },
+                ],
+            },
+            description: 'Spell lists available to this class. If empty, the class slug is used.',
+        },
+        {
             name: 'spells',
             title: 'Spells (New)',
             type: 'array',
@@ -143,6 +164,13 @@ export default {
             type: 'array',
             of: [{ type: 'reference', to: [{ type: 'feature' }] }],
             description: 'References to feature documents representing the core progression track',
+        },
+        {
+            name: 'startingEquipment',
+            title: 'Starting Equipment',
+            type: 'array',
+            of: [{ type: 'string' }],
+            description: 'Equipment and equipment choices granted when a character starts in this class.',
         },
         {
             name: 'subclasses',

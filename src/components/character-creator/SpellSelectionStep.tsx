@@ -856,10 +856,12 @@ function SpellSelectionModal({
     // Available spells filter
     const spells = useMemo(() => {
         let targetClass = classData.id;
+        let targetClasses = [targetClass];
 
         // Subclass Logic: Eldritch Knight & Arcane Trickster use Wizard list
         if (subclass?.id === "eldritch-knight" || subclass?.id === "arcane-trickster") {
             targetClass = "wizard";
+            targetClasses = [targetClass];
         }
 
         // specialized logic for Divine Soul Class Slots
@@ -879,10 +881,16 @@ function SpellSelectionModal({
         if (slotSource === "Magic Initiate") {
             if (!magicInitiateClass) return []; // No spells if class not selected
             targetClass = magicInitiateClass;
+            targetClasses = [targetClass];
         }
 
         if (slotSource === "Aberrant Dragonmark") {
             targetClass = "sorcerer";
+            targetClasses = [targetClass];
+        }
+
+        if (slotSource === "Class" && classData.spellLists?.length) {
+            targetClasses = classData.spellLists;
         }
 
         if (slotSource === "Feat" && featChoice) {
@@ -932,7 +940,7 @@ function SpellSelectionModal({
         // Default: Class spell selection (targetClass already set above)
         return allSpells.filter(s =>
             (flexibleLevel ? s.level >= 1 && s.level <= slotLevel : s.level === slotLevel) &&
-            (s.classes.includes(targetClass) || (slotSource === "Class" && expandedSpellIds.includes(s.id))) &&
+            (targetClasses.some((classId) => s.classes.includes(classId)) || (slotSource === "Class" && expandedSpellIds.includes(s.id))) &&
             !currentSpells.find(existing => existing.id === s.id)
         );
     }, [classData, slotLevel, currentSpells, slotSource, magicInitiateClass, subclass, race, isDivineSoulSelection, divineSoulFilter, racialChoice, featChoice, allSpells, expandedSpellIds, flexibleLevel]);
