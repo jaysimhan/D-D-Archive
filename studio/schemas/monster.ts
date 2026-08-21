@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, rulesetsField } from './common/source'
+import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField } from './common/source'
 
 export default {
     name: 'monster',
@@ -237,7 +237,9 @@ export default {
             ],
         },
         sourceField,
+        sourceBookField,
         rulesetsField,
+        isHomebrewField,
         editionField,
         rulesetField,
         versionField,

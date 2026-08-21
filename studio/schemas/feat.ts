@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'feat',
@@ -180,6 +180,7 @@ export default {
             description: 'Define specific spell, slot, or resource pool benefits granted by this feat.',
         },
         sourceField,
+        sourceBookField,
         editionField,
         versionField,
         rulesetsField,

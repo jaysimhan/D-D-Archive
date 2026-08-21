@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'class',
@@ -37,6 +37,7 @@ export default {
             },
         },
         sourceField,
+        sourceBookField,
         editionField,
         versionField,
         rulesetsField,

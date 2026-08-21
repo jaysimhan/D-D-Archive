@@ -100,6 +100,7 @@ export function useClasses(ruleset?: CharacterRuleset) {
         traits[]->{name, description},
         proficiencies,
         source,
+        sourceBook,
         edition,
         subclassLevel,
         "rulesetKeys": rulesets[]->key.current
@@ -117,7 +118,11 @@ export function useSubclasses(ruleset?: CharacterRuleset) {
             asset->{ _id, url, metadata { lqip, dimensions } }
         },
         "parentClassId": coalesce(parentClass->slug.current, parentClassId),
-        features,
+        features[]{
+            "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+            "name": coalesce(name, @->name),
+            "description": coalesce(description, @->description)
+        },
         traits[]->{name, description},
         proficiencies,
         magicType,
@@ -153,6 +158,7 @@ export function useSubclasses(ruleset?: CharacterRuleset) {
             ,"replacesSpellId": replacesSpell->slug.current
         },
         source,
+        sourceBook,
         edition,
         "rulesetKeys": rulesets[]->key.current
     } | order(name asc)`, rulesetParams(ruleset));
@@ -209,6 +215,7 @@ export function useSubclassesByClass(classId: string, ruleset?: CharacterRuleset
                 ,"replacesSpellId": replacesSpell->slug.current
             },
             source,
+            sourceBook,
             edition
         } | order(name asc)`,
         { classId, ...rulesetParams(ruleset) }
@@ -313,6 +320,7 @@ export function useBackgrounds(ruleset?: CharacterRuleset) {
             "subclasses": subclasses[]->slug.current
         },
         source,
+        sourceBook,
         edition,
         "rulesetKeys": rulesets[]->key.current
     } | order(name asc)`, rulesetParams(ruleset));

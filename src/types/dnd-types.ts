@@ -87,6 +87,7 @@ export interface Race {
   image?: SanityImage;
   imageUrl?: string;
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
   abilityScoreIncrease: Partial<AbilityScores>;
@@ -122,6 +123,7 @@ export interface Subrace {
   description: string;
   image?: SanityImage;
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
   abilityScoreIncrease: Partial<AbilityScores>;
@@ -152,6 +154,7 @@ export interface Class {
   image?: SanityImage;
   imageUrl?: string;
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
   hitDie: number;
@@ -184,6 +187,7 @@ export interface Subclass {
   image?: SanityImage;
   imageUrl?: string;
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
   features: Feature[];
@@ -206,6 +210,7 @@ export interface Background {
   image?: SanityImage;
   imageUrl?: string;
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
   skillProficiencies: string[];
@@ -258,6 +263,7 @@ export interface Spell {
   subclasses?: string[]; // Subclass names that can cast this spell
   image?: SanityImage;
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
   /** Creator-only provenance. Optional so archived spells and old drafts remain valid. */
@@ -300,6 +306,7 @@ export interface Feat {
   description: string;
   image?: SanityImage;
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
   featCategory?: FeatCategory;
@@ -377,6 +384,7 @@ export interface Item {
     stealthDisadvantage?: boolean;
   };
   source: Source;
+  sourceBook?: string;
   edition: Edition;
   version: number;
 }
@@ -484,6 +492,7 @@ export interface SearchFilters {
   query: string;
   edition?: Edition;
   source?: Source;
+  sourceBook?: string;
   level?: number;
   school?: SpellSchool;
   class?: string;

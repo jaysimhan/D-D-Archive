@@ -1,6 +1,7 @@
 import { Class } from "../types/dnd-types";
 import { Sword, Sparkles, Heart, Shield } from "lucide-react";
 import { useState } from "react";
+import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 import SanityImage from "./SanityImage";
 
 interface ClassCardProps {
@@ -10,18 +11,6 @@ interface ClassCardProps {
 export function ClassCard({ classData }: ClassCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const getSourceBadgeColor = (source: string) => {
-    switch (source) {
-      case "Official":
-        return "bg-blue-900/50 text-blue-300 border border-blue-700";
-      case "Homebrew":
-        return "bg-brand-900/50 text-brand-300 border border-brand-700";
-      case "Unofficial":
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-      default:
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-    }
-  };
 
   return (
     <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
@@ -66,11 +55,9 @@ export function ClassCard({ classData }: ClassCardProps) {
         </div>
         {/* Source badge - separate row to accommodate long text */}
         <div
-          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
-            classData.source
-          )} w-full`}
+          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(classData.source)} w-full`}
         >
-          <span>{classData.source}</span>
+          <span>{sourceLabel(classData)}</span>
         </div>
       </div>
 

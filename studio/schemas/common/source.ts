@@ -13,6 +13,15 @@ export const sourceField = {
     validation: (Rule: any) => Rule.required(),
 }
 
+/** The specific book or publisher the entry came from. `source` stays the filterable
+ *  Official/Unofficial/Homebrew enum; this records the attribution behind it. */
+export const sourceBookField = {
+    name: 'sourceBook',
+    title: 'Source Book / Publisher',
+    type: 'string',
+    description: 'Book or publisher this entry comes from, e.g. "Xanathar\'s Guide to Everything" or "Kobold Press". Leave blank for user homebrew.',
+}
+
 export const editionField = {
     name: 'edition',
     title: 'Legacy Edition',
@@ -49,12 +58,16 @@ export const rulesetField = {
 /** A document may apply to 2014, 2024, or both without being duplicated. */
 export const rulesetsField = {
     name: 'rulesets',
-    title: 'Rulesets',
+    title: 'Rulesets (2014 and 2024)',
     type: 'array',
     of: [{ type: 'reference', to: [{ type: 'ruleset' }] }],
     options: { layout: 'tags' },
-    description: 'Choose D&D 2014, D&D 2024, or select both.',
-    validation: (Rule: any) => Rule.required().min(1).unique(),
+    initialValue: [
+        { _type: 'reference', _key: 'srd-2014', _ref: 'ruleset.srd-2014' },
+        { _type: 'reference', _key: 'srd-2024', _ref: '86642d23-c52d-4577-adc1-214aab0f43e9' },
+    ],
+    description: 'Content applies to both D&D 5e (2014) and D&D 5e (2024). Core/non-core classification is managed separately by Source.',
+    validation: (Rule: any) => Rule.required().length(2).unique(),
 }
 
 export const isHomebrewField = {

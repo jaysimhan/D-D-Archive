@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'spell',
@@ -132,6 +132,7 @@ export default {
             description: 'Reverse links maintained from subclass spell grants by the SRD spell sync.',
         },
         sourceField,
+        sourceBookField,
         editionField,
         versionField,
         rulesetsField,

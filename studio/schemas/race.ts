@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, rulesetsField } from './common/source'
+import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField } from './common/source'
 
 export default {
     name: 'race',
@@ -37,7 +37,9 @@ export default {
             },
         },
         sourceField,
+        sourceBookField,
         rulesetsField,
+        isHomebrewField,
         editionField,
         rulesetField,
         versionField,
@@ -89,6 +91,13 @@ export default {
             type: 'array',
             of: [{ type: 'reference', to: [{ type: 'trait' }] }],
             description: 'Reference traits from the centralized Trait library',
+        },
+        {
+            name: 'subraces',
+            title: 'Subraces (Legacy IDs)',
+            type: 'array',
+            of: [{ type: 'string' }],
+            description: 'Legacy subrace IDs consumed by the public app.',
         },
         {
             name: 'proficiencies',

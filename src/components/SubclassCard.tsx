@@ -1,6 +1,7 @@
 import { Subclass } from "../types/dnd-types";
 import { Sparkles, BookOpen } from "lucide-react";
 import { useState } from "react";
+import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 
 interface SubclassCardProps {
   subclass: Subclass;
@@ -9,18 +10,6 @@ interface SubclassCardProps {
 export function SubclassCard({ subclass }: SubclassCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const getSourceBadgeColor = (source: string) => {
-    switch (source) {
-      case "Official":
-        return "bg-blue-900/50 text-blue-300 border border-blue-700";
-      case "Homebrew":
-        return "bg-brand-900/50 text-brand-300 border border-brand-700";
-      case "Unofficial":
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-      default:
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-    }
-  };
 
   return (
     <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
@@ -44,11 +33,9 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
         </div>
         {/* Source badge - separate row to accommodate long text */}
         <div
-          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
-            subclass.source
-          )} w-full`}
+          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(subclass.source)} w-full`}
         >
-          <span>{subclass.source}</span>
+          <span>{sourceLabel(subclass)}</span>
         </div>
       </div>
 

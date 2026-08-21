@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'item',
@@ -99,6 +99,12 @@ export default {
             title: 'Cost',
             type: 'object',
             fields: [
+                {
+                    name: 'amount',
+                    title: 'Amount',
+                    type: 'number',
+                    description: 'Public-app cost value used by existing item records.',
+                },
                 { name: 'quantity', title: 'Quantity', type: 'number' },
                 {
                     name: 'currency',
@@ -113,6 +119,22 @@ export default {
             name: 'weight',
             title: 'Weight (lbs)',
             type: 'number',
+        },
+        {
+            name: 'properties',
+            title: 'Properties (Legacy / Display)',
+            type: 'array',
+            of: [{ type: 'string' }],
+            description: 'Human-readable properties consumed by the public item cards.',
+        },
+        {
+            name: 'toolCategory',
+            title: 'Tool Category',
+            type: 'string',
+            hidden: ({ parent }: any) => parent?.itemCategory !== 'Tool',
+            options: {
+                list: ["Artisan's Tools", 'Gaming Set', 'Musical Instrument', 'Other'],
+            },
         },
         // Weapon Specific Fields
         {
@@ -192,6 +214,7 @@ export default {
             description: 'Define specific spell, slot, or resource pool benefits granted by this item.',
         },
         sourceField,
+        sourceBookField,
         editionField,
         versionField,
         rulesetsField,

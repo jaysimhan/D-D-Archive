@@ -1,12 +1,12 @@
 {
-    "name": "dnd-omni-archive-studio",
-    "private": true,
-    "version": "1.0.0",
-    "main": "package.json",
-    "license": "UNLICENSED",
-    "scripts": {
-        "dev": "sanity dev",
-        "start": "sanity start",
+  "name": "dnd-omni-archive-studio",
+  "private": true,
+  "version": "1.0.0",
+  "main": "package.json",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
     "build": "sanity build",
     "deploy": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy",
@@ -14,6 +14,10 @@
     "migrate:rulesets:apply": "sanity exec migrations/migrate-rulesets.ts --with-user-token -- --apply",
     "migrate:spell-schools": "sanity exec migrations/link-spell-schools.ts --with-user-token",
     "migrate:spell-schools:apply": "sanity exec migrations/link-spell-schools.ts --with-user-token -- --apply",
+    "migrate:subclass-parents": "sanity exec migrations/link-subclass-parents.ts --with-user-token",
+    "migrate:subclass-parents:apply": "sanity exec migrations/link-subclass-parents.ts --with-user-token -- --apply",
+    "migrate:source-labels": "sanity exec migrations/link-source-labels.ts --with-user-token",
+    "migrate:source-labels:apply": "sanity exec migrations/link-source-labels.ts --with-user-token -- --apply",
     "sync:srd-spells": "sanity exec migrations/sync-srd-spells.ts --with-user-token",
     "sync:srd-spells:apply": "sanity exec migrations/sync-srd-spells.ts --with-user-token -- --apply",
     "add:lunar-strixhaven-build": "sanity exec migrations/add-lunar-strixhaven-build.ts --with-user-token",
@@ -21,28 +25,36 @@
     "add:ironclad-time-mage": "sanity exec migrations/add-ironclad-time-mage.ts --with-user-token",
     "add:ironclad-time-mage:apply": "sanity exec migrations/add-ironclad-time-mage.ts --with-user-token -- --apply",
     "add:alert-monk-metamagic": "sanity exec migrations/add-alert-monk-metamagic.ts --with-user-token",
-    "add:alert-monk-metamagic:apply": "sanity exec migrations/add-alert-monk-metamagic.ts --with-user-token -- --apply"
-    },
-    "dependencies": {
-        "@sanity/icons": "^2.11.0",
-        "@sanity/image-url": "^1.0.2",
-        "@sanity/ui": "^2.0.0",
-        "@sanity/vision": "^3.30.0",
-        "react": "^18.3.1",
-        "react-compiler-runtime": "^1.0.0",
-        "react-dom": "^18.3.1",
-        "react-is": "^18.2.0",
-        "sanity": "^3.30.0",
-        "sanity-plugin-documents-pane": "3.0.2",
-        "sanity-plugin-media": "^4.1.0",
-        "styled-components": "^6.1.15"
-    },
-    "devDependencies": {
-        "@sanity/eslint-config-studio": "^3.0.1",
-        "@types/react": "^18.2.64",
-        "@types/styled-components": "^5.1.34",
-        "eslint": "^8.57.0",
-        "prettier": "^3.2.5",
-        "typescript": "^5.4.2"
-    }
+    "add:alert-monk-metamagic:apply": "sanity exec migrations/add-alert-monk-metamagic.ts --with-user-token -- --apply",
+    "fill:third-party-gaps": "sanity exec migrations/fill-third-party-content-gaps.ts --with-user-token",
+    "fill:third-party-gaps:apply": "sanity exec migrations/fill-third-party-content-gaps.ts --with-user-token -- --apply",
+    "normalize:features-homebrew": "sanity exec migrations/normalize-feature-references-homebrew.ts --with-user-token",
+    "normalize:features-homebrew:apply": "sanity exec migrations/normalize-feature-references-homebrew.ts --with-user-token -- --apply",
+    "repair:validation": "sanity exec migrations/repair-validation-blockers.ts --with-user-token",
+    "repair:validation:apply": "sanity exec migrations/repair-validation-blockers.ts --with-user-token -- --apply",
+    "normalize:rulesets": "sanity exec migrations/normalize-ruleset-coverage.ts --with-user-token",
+    "normalize:rulesets:apply": "sanity exec migrations/normalize-ruleset-coverage.ts --with-user-token -- --apply"
+  },
+  "dependencies": {
+    "@sanity/icons": "^2.11.0",
+    "@sanity/image-url": "^1.0.2",
+    "@sanity/ui": "^2.0.0",
+    "@sanity/vision": "^3.30.0",
+    "react": "^18.3.1",
+    "react-compiler-runtime": "^1.0.0",
+    "react-dom": "^18.3.1",
+    "react-is": "^18.2.0",
+    "sanity": "^3.30.0",
+    "sanity-plugin-documents-pane": "3.0.2",
+    "sanity-plugin-media": "^4.1.0",
+    "styled-components": "^6.1.15"
+  },
+  "devDependencies": {
+    "@sanity/eslint-config-studio": "^3.0.1",
+    "@types/react": "^18.2.64",
+    "@types/styled-components": "^5.1.34",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.2"
+  }
 }

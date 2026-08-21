@@ -1,6 +1,7 @@
 import { Item } from "../types/dnd-types";
 import { Package, Coins, Weight, Star } from "lucide-react";
 import { useState } from "react";
+import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 
 interface ItemCardProps {
   item: Item;
@@ -11,23 +12,7 @@ interface ItemCardProps {
 export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const displaySource = (item.source === "Tasha's Cauldron of Everything" || item.source === "Tasha's Cauldron of Everythings")
-    ? "Unofficial"
-    : item.source;
 
-  const getSourceBadgeColor = (source: string) => {
-    switch (source) {
-      case "Official":
-        return "bg-blue-900/50 text-blue-300 border border-blue-700";
-      case "Homebrew":
-        return "bg-brand-900/50 text-brand-300 border border-brand-700";
-      case "Unofficial":
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-      default:
-        // Default to Unofficial style for mapped sources like Tasha's if they fall through, or unknown
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-    }
-  };
 
   const getRarityColor = (rarity?: string) => {
     switch (rarity) {
@@ -83,11 +68,9 @@ export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
         </div>
         {/* Source badge - separate row to accommodate long text */}
         <div
-          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
-            displaySource
-          )} w-full`}
+          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(item.source)} w-full`}
         >
-          <span>{displaySource}</span>
+          <span>{sourceLabel(item)}</span>
         </div>
       </div>
 

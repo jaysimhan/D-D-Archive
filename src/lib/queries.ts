@@ -7,6 +7,7 @@ export const ALL_CLASSES_QUERY = `*[_type == "class"] | order(name asc) {
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
   hitDie,
@@ -22,7 +23,11 @@ export const ALL_CLASSES_QUERY = `*[_type == "class"] | order(name asc) {
     name,
     description,
     image,
-    features,
+    features[]{
+      "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+      "name": coalesce(name, @->name),
+      "description": coalesce(description, @->description)
+    },
     traits[]->{name, description},
     isSpellcaster,
     spellcaster,
@@ -64,6 +69,7 @@ export const CLASS_BY_ID_QUERY = `*[_type == "class" && slug.current == $id][0] 
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
   hitDie,
@@ -79,7 +85,11 @@ export const CLASS_BY_ID_QUERY = `*[_type == "class" && slug.current == $id][0] 
     name,
     description,
     image,
-    features,
+    features[]{
+      "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+      "name": coalesce(name, @->name),
+      "description": coalesce(description, @->description)
+    },
     traits[]->{name, description},
     isSpellcaster,
     spellcaster,
@@ -123,9 +133,14 @@ export const ALL_SUBCLASSES_QUERY = `*[_type == "subclass"] | order(name asc) {
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
-  features,
+  features[]{
+    "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+    "name": coalesce(name, @->name),
+    "description": coalesce(description, @->description)
+  },
   traits[]->{name, description},
   isSpellcaster,
   spellcaster, // Backward compatibility
@@ -141,9 +156,14 @@ export const SUBCLASSES_BY_CLASS_QUERY = `*[_type == "subclass" && parentClassId
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
-  features,
+  features[]{
+    "level": coalesce(level, acquiredAtLevel, @->acquiredAtLevel),
+    "name": coalesce(name, @->name),
+    "description": coalesce(description, @->description)
+  },
   traits[]->{name, description},
   isSpellcaster,
   spellcaster, // Backward compatibility
@@ -159,6 +179,7 @@ export const ALL_RACES_QUERY = `*[_type == "race"] | order(name asc) {
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
   abilityScoreIncrease,
@@ -178,6 +199,7 @@ export const RACE_BY_ID_QUERY = `*[_type == "race" && slug.current == $id][0] {
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
   abilityScoreIncrease,
@@ -198,6 +220,7 @@ export const ALL_BACKGROUNDS_QUERY = `*[_type == "background"] | order(name asc)
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
   skillProficiencies,
@@ -226,6 +249,7 @@ export const ALL_SPELLS_QUERY = `*[_type == "spell"] | order(name asc) {
   "subclasses": subclasses[]->slug.current,
   image,
   source,
+  sourceBook,
   edition,
   version
 }`;
@@ -247,6 +271,7 @@ export const SPELLS_BY_CLASS_QUERY = `*[_type == "spell" && $classId in classes]
   "subclasses": subclasses[]->slug.current,
   image,
   source,
+  sourceBook,
   edition,
   version
 }`;
@@ -268,6 +293,7 @@ export const SPELLS_BY_LEVEL_QUERY = `*[_type == "spell" && level == $level] | o
   "subclasses": subclasses[]->slug.current,
   image,
   source,
+  sourceBook,
   edition,
   version
 }`;
@@ -279,6 +305,7 @@ export const ALL_FEATS_QUERY = `*[_type == "feat"] | order(name asc) {
   description,
   image,
   source,
+  sourceBook,
   edition,
   version,
   prerequisites,
@@ -306,6 +333,7 @@ export const ALL_ITEMS_QUERY = `*[_type == "item"] | order(name asc) {
   weight,
   properties,
   source,
+  sourceBook,
   edition,
   version
 }`;
@@ -323,6 +351,7 @@ export const MAGIC_ITEMS_QUERY = `*[_type == "item" && magical == true] | order(
   weight,
   properties,
   source,
+  sourceBook,
   edition,
   version
 }`;
@@ -353,6 +382,7 @@ export const ALL_MONSTERS_QUERY = `*[_type == "monster"] | order(name asc) {
   legendaryActions,
   image,
   source,
+  sourceBook,
   edition,
   version
 }`;

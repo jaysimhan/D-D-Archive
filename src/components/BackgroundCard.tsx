@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp, User } from "lucide-react";
 import { useState } from "react";
 import { Background } from "../types/dnd-types";
+import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 
 interface BackgroundCardProps {
     background: Background;
@@ -24,7 +25,7 @@ export function BackgroundCard({ background }: BackgroundCardProps) {
                 <div className="flex items-center gap-2">
                     <div className="flex gap-2">
                         <span className="text-xs px-2 py-1 rounded-full bg-brand-500/20 text-brand-400">
-                            {background.source}
+                            {sourceLabel(background)}
                         </span>
                         <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-400">
                             {background.edition}

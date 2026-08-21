@@ -1,4 +1,4 @@
-import { sourceField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'background',
@@ -145,6 +145,7 @@ export default {
             description: 'Spells this background adds to a spellcasting class list. They remain normal spells-known/prepared choices.',
         },
         sourceField,
+        sourceBookField,
         editionField,
         versionField,
         rulesetsField,

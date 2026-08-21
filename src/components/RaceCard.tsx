@@ -1,6 +1,7 @@
 import { Race } from "../types/dnd-types";
 import { Users, Gauge, Languages } from "lucide-react";
 import { useState } from "react";
+import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 import SanityImage from "./SanityImage";
 
 interface RaceCardProps {
@@ -10,18 +11,6 @@ interface RaceCardProps {
 export function RaceCard({ race }: RaceCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const getSourceBadgeColor = (source: string) => {
-    switch (source) {
-      case "Official":
-        return "bg-blue-900/50 text-blue-300 border border-blue-700";
-      case "Homebrew":
-        return "bg-brand-900/50 text-brand-300 border border-brand-700";
-      case "Unofficial":
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-      default:
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-    }
-  };
 
   const getAbilityScoreText = () => {
     // Check if race uses flexible ability scores (Tasha's rules)
@@ -75,11 +64,9 @@ export function RaceCard({ race }: RaceCardProps) {
         </div>
         {/* Source badge - separate row to accommodate long text */}
         <div
-          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
-            race.source
-          )} w-full`}
+          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(race.source)} w-full`}
         >
-          <span>{race.source}</span>
+          <span>{sourceLabel(race)}</span>
         </div>
       </div>
 

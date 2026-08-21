@@ -1,6 +1,7 @@
 import { Spell } from "../types/dnd-types";
 import { Sparkles, Clock, Target, Zap } from "lucide-react";
 import { useState } from "react";
+import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 
 interface SpellCardProps {
   spell: Spell;
@@ -11,18 +12,6 @@ export function SpellCard({ spell }: SpellCardProps) {
 
   const levelText = spell.level === 0 ? "Cantrip" : `Level ${spell.level}`;
 
-  const getSourceBadgeColor = (source: string) => {
-    switch (source) {
-      case "Official":
-        return "bg-blue-900/50 text-blue-300 border border-blue-700";
-      case "Homebrew":
-        return "bg-brand-900/50 text-brand-300 border border-brand-700";
-      case "Unofficial":
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-      default:
-        return "bg-zinc-800 text-gray-400 border border-zinc-700";
-    }
-  };
 
   return (
     <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
@@ -43,11 +32,9 @@ export function SpellCard({ spell }: SpellCardProps) {
         </div>
         {/* Source badge - separate row to accommodate long text */}
         <div
-          className={`text-xs px-3 py-2 rounded-lg ${getSourceBadgeColor(
-            spell.source
-          )} w-full`}
+          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(spell.source)} w-full`}
         >
-          <span>{spell.source}</span>
+          <span>{sourceLabel(spell)}</span>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp, Book } from "lucide-react";
 import { useState } from "react";
 import { Feat } from "../types/dnd-types";
+import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 
 interface FeatCardProps {
     feat: Feat;
@@ -21,8 +22,8 @@ export function FeatCard({ feat }: FeatCardProps) {
                         <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 w-fit">
                             {feat.edition} Edition
                         </span>
-                        <div className={`text-xs px-3 py-2 rounded-lg ${feat.source === "Official" ? "bg-blue-900/50 text-blue-300 border border-blue-700" : "bg-zinc-800 text-gray-400 border border-zinc-700"}`}>
-                            {feat.source}
+                        <div className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(feat.source)}`}>
+                            {sourceLabel(feat)}
                         </div>
                     </div>
                 </div>
