@@ -647,7 +647,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         height={825}
                         label="Treasure"
                         headerClassName="w-full px-[8.333px] py-[19.58px]"
-                        icon={<Icon src={asset("treasure")} w={48.551} h={39.002} />}
+                        icon={<Icon src={asset("treasure")} w={61.314} h={49.377} />}
                     />
                 </div>
 

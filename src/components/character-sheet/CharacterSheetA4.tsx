@@ -337,7 +337,10 @@ function DerivedValue({
 function DeathSaveTrack({ kind }: { kind: "success" | "failure" }) {
     const [marked, setMarked] = useState([false, false, false]);
     const success = kind === "success";
-    const markerBox = success ? "size-[33.657px]" : "size-[35.226px]";
+    // Both columns share the marker box and track height even though the two
+    // shapes differ in size, so a circle and the diamond beside it land on the
+    // same centre line. Each shape stays centred inside the shared box.
+    const markerBox = "size-[35.226px]";
 
     const toggle = (index: number) => {
         setMarked((current) =>
@@ -348,16 +351,10 @@ function DeathSaveTrack({ kind }: { kind: "success" | "failure" }) {
     };
 
     return (
-        <div
-            className={`relative shrink-0 ${
-                success
-                    ? "h-[165.527px] w-[33.657px]"
-                    : "h-[167.389px] w-[35.226px]"
-            }`}
-        >
+        <div className="relative h-[167.389px] w-[35.226px] shrink-0">
             <span
                 aria-hidden
-                className="absolute left-1/2 top-[16.828px] bottom-[16.828px] w-[2.243px] -translate-x-1/2 bg-black"
+                className="absolute left-1/2 top-[17.613px] bottom-[17.613px] w-[2.243px] -translate-x-1/2 bg-black"
             />
             <div className="relative z-10 flex size-full flex-col justify-between">
                 {marked.map((isMarked, index) => (
@@ -2264,8 +2261,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                     <div className="relative flex shrink-0 items-center gap-[5.925px] px-[5.925px]">
                                                         <Icon
                                                             src={asset("hit-die")}
-                                                            w={30.805}
-                                                            h={30.805}
+                                                            w={39.131}
+                                                            h={39.131}
                                                         />
                                                         <p className="relative shrink-0 whitespace-nowrap text-[24.516px] font-normal not-italic leading-[normal] text-black">
                                                             Hit Die
@@ -2293,8 +2290,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                     <div className="relative flex w-full shrink-0 items-center gap-[5.925px] px-[5.925px]">
                                                         <Icon
                                                             src={asset("temp-hit-points")}
-                                                            w={20.022}
-                                                            h={17.768}
+                                                            w={25.652}
+                                                            h={22.833}
                                                             inset="-1.6% -1.43% -1.61% -1.42%"
                                                         />
                                                         <p className="relative shrink-0 whitespace-nowrap text-[24.516px] font-normal not-italic leading-[normal] text-black">
@@ -2316,8 +2313,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                     <div className="relative flex w-full shrink-0 items-center gap-[6.079px] px-[6.079px]">
                                                         <Icon
                                                             src={asset("max-hit-points")}
-                                                            w={25.703}
-                                                            h={22.49}
+                                                            w={32.754}
+                                                            h={28.737}
                                                         />
                                                         <p className="relative shrink-0 whitespace-nowrap text-[25.155px] font-normal not-italic leading-[normal] text-black">
                                                             Max Hit points
@@ -2336,7 +2333,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             label: "Speed",
                                             exportField: undefined,
                                             automaticValue: undefined,
-                                            icon: <Icon src={asset("speed")} w={29.76} h={29.745} />,
+                                            icon: <Icon src={asset("speed")} w={37.825} h={37.807} />,
                                             value: speed,
                                             setValue: setSpeed,
                                             gap: "gap-[6.078px] px-[6.078px]",
@@ -2347,7 +2344,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             exportField: "armor-class",
                                             automaticValue: automaticArmorClass,
                                             icon: (
-                                                <Icon src={asset("armor-class")} w={27.778} h={29.619} />
+                                                <Icon src={asset("armor-class")} w={35.347} h={37.649} />
                                             ),
                                             value: armorClass,
                                             setValue: setArmorClass,
@@ -2359,7 +2356,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             exportField: "initiative",
                                             automaticValue: automaticInitiative,
                                             icon: (
-                                                <Icon src={asset("initiative")} w={24.87} h={21.761} />
+                                                <Icon src={asset("initiative")} w={31.712} h={27.826} />
                                             ),
                                             value: initiative,
                                             setValue: setInitiative,
@@ -2406,17 +2403,19 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                 Death Saves
                                             </p>
                                         </div>
-                                        <div className="relative flex w-[228.865px] shrink-0 items-center justify-center gap-[13.463px]">
-                                            <div className="relative flex shrink-0 flex-col items-center gap-[13.463px] p-[13.463px]">
+                                        <div className="relative flex w-[228.865px] shrink-0 items-start justify-center gap-[13.463px]">
+                                            <div className="relative flex w-[98.726px] shrink-0 flex-col items-center gap-[13.463px] p-[13.463px]">
                                                 <p className="relative shrink-0 whitespace-nowrap text-[17.95px] font-normal not-italic leading-[100.08%] text-black">
                                                     Success
                                                 </p>
                                                 <DeathSaveTrack kind="success" />
-                                                <Icon
-                                                    src={asset("death-save-success-icon")}
-                                                    w={38.784}
-                                                    h={38.784}
-                                                />
+                                                <div className="flex h-[38.784px] shrink-0 items-center justify-center">
+                                                    <Icon
+                                                        src={asset("death-save-success-icon")}
+                                                        w={38.784}
+                                                        h={38.784}
+                                                    />
+                                                </div>
                                             </div>
                                             <div className="relative flex h-[226.032px] w-0 shrink-0 items-center justify-center">
                                                 <div className="flex-none -rotate-90">
@@ -2434,16 +2433,18 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="relative flex h-[282.716px] w-[98.726px] shrink-0 flex-col items-center gap-[13.463px] p-[13.463px]">
+                                            <div className="relative flex w-[98.726px] shrink-0 flex-col items-center gap-[13.463px] p-[13.463px]">
                                                 <p className="relative shrink-0 whitespace-nowrap text-[17.95px] font-normal not-italic leading-[100.08%] text-black">
                                                     Failure
                                                 </p>
                                                 <DeathSaveTrack kind="failure" />
-                                                <Icon
-                                                    src={asset("death-save-failure-icon")}
-                                                    w={32.701}
-                                                    h={32.701}
-                                                />
+                                                <div className="flex h-[38.784px] shrink-0 items-center justify-center">
+                                                    <Icon
+                                                        src={asset("death-save-failure-icon")}
+                                                        w={32.701}
+                                                        h={32.701}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
