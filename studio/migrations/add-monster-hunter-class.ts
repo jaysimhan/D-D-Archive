@@ -1,8 +1,19 @@
 /**
+ * SUPERSEDED - kept as the record of how Monster Hunter was first seeded. Do not re-run:
+ * every document below is written with `createOrReplace`, so running this again would
+ * overwrite the authentic class with the summary it contains.
+ *
+ * The features and subclasses here were written from a summary, not from rules text:
+ * Monster Grimoire, Grave Strike, and Steel Mind are not in the class, and the four
+ * "Guild" subclasses are described by playstyle ("the Brute option", "Tank / Frontline
+ * Striker") rather than by mechanics. `merge-pasted-monster-hunter.ts` replaces all of
+ * it with the class text the archive owner supplied, and retires the four guilds -
+ * that text has no subclasses.
+ *
  * Migration script to add Monster Hunter class and subclasses to Sanity
- * 
+ *
  * This is an UNOFFICIAL class for D&D 5e (2014 edition)
- * 
+ *
  * Usage:
  * cd studio
  * SANITY_AUTH_TOKEN=xxx npx sanity exec migrations/add-monster-hunter-class.ts --with-user-token

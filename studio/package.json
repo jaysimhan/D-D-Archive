@@ -57,7 +57,19 @@
     "adapt:illrigger": "sanity exec migrations/adapt-illrigger-from-guide.ts --with-user-token",
     "adapt:illrigger:apply": "sanity exec migrations/adapt-illrigger-from-guide.ts --with-user-token -- --apply",
     "merge:martyr": "sanity exec migrations/merge-pdf-martyr.ts --with-user-token",
-    "merge:martyr:apply": "sanity exec migrations/merge-pdf-martyr.ts --with-user-token -- --apply"
+    "merge:martyr:apply": "sanity exec migrations/merge-pdf-martyr.ts --with-user-token -- --apply",
+    "merge:monster-hunter": "sanity exec migrations/merge-pasted-monster-hunter.ts --with-user-token",
+    "merge:monster-hunter:apply": "sanity exec migrations/merge-pasted-monster-hunter.ts --with-user-token -- --apply",
+    "merge:necromancer": "sanity exec migrations/merge-pasted-necromancer.ts --with-user-token",
+    "merge:necromancer:apply": "sanity exec migrations/merge-pasted-necromancer.ts --with-user-token -- --apply",
+    "merge:pugilist": "sanity exec migrations/merge-pasted-pugilist.ts --with-user-token",
+    "merge:pugilist:apply": "sanity exec migrations/merge-pasted-pugilist.ts --with-user-token -- --apply",
+    "merge:warden": "sanity exec migrations/merge-pasted-warden.ts --with-user-token",
+    "merge:warden:apply": "sanity exec migrations/merge-pasted-warden.ts --with-user-token -- --apply",
+    "merge:warmage": "sanity exec migrations/merge-pasted-warmage.ts --with-user-token",
+    "merge:warmage:apply": "sanity exec migrations/merge-pasted-warmage.ts --with-user-token -- --apply",
+    "merge:witch": "sanity exec migrations/merge-pasted-witch.ts --with-user-token",
+    "merge:witch:apply": "sanity exec migrations/merge-pasted-witch.ts --with-user-token -- --apply"
   },
   "dependencies": {
     "@sanity/icons": "^2.11.0",

@@ -572,19 +572,12 @@ export const SUBCLASS_RULES: Record<string, LeveledGrant[]> = {
         },
     }],
 
-    // Monster Hunter (the Archive's own class)
-    "the-carver-guild": [{ level: 3, feature: "Bonus Proficiency", grant: { armor: ["Heavy Armor"] } }],
-    "the-devourer-guild": [{
-        level: 3,
-        feature: "Alchemical Gastronomy",
-        grant: { tools: ["Alchemist's Supplies", "Cook's Utensils"] },
-    }],
-    "the-occultist-guild": [{ level: 3, feature: "Acolyte of the Occult", grant: { skills: ["Arcana"] } }],
-    "the-trapper-guild": [{
-        level: 3,
-        feature: "Sneaky and Crafty",
-        grant: { tools: ["Thieves' Tools", "Tinker's Tools"] },
-    }],
+    // Monster Hunter has no subclasses: the supplied class text has none, and the four
+    // invented "Guild" subclasses that once stood in for them are retired by
+    // `studio/migrations/merge-pasted-monster-hunter.ts`. Its own proficiencies —
+    // cook's utensils plus one of alchemist's supplies, a poisoner's kit,
+    // woodcarver's tools, or leatherworker's tools — come from the Sanity document's
+    // `proficiencies` rules, which this file defers to for the Archive's own classes.
 };
 
 // ===== Feats =====
