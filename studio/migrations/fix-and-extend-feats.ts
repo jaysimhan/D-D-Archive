@@ -184,8 +184,14 @@ async function run() {
   const log = { ruleset: 0, patched: 0, created: 0, legacy: 0, homebrew: 0, flexed: 0, split: 0, pinned: 0 }
   const notes: string[] = []
 
-  // 1. The 2014 ruleset every legacy feat points at does not exist, so those
-  //    references dangle and only resolve because the query matches on _key.
+  // 1. The 2014 ruleset document exists, but its id contains a dot, and Sanity
+  //    treats a dotted id as a private path: an unauthenticated read of
+  //    `ruleset.srd-2014` comes back omitted with reason "permission". So the
+  //    app's public client cannot dereference it — `rulesets[]->key.current`
+  //    resolves to null for every 2014 feat, and the ruleset filter only works
+  //    because it checks `rulesets[]._key` first. Left as it is rather than
+  //    repointing 63 references; moving it to a dot-free id would be the fix.
+  //    This create is therefore a no-op guard for a fresh dataset.
   tx = tx.createIfNotExists({
     _id: RULESET_2014_ID,
     _type: 'ruleset',
