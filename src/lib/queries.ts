@@ -18,6 +18,7 @@ export const ALL_CLASSES_QUERY = `*[_type == "class"] | order(name asc) {
   spellcastingAbility,
   spellLists,
   features,
+  progression,
   startingEquipment,
   traits[]->{name, description},
   "subclasses": *[_type == "subclass" && parentClassId == ^.slug.current] | order(name asc) {
@@ -82,6 +83,7 @@ export const CLASS_BY_ID_QUERY = `*[_type == "class" && slug.current == $id][0] 
   spellcastingAbility,
   spellLists,
   features,
+  progression,
   startingEquipment,
   traits[]->{name, description},
   "subclasses": *[_type == "subclass" && parentClassId == ^.slug.current] | order(name asc) {

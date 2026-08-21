@@ -166,6 +166,62 @@ export default {
             description: 'References to feature documents representing the core progression track',
         },
         {
+            name: 'progression',
+            title: 'Class Progression Table',
+            type: 'array',
+            description: 'Structured level-by-level class table, including proficiency bonus, class resources, and feature summaries.',
+            of: [
+                {
+                    type: 'object',
+                    name: 'classProgressionRow',
+                    fields: [
+                        {
+                            name: 'level',
+                            title: 'Level',
+                            type: 'number',
+                            validation: (Rule: any) => Rule.required().integer().min(1).max(20),
+                        },
+                        {
+                            name: 'proficiencyBonus',
+                            title: 'Proficiency Bonus',
+                            type: 'number',
+                            validation: (Rule: any) => Rule.required().integer().min(2).max(6),
+                        },
+                        {
+                            name: 'resources',
+                            title: 'Class Resource Values',
+                            type: 'array',
+                            of: [
+                                {
+                                    type: 'object',
+                                    fields: [
+                                        { name: 'name', title: 'Column Name', type: 'string', validation: (Rule: any) => Rule.required() },
+                                        { name: 'value', title: 'Value', type: 'string', validation: (Rule: any) => Rule.required() },
+                                    ],
+                                    preview: {
+                                        select: { title: 'name', subtitle: 'value' },
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            name: 'featureNames',
+                            title: 'Features at This Level',
+                            type: 'array',
+                            of: [{ type: 'string' }],
+                            validation: (Rule: any) => Rule.required().min(1),
+                        },
+                    ],
+                    preview: {
+                        select: { level: 'level', features: 'featureNames' },
+                        prepare({ level, features }: any) {
+                            return { title: `Level ${level ?? '?'}`, subtitle: (features || []).join(', ') }
+                        },
+                    },
+                },
+            ],
+        },
+        {
             name: 'startingEquipment',
             title: 'Starting Equipment',
             type: 'array',

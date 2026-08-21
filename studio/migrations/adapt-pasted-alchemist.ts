@@ -14,11 +14,13 @@ const classFeatures: FeatureSeed[] = [
   { level: 1, name: 'Volatile Mixtures', description: 'After a long rest, create a number of volatile mixtures equal to your Intelligence modifier (minimum one). As an action, throw one with a normal range of 20 feet and long range of 60 feet. On a hit, the target takes 1d8 + your Intelligence modifier acid or fire damage, chosen when the mixture is made. Creatures within 5 feet of the target make a Dexterity saving throw against your spell save DC, taking damage equal to your Intelligence modifier (minimum one) on a failure or half as much on a success. Unused mixtures become inert at your next long rest.' },
   { level: 1, name: 'Elixirs', description: 'You are an Intelligence-based full spellcaster, but you store spells in prepared elixirs instead of casting them directly. After a long rest, expend your spell slots to bottle spells from the Druid or Wizard spell lists. A creature can drink or throw an elixir as appropriate for the stored spell, allowing allies to use your preparations. Elixirs not used before your next long rest become inert. Your spell save DC is 8 + your proficiency bonus + your Intelligence modifier, and your spell attack modifier is your proficiency bonus + your Intelligence modifier.' },
   { level: 2, name: 'Discovery', description: 'Choose two alchemical Discoveries, gaining two more choices whenever this feature appears again. Available basic Discoveries include Flesh-Eating Bomb (volatile mixtures may deal necrotic damage, increase their damage die one step against unarmored organic creatures, and deal half damage to inorganic creatures), Poisoned Flesh (a creature that bites or ingests part of you is poisoned for 1 minute), Chameleon Ink (1 minute to apply; grants advantage on Stealth checks for 1 hour or until the wearer is hit), and Cognitive Mutagen (Mutagenist only; for 10 minutes grants advantage on Intelligence, Wisdom, and Charisma checks and saves but disadvantage on Strength and Constitution checks and saves).' },
+  { level: 2, name: 'Forager', description: "Once per day, make a DC 12 Intelligence (Nature) check while searching the local environment. On a success, replenish 1d4 + 1 uses of your alchemical supplies or equivalent portable-station ingredients. At 13th level, you may instead attempt a DC 15 check to replenish 2d4 + 2 uses. The GM determines whether the environment contains suitable reagents." },
   { level: 3, name: 'Alchemical School', description: 'Choose an Alchemical School. Mad Bomber develops destructive mixtures, Mutagenist transforms living bodies, and Venomsmith develops toxins. Your school grants features now and again at levels 9, 13, and 17.' },
   { level: 4, name: 'Ability Score Improvement', description: 'Increase one ability score by 2, increase two ability scores by 1, or choose a feat for which you qualify.' },
   { level: 5, name: 'Complex Compounds', description: 'When you create a volatile mixture or damaging elixir, choose acid, cold, fire, lightning, or poison for its damage type. You also designate one spell you can prepare as a ritual formula, plus one additional spell at every Alchemist level after 5th. Given the spell’s ritual casting time, you can brew such an elixir without expending a spell slot, but you can have no more than two ritual elixirs at once; they still become inert at your next long rest.' },
   { level: 6, name: 'Discovery (6th Level)', description: 'Make two additional Discovery choices for which you meet the prerequisites.' },
   { level: 7, name: 'Swift Alchemy', description: 'After you use an elixir or throw a volatile mixture, you can make one weapon attack as a bonus action. You no longer take damage from your own volatile mixtures.' },
+  { level: 7, name: 'Hardy', description: 'Long exposure to reagents, chemicals, and toxins grants advantage on saving throws against natural poisons and diseases.' },
   { level: 8, name: 'Ability Score Improvement (8th Level)', description: 'Increase one ability score by 2, increase two ability scores by 1, or choose a feat for which you qualify.' },
   { level: 9, name: 'Alchemical School Feature (9th Level)', description: 'You gain the 9th-level feature of your chosen Alchemical School.' },
   { level: 10, name: 'Discovery (10th Level)', description: 'Make two additional Discovery choices for which you meet the prerequisites.' },
@@ -35,6 +37,34 @@ const classFeatures: FeatureSeed[] = [
   { level: 20, name: 'Eclectic', description: 'Choose a second Alchemical School. You gain that school’s 3rd- and 9th-level features.' },
   { level: 20, name: 'Discovery (20th Level)', description: 'Make two final Discovery choices for which you meet the prerequisites.' },
 ]
+
+const progressionRows: Array<[number, number, string, string[]]> = [
+  [1, 2, '—', ['Portable Station', 'Volatile Mixtures', 'Elixirs']],
+  [2, 2, '2', ['Discovery', 'Forager']],
+  [3, 2, '2', ['Alchemical School']],
+  [4, 2, '2', ['Ability Score Improvement']],
+  [5, 3, '2', ['Complex Compounds']],
+  [6, 3, '4', ['Discovery']],
+  [7, 3, '4', ['Swift Alchemy', 'Hardy']],
+  [8, 3, '4', ['Ability Score Improvement']],
+  [9, 4, '4', ['Alchemical School feature']],
+  [10, 4, '6', ['Discovery']],
+  [11, 4, '6', ['Self-Experimentation']],
+  [12, 4, '6', ['Ability Score Improvement']],
+  [13, 5, '6', ['Alchemical School feature']],
+  [14, 5, '8', ['Discovery']],
+  [15, 5, '8', ['Perfected Self-Experimentation']],
+  [16, 5, '10', ['Discovery', 'Ability Score Improvement']],
+  [17, 6, '10', ['Alchemical School feature']],
+  [18, 6, '12', ['Discovery']],
+  [19, 6, '12', ['Ability Score Improvement']],
+  [20, 6, '14', ['Eclectic', 'Discovery']],
+]
+const progression = progressionRows.map(([level, proficiencyBonus, discoveries, featureNames]) => ({
+  _type: 'classProgressionRow', _key: `alchemist-level-${level}`, level, proficiencyBonus,
+  resources: [{ _type: 'object', _key: 'discoveries-known', name: 'Discoveries Known', value: discoveries }],
+  featureNames,
+}))
 
 const subclassFeatures: Record<string, FeatureSeed[]> = {
   'subclass-mad-bomber': [
@@ -119,6 +149,7 @@ async function run() {
     spellcastingAbility: 'INT',
     spellLists: ['druid', 'wizard'],
     features: classFeatureRefs,
+    progression,
     subclasses: [ref('subclass-mad-bomber', 'mad-bomber'), ref('subclass-alchemist-mutagenist', 'mutagenist'), ref('subclass-venomsmith', 'venomsmith')],
     subclassLevel: 3,
     startingEquipment: ['One simple weapon or one firearm', "Dungeoneer's Pack or Explorer's Pack", "Alchemist's Supplies", 'Leather Armor', 'Dagger', 'Portable Station'],
@@ -129,15 +160,18 @@ async function run() {
   if (!APPLY) return console.log(`Dry run: ${classFeatures.length} class features and ${Object.values(subclassFeatures).flat().length} subclass features ready.`)
   const result = await tx.commit({ visibility: 'sync' })
   const audit = await client.fetch<{
-    classFeatures: number; subclasses: Array<{ _id: string; featureCount: number }>;
+    classFeatures: number; progressionCount: number; discoveries: string[];
+    subclasses: Array<{ _id: string; featureCount: number }>;
     hitDie: number; savingThrows: string[]; spellLists: string[];
     isSpellcaster: boolean; isHomebrew: boolean; startingEquipment: string[]; brokenRefs: number
   }>(`*[_id == "class-alchemist"][0]{
-    "classFeatures": count(features), hitDie, savingThrows, spellLists, isSpellcaster, isHomebrew, startingEquipment,
+    "classFeatures": count(features), "progressionCount": count(progression),
+    "discoveries": progression[].resources[name == "Discoveries Known"][0].value,
+    hitDie, savingThrows, spellLists, isSpellcaster, isHomebrew, startingEquipment,
     "subclasses": *[_id in ["subclass-mad-bomber", "subclass-alchemist-mutagenist", "subclass-venomsmith"]] | order(_id asc) {_id, "featureCount": count(features)},
     "brokenRefs": count(features[!defined(@->._id)]) + count(*[_id in ["subclass-mad-bomber", "subclass-alchemist-mutagenist", "subclass-venomsmith"]].features[!defined(@->._id)])
   }`)
-  if (audit.classFeatures !== classFeatures.length || audit.subclasses.length !== 3 || audit.subclasses.some((item) => item.featureCount !== 5) || audit.hitDie !== 8 || audit.savingThrows.join(',') !== 'CON,INT' || audit.spellLists.join(',') !== 'druid,wizard' || !audit.isSpellcaster || !audit.isHomebrew || audit.brokenRefs) {
+  if (audit.classFeatures !== classFeatures.length || audit.progressionCount !== 20 || audit.discoveries.join(',') !== progressionRows.map((row) => row[2]).join(',') || audit.subclasses.length !== 3 || audit.subclasses.some((item) => item.featureCount !== 5) || audit.hitDie !== 8 || audit.savingThrows.join(',') !== 'CON,INT' || audit.spellLists.join(',') !== 'druid,wizard' || !audit.isSpellcaster || !audit.isHomebrew || audit.brokenRefs) {
     throw new Error(`Alchemist audit failed: ${JSON.stringify(audit)}`)
   }
   console.log(`Applied ${result.results.length} mutations. Verification: ${JSON.stringify(audit)}`)

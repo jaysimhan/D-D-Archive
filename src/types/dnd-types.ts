@@ -167,6 +167,12 @@ export interface Class {
   spellcastingAbility?: AbilityScore;
   spellLists?: string[];
   features: Feature[];
+  progression?: {
+    level: number;
+    proficiencyBonus: number;
+    resources?: { name: string; value: string }[];
+    featureNames: string[];
+  }[];
   startingEquipment?: string[];
   traits?: { name: string; description: string }[];
   subclasses: Subclass[]; // Auto-detected from Subclass.parentClassId

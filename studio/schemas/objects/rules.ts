@@ -3,7 +3,7 @@ const SKILLS = [
     'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
     'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
     'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
-    'Sleight of Hand', 'Stealth', 'Survival'
+    'Sleight of Hand', 'Stealth', 'Survival', 'Yog-Sothothery'
 ];
 
 const LANGUAGES = [
@@ -23,12 +23,12 @@ const TOOLS = [
     // Musical Instruments
     "Bagpipes", "Drum", "Dulcimer", "Flute", "Lute", "Lyre", "Horn", "Pan flute", "Shawm", "Viol",
     // Other
-    "Disguise kit", "Forgery kit", "Herbalism kit", "Navigator's tools", "Poisoner's kit", "Thieves' tools"
+    "Disguise kit", "Forgery kit", "Healer's kit", "Herbalism kit", "Navigator's tools", "Poisoner's kit", "Thieves' tools"
 ];
 
 const ARMOR = ['Light Armor', 'Medium Armor', 'Heavy Armor', 'Shields'];
 
-const WEAPONS = ['Simple Weapons', 'Martial Weapons', 'Firearms', 'Club', 'Dagger', 'Greatclub', 'Handaxe', 'Javelin', 'Light Hammer', 'Mace', 'Quarterstaff', 'Sickle', 'Spear', 'Light Crossbow', 'Dart', 'Shortbow', 'Sling', 'Battleaxe', 'Flail', 'Glaive', 'Greataxe', 'Greatsword', 'Halberd', 'Lance', 'Longsword', 'Maul', 'Morningstar', 'Pike', 'Rapier', 'Scimitar', 'Shortsword', 'Trident', 'War Pick', 'Warhammer', 'Whip', 'Blowgun', 'Hand Crossbow', 'Heavy Crossbow', 'Longbow', 'Net'];
+const WEAPONS = ['Simple Weapons', 'Martial Weapons', 'Martial Ranged Weapons', 'Firearms', 'Simple Firearms', 'Magnum', 'Club', 'Dagger', 'Greatclub', 'Handaxe', 'Javelin', 'Light Hammer', 'Mace', 'Quarterstaff', 'Sickle', 'Spear', 'Light Crossbow', 'Dart', 'Shortbow', 'Sling', 'Battleaxe', 'Flail', 'Glaive', 'Greataxe', 'Greatsword', 'Halberd', 'Lance', 'Longsword', 'Maul', 'Morningstar', 'Pike', 'Rapier', 'Scimitar', 'Shortsword', 'Trident', 'War Pick', 'Warhammer', 'Whip', 'Blowgun', 'Hand Crossbow', 'Heavy Crossbow', 'Longbow', 'Net'];
 
 const CLASS_SPELL_LISTS = [
     'Artificer', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Sorcerer', 'Warlock', 'Wizard'

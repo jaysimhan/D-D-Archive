@@ -75,6 +75,7 @@ export function useClasses(ruleset?: CharacterRuleset) {
         isSpellcaster,
         spellcastingAbility,
         spellLists,
+        progression,
         startingEquipment,
         spells[]{
             name,
