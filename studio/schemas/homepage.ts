@@ -92,10 +92,17 @@ export default defineType({
                     description: 'e.g. "Not affiliated with..."'
                 }),
                 defineField({
-                    name: 'credits',
-                    title: 'Right Text (Credits)',
+                    name: 'creditsPrefix',
+                    title: 'Right Text (Credit Prefix)',
                     type: 'string',
-                    description: 'e.g. "Powered by React & Tailwind"'
+                    description: 'The small lead-in word rendered in lowercase sans-serif, e.g. "by". Leave blank to hide it.',
+                    initialValue: 'by'
+                }),
+                defineField({
+                    name: 'credits',
+                    title: 'Right Text (Credit Name)',
+                    type: 'string',
+                    description: 'The emphasised name rendered in uppercase Cinzel, e.g. "Jaysimhan". Do not repeat the prefix here.'
                 }),
             ]
         }),

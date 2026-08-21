@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, User } from "lucide-react";
-import { ScrollArea } from "../ui/scroll-area";
+import { Search } from "lucide-react";
 import { CharacterRuleset, Class, Subclass } from "../../types/dnd-types";
 import { useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
@@ -96,7 +95,7 @@ export function SubclassStep({
                 </div>
 
                 {showNonCore ? (
-                    <ScrollArea className="h-[500px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                    <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
                         <div className="p-4">
                             {subclassesLoading ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
@@ -156,7 +155,7 @@ export function SubclassStep({
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
                 ) : (
                     <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
                         <div className="p-4">
@@ -223,32 +222,29 @@ export function SubclassStep({
             </div>
 
             {/* Right Column: Details Panel */}
-            <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
+            <div className="w-full lg:w-5/12 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
                 {displayedSubclass ? (
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}
-                        <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
-                            {displayedSubclass?.image ? (
-                                <SanityImage
-                                    imageAsset={displayedSubclass.image}
-                                    alt={displayedSubclass.name}
-                                    width={600}
-                                    height={400}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : displayedSubclass?.imageUrl ? (
-                                <img
-                                    src={displayedSubclass.imageUrl}
-                                    alt={displayedSubclass.name}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="text-center p-4">
-                                    <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
-                                    <span className="text-xs text-zinc-600">Subclass Icon</span>
-                                </div>
-                            )}
-                        </div>
+                        {(displayedSubclass?.image || displayedSubclass?.imageUrl) && (
+                            <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
+                                {displayedSubclass.image ? (
+                                    <SanityImage
+                                        imageAsset={displayedSubclass.image}
+                                        alt={displayedSubclass.name}
+                                        width={600}
+                                        height={400}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <img
+                                        src={displayedSubclass.imageUrl}
+                                        alt={displayedSubclass.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                )}
+                            </div>
+                        )}
 
                         <h3 className="text-3xl font-bold text-brand-500 mb-2 font-serif border-b border-brand-900/30 pb-2">{displayedSubclass.name}</h3>
 

@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
-import { ScrollArea } from "../ui/scroll-area";
 import { Background, CharacterRuleset } from "../../types/dnd-types";
 import { useBackgrounds } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
@@ -68,7 +67,7 @@ export function BackgroundStep({
                 </div>
 
                 {showNonCore ? (
-                    <ScrollArea className="h-[500px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                    <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
                         <div className="p-4">
                             {backgroundsLoading ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
@@ -98,7 +97,7 @@ export function BackgroundStep({
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
                 ) : (
                     <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
                         <div className="p-4">
@@ -135,7 +134,7 @@ export function BackgroundStep({
             </div>
 
             {/* Right Column: Details Panel */}
-            <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
+            <div className="w-full lg:w-5/12 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
                 {selected ? (
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}

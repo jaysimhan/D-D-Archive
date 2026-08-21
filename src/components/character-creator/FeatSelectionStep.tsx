@@ -145,7 +145,7 @@ export function FeatSelectionStep({
                 />
             </div>
 
-            <div className="max-h-[520px] overflow-y-auto pr-2 space-y-3">
+            <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {filteredFeats.map((feat) => {
                         const isSelected = selectedFeats.some((selected) => selected.id === feat.id);

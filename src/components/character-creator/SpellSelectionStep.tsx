@@ -4,21 +4,9 @@ import { Background, CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subra
 import { useSpells } from "../../hooks/useSanityData";
 import { collectAutomaticSpells } from "../../utils/character-spells";
 import { isMetamagicFeat, metamagicChoiceLimit } from "../../utils/combat-progression";
+import { METAMAGIC_OPTIONS, metamagicDetail } from "../../utils/metamagic";
 import { ClampedText } from "../ui/clamped-text";
-
-/** The ten Sorcerer Metamagic options; both editions offer the same list. */
-const METAMAGIC_OPTIONS = [
-    "Careful Spell",
-    "Distant Spell",
-    "Empowered Spell",
-    "Extended Spell",
-    "Heightened Spell",
-    "Quickened Spell",
-    "Seeking Spell",
-    "Subtle Spell",
-    "Transmuted Spell",
-    "Twinned Spell",
-];
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 // Spell Selection Step - Slot Based
 export function SpellSelectionStep({
@@ -614,10 +602,24 @@ export function SpellSelectionStep({
                             {METAMAGIC_OPTIONS.map((option) => {
                                 const selected = metamagicChoices.includes(option);
                                 const full = !selected && metamagicChoices.length >= metamagicLimit;
-                                return <button key={option} type="button" disabled={full} onClick={() => {
+                                const detail = metamagicDetail(option, ruleset);
+                                // A full grid stays hoverable rather than disabled, so the eight
+                                // options you did not pick can still explain what they would do.
+                                const trigger = <button key={option} type="button" aria-disabled={full} onClick={() => {
                                     if (selected) onMetamagicChange?.(metamagicChoices.filter((choice) => choice !== option));
                                     else if (metamagicChoices.length < metamagicLimit) onMetamagicChange?.([...metamagicChoices, option]);
-                                }} className={`rounded-lg border p-2 text-sm transition-colors ${selected ? "border-purple-400 bg-purple-800/50 text-white" : full ? "border-zinc-800 text-gray-600 cursor-not-allowed" : "border-zinc-700 text-gray-400 hover:border-purple-500/60 hover:text-purple-200"}`}>{option}</button>;
+                                }} className={`w-full rounded-lg border p-2 text-sm transition-colors ${selected ? "border-purple-400 bg-purple-800/50 text-white" : full ? "border-zinc-800 text-gray-600 cursor-not-allowed" : "border-zinc-700 text-gray-400 hover:border-purple-500/60 hover:text-purple-200"}`}>{option}</button>;
+                                if (!detail) return trigger;
+                                return (
+                                    <Tooltip key={option}>
+                                        <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+                                        <TooltipContent side="top" sideOffset={6} className="max-w-xs border border-purple-500/40 bg-zinc-950 p-3 text-left text-xs leading-relaxed text-gray-300" arrowClassName="bg-zinc-950 fill-zinc-950">
+                                            <div className="font-semibold text-purple-300">{option}</div>
+                                            <div className="mb-1 text-[11px] uppercase tracking-wide text-purple-500">{detail.cost}</div>
+                                            {detail.description}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                );
                             })}
                         </div>
                     </div>

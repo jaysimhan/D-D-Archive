@@ -105,7 +105,7 @@ export function EquipmentStep({
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {filteredItems.map((item) => {
                     const isSelected = equipment.find((i) => i.id === item.id);
                     const notRecommended = isNotRecommended(item);

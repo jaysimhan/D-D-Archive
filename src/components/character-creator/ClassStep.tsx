@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, User } from "lucide-react";
-import { ScrollArea } from "../ui/scroll-area";
+import { Search } from "lucide-react";
 import { CharacterRuleset, Class } from "../../types/dnd-types";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
@@ -118,118 +117,72 @@ export function ClassStep({
                         />
                     </div>
 
-                    {showNonCore ? (
-                        <ScrollArea className="h-[500px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
-                            <div className="p-4">
-                                {classesLoading ? (
-                                    <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                                        {Array.from({ length: 9 }).map((_, i) => (
-                                            <div key={i} className="px-2 py-3 rounded-lg bg-zinc-900/50 animate-pulse h-24 flex flex-col items-center justify-center gap-2 border border-zinc-800">
-                                                <div className="h-5 w-20 bg-zinc-800 rounded"></div>
-                                                <div className="h-4 w-14 bg-zinc-800 rounded-full"></div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                                        {filteredClasses.map((classData) => {
-                                            const isActive = selected?.id === classData.id;
-                                            return (
-                                                <button
-                                                    key={classData.id}
-                                                    onClick={() => onSelect(classData)}
-                                                    className={`
-                        px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
-                        ${isActive
-                                                            ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_15px_rgba(220,38,38,0.3)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
-                                                            : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
-                                                        }
-                      `}
-                                                >
-                                                    <span className="font-bold text-lg mb-1 font-serif">{classData.name}</span>
-                                                    {classData.spellcaster && classData.spellcaster !== "None" && classData.spellcaster !== "none" && (
-                                                        <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
-                                                            {classData.spellcaster}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </ScrollArea>
-                    ) : (
-                        <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
-                            <div className="p-4">
-                                {classesLoading ? (
-                                    <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                                        {Array.from({ length: 9 }).map((_, i) => (
-                                            <div key={i} className="px-2 py-3 rounded-lg bg-zinc-900/50 animate-pulse h-24 flex flex-col items-center justify-center gap-2 border border-zinc-800">
-                                                <div className="h-5 w-20 bg-zinc-800 rounded"></div>
-                                                <div className="h-4 w-14 bg-zinc-800 rounded-full"></div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                                        {filteredClasses.map((classData) => {
-                                            const isActive = selected?.id === classData.id;
-                                            return (
-                                                <button
-                                                    key={classData.id}
-                                                    onClick={() => onSelect(classData)}
-                                                    className={`
-                        px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
-                        ${isActive
-                                                            ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_15px_rgba(220,38,38,0.3)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
-                                                            : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
-                                                        }
-                      `}
-                                                >
-                                                    <span className="font-bold text-lg mb-1 font-serif">{classData.name}</span>
-                                                    {classData.spellcaster && classData.spellcaster !== "None" && classData.spellcaster !== "none" && (
-                                                        <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
-                                                            {classData.spellcaster}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
+                    <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                        <div className="p-4">
+                            {classesLoading ? (
+                                <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                                    {Array.from({ length: 9 }).map((_, i) => (
+                                        <div key={i} className="px-2 py-3 rounded-lg bg-zinc-900/50 animate-pulse h-24 flex flex-col items-center justify-center gap-2 border border-zinc-800">
+                                            <div className="h-5 w-20 bg-zinc-800 rounded"></div>
+                                            <div className="h-4 w-14 bg-zinc-800 rounded-full"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                                    {filteredClasses.map((classData) => {
+                                        const isActive = selected?.id === classData.id;
+                                        return (
+                                            <button
+                                                key={classData.id}
+                                                onClick={() => onSelect(classData)}
+                                                className={`
+                    px-2 py-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center text-center h-24
+                    ${isActive
+                                                        ? 'bg-brand-900/40 text-brand-100 shadow-[0_0_15px_rgba(220,38,38,0.3)] ring-1 ring-offset-0 ring-brand-500 border border-brand-500'
+                                                        : 'bg-zinc-900/40 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:border-brand-500/50 hover:text-gray-200'
+                                                    }
+                  `}
+                                            >
+                                                <span className="font-bold text-lg mb-1 font-serif">{classData.name}</span>
+                                                {classData.spellcaster && classData.spellcaster !== "None" && classData.spellcaster !== "none" && (
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-brand-500 text-white' : 'bg-zinc-800 text-brand-400 border border-brand-900/30'}`}>
+                                                        {classData.spellcaster}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* Right Column: Details Panel */}
-                <div className="w-full lg:w-5/12 lg:sticky lg:top-8 p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
+                <div className="w-full lg:w-5/12 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
                     {selected ? (
                         <div className="animate-in fade-in duration-200">
                             {/* Image Section */}
-                            <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
-                                {displayedClass?.image ? (
-                                    <SanityImage
-                                        imageAsset={displayedClass.image}
-                                        alt={displayedClass.name}
-                                        width={600}
-                                        height={400}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : displayedClass?.imageUrl ? (
-                                    <img
-                                        src={displayedClass.imageUrl}
-                                        alt={displayedClass.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="text-center p-4">
-                                        <User className="w-12 h-12 text-zinc-700 mx-auto mb-2" />
-                                        <span className="text-xs text-zinc-600">Class Icon</span>
-                                    </div>
-                                )}
-                            </div>
+                            {(displayedClass?.image || displayedClass?.imageUrl) && (
+                                <div className="w-full aspect-[3/2] bg-black/40 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative border border-zinc-800">
+                                    {displayedClass.image ? (
+                                        <SanityImage
+                                            imageAsset={displayedClass.image}
+                                            alt={displayedClass.name}
+                                            width={600}
+                                            height={400}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <img
+                                            src={displayedClass.imageUrl}
+                                            alt={displayedClass.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
+                                </div>
+                            )}
 
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-3xl font-bold text-white text-brand-500 font-serif">{selected.name}</h3>

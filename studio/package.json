@@ -69,7 +69,11 @@
     "merge:warmage": "sanity exec migrations/merge-pasted-warmage.ts --with-user-token",
     "merge:warmage:apply": "sanity exec migrations/merge-pasted-warmage.ts --with-user-token -- --apply",
     "merge:witch": "sanity exec migrations/merge-pasted-witch.ts --with-user-token",
-    "merge:witch:apply": "sanity exec migrations/merge-pasted-witch.ts --with-user-token -- --apply"
+    "merge:witch:apply": "sanity exec migrations/merge-pasted-witch.ts --with-user-token -- --apply",
+    "complete:monk": "sanity exec migrations/complete-monk-from-2024.ts --with-user-token",
+    "complete:monk:apply": "sanity exec migrations/complete-monk-from-2024.ts --with-user-token -- --apply",
+    "split:credit": "sanity exec migrations/split-footer-credit-prefix.ts --with-user-token",
+    "split:credit:apply": "sanity exec migrations/split-footer-credit-prefix.ts --with-user-token -- --apply"
   },
   "dependencies": {
     "@sanity/icons": "^2.11.0",

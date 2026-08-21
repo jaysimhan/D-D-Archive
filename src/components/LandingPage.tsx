@@ -13,6 +13,11 @@ export function LandingPage() {
   // Read once on mount so the label matches what the sheet will actually open
   // with: the character from a run finished within the hour, or a blank sheet.
   const [hasSavedSheet] = useState(hasRecentSheet);
+  // The credit renders as two typographic voices, so the prefix lives in its own
+  // Sanity field. Strip a stale leading "by " from the name for documents saved
+  // before the split, otherwise the footer would read "by BY JAYSIMHAN".
+  const creditsPrefix = content?.footer?.creditsPrefix ?? "by";
+  const creditsName = (content?.footer?.credits || "Jaysimhan").replace(/^\s*by\s+/i, "");
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
       {/* Dark Fantasy Background */}
@@ -211,8 +216,15 @@ export function LandingPage() {
               {content?.footer?.disclaimer || "Not affiliated with Wizards of the Coast"}
             </span>
             <span className="text-brand-900/50">•</span>
-            <span className="text-brand-500/80 font-serif uppercase drop-shadow-[0_0_8px_rgba(255,0,60,0.6)]">
-              {content?.footer?.credits || "Powered by React & Tailwind"}
+            <span className="flex items-baseline gap-1 sm:gap-1.5">
+              {creditsPrefix && (
+                <span className="font-credit-prefix lowercase text-brand-700/50 text-[9px] sm:text-[11px]">
+                  {creditsPrefix}
+                </span>
+              )}
+              <span className="text-brand-500/80 font-serif uppercase tracking-wide drop-shadow-[0_0_8px_rgba(255,0,60,0.6)]">
+                {creditsName}
+              </span>
             </span>
           </div>
         </footer>
@@ -223,6 +235,14 @@ export function LandingPage() {
         
         .font-serif {
           font-family: 'Cinzel', serif;
+        }
+
+        /* Deliberate contrast against Cinzel: the credit prefix is a light,
+           lowercase grotesque so "by" reads as a whisper before the name. */
+        .font-credit-prefix {
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-weight: 300;
+          letter-spacing: 0.01em;
         }
         
         .bg-gradient-radial {

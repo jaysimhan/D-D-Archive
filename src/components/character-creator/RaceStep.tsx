@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
-import { ScrollArea } from "../ui/scroll-area";
 import { CharacterRuleset, Race } from "../../types/dnd-types";
 import { useRaces } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
@@ -78,7 +77,7 @@ export function RaceStep({
                     </div>
                 </div>
 
-                <ScrollArea className="h-[600px] rounded-lg border border-zinc-800/50 bg-zinc-900/20">
+                <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/20">
                     <div className="p-4">
                         {racesLoading ? (
                             <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
@@ -112,11 +111,11 @@ export function RaceStep({
                             </div>
                         )}
                     </div>
-                </ScrollArea>
+                </div>
             </div>
 
             {/* Right Column: Details Panel */}
-            <div className="w-full lg:w-1/3 lg:sticky lg:top-8 p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
+            <div className="w-full lg:w-1/3 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto p-6 bg-zinc-900/60 backdrop-blur-sm border border-brand-900/30 rounded-xl shadow-xl min-h-[400px]">
                 {displayedRace ? (
                     <div className="animate-in fade-in duration-200">
                         {/* Image Section */}

@@ -616,6 +616,8 @@ export interface HomepageData {
   footer?: {
     text: string;
     disclaimer: string;
+    /** Small lowercase lead-in word before the credit name, e.g. "by". */
+    creditsPrefix?: string;
     credits: string;
   };
 }
