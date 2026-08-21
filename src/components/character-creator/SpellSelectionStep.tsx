@@ -4,6 +4,7 @@ import { Background, CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subra
 import { useSpells } from "../../hooks/useSanityData";
 import { collectAutomaticSpells } from "../../utils/character-spells";
 import { isMetamagicFeat, metamagicChoiceLimit } from "../../utils/combat-progression";
+import { ClampedText } from "../ui/clamped-text";
 
 /** The ten Sorcerer Metamagic options; both editions offer the same list. */
 const METAMAGIC_OPTIONS = [
@@ -1016,7 +1017,7 @@ function SpellSelectionModal({
                                     </div>
                                     <span className="text-xs text-gray-500">{spell.school}</span>
                                 </div>
-                                <p className="text-sm text-gray-400 mt-1 line-clamp-2">{spell.description}</p>
+                                <ClampedText text={spell.description} className="text-sm text-gray-400 mt-1" />
                                 {isDivineSoulSelection && (
                                     <div className="mt-1 flex gap-1">
                                         {spell.classes.includes("cleric") && <span className="text-xs px-1 py-0.5 bg-amber-900/30 text-amber-500 border border-amber-800/50 rounded">Cleric</span>}

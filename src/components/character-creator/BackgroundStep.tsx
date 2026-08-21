@@ -4,6 +4,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Background, CharacterRuleset } from "../../types/dnd-types";
 import { useBackgrounds } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
+import { ClampedText } from "../ui/clamped-text";
 
 // Background Step
 export function BackgroundStep({
@@ -91,7 +92,7 @@ export function BackgroundStep({
                                                 }`}
                                         >
                                             <h3 className={`font-semibold text-lg mb-1 font-serif ${selected?.id === background.id ? 'text-brand-400' : 'text-gray-200'}`}>{background.name}</h3>
-                                            <p className="text-sm text-gray-400 line-clamp-2">{background.description}</p>
+                                            <ClampedText text={background.description} className="text-sm text-gray-400" />
                                         </button>
                                     ))}
                                 </div>
@@ -123,7 +124,7 @@ export function BackgroundStep({
                                                 }`}
                                         >
                                             <h3 className={`font-semibold text-lg mb-1 font-serif ${selected?.id === background.id ? 'text-brand-400' : 'text-gray-200'}`}>{background.name}</h3>
-                                            <p className="text-sm text-gray-400 line-clamp-2">{background.description}</p>
+                                            <ClampedText text={background.description} className="text-sm text-gray-400" />
                                         </button>
                                     ))}
                                 </div>

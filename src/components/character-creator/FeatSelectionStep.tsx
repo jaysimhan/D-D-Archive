@@ -10,6 +10,7 @@ import {
     Subrace,
 } from "../../types/dnd-types";
 import { useFeats } from "../../hooks/useSanityData";
+import { ClampedText } from "../ui/clamped-text";
 import {
     featBudget,
     flexibleAbilityAmount,
@@ -76,14 +77,28 @@ export function FeatSelectionStep({
         );
     }, [searchTerm, allFeats]);
 
+    // Feats a background locked in are not ours to trade away, so only the
+    // player's own picks can be swapped out.
+    const swappable = useMemo(
+        () => selectedFeats.filter((feat) => !lockedFeatIds.includes(feat.id)),
+        [selectedFeats, lockedFeatIds],
+    );
+
     const toggleFeat = (feat: Feat) => {
         if (lockedFeatIds.includes(feat.id)) return;
         if (selectedFeats.some((selected) => selected.id === feat.id)) {
             onFeatsChange(selectedFeats.filter((selected) => selected.id !== feat.id));
             return;
         }
-        if (remaining <= 0) return;
-        onFeatsChange([...selectedFeats, feat]);
+        if (remaining > 0) {
+            onFeatsChange([...selectedFeats, feat]);
+            return;
+        }
+        // Out of slots: clicking another feat swaps it in for the oldest pick
+        // rather than doing nothing, so changing your mind is a single click.
+        const dropped = swappable[0];
+        if (!dropped) return;
+        onFeatsChange([...selectedFeats.filter((selected) => selected.id !== dropped.id), feat]);
     };
 
     if (loading) {
@@ -111,7 +126,11 @@ export function FeatSelectionStep({
                     label="Feats"
                     used={spent}
                     total={budget}
-                    note={budget > 1 ? "Human — a second feat at level 1" : "One at level 1"}
+                    note={
+                        remaining <= 0 && swappable.length > 0
+                            ? "Full — click another feat to swap it in"
+                            : budget > 1 ? "Human — a second feat at level 1" : "One at level 1"
+                    }
                 />
             </div>
 
@@ -134,16 +153,19 @@ export function FeatSelectionStep({
                         const reasons = unmetPrerequisites(feat, context);
                         const blocked = reasons.filter((reason) => !reason.advisory);
                         const advisory = reasons.filter((reason) => reason.advisory);
-                        const noSlot = !isSelected && remaining <= 0;
+                        const noSlot = !isSelected && remaining <= 0 && swappable.length === 0;
                         const unavailable = blocked.length > 0 || noSlot;
                         const points = flexibleAbilityAmount(feat);
 
                         return (
                             <button
                                 key={feat.id}
-                                onClick={() => toggleFeat(feat)}
-                                disabled={isLocked || unavailable}
-                                title={blocked.map((reason) => reason.text).join(" · ")}
+                                onClick={() => {
+                                    if (isLocked || unavailable) return;
+                                    toggleFeat(feat);
+                                }}
+                                aria-disabled={isLocked || unavailable}
+                                aria-pressed={isSelected}
                                 className={`text-left p-3 border rounded-lg transition-all ${isSelected
                                     ? "border-amber-500 bg-amber-900/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                                     : unavailable
@@ -178,7 +200,7 @@ export function FeatSelectionStep({
                                     </div>
                                 )}
 
-                                <p className="text-sm text-gray-400 line-clamp-2">{feat.description}</p>
+                                <ClampedText text={feat.description} className="text-sm text-gray-400" />
 
                                 {points > 0 && (
                                     <p className="text-xs text-emerald-400/80 mt-1">

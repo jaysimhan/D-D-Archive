@@ -4,6 +4,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { CharacterRuleset, Class, Subclass } from "../../types/dnd-types";
 import { useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
+import { ClampedText } from "../ui/clamped-text";
 
 
 // Subclass Step
@@ -149,7 +150,7 @@ export function SubclassStep({
                                                     )}
                                                 </div>
                                             )}
-                                            <p className="text-sm text-gray-400 line-clamp-2">{subclass.description}</p>
+                                            <ClampedText text={subclass.description} className="text-sm text-gray-400" />
                                         </button>
                                     ))}
                                 </div>
@@ -211,7 +212,7 @@ export function SubclassStep({
                                                     )}
                                                 </div>
                                             )}
-                                            <p className="text-sm text-gray-400 line-clamp-2">{subclass.description}</p>
+                                            <ClampedText text={subclass.description} className="text-sm text-gray-400" />
                                         </button>
                                     ))}
                                 </div>

@@ -5,6 +5,7 @@ import { CharacterRuleset, Class } from "../../types/dnd-types";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 import { subclassLevelFor } from "../../utils/class-progression";
+import { ClampedText } from "../ui/clamped-text";
 
 
 // Class Step with Search - Limited to Level 1-3
@@ -306,7 +307,7 @@ export function ClassStep({
                                                     {sub.magicDescription && (
                                                         <p className="text-xs text-brand-400/80 mb-1 italic">{sub.magicDescription}</p>
                                                     )}
-                                                    <p className="text-xs text-gray-500 line-clamp-2">{sub.description}</p>
+                                                    <ClampedText text={sub.description} className="text-xs text-gray-500" />
                                                 </div>
                                             );
                                         })}
