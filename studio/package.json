@@ -35,7 +35,9 @@
     "normalize:rulesets": "sanity exec migrations/normalize-ruleset-coverage.ts --with-user-token",
     "normalize:rulesets:apply": "sanity exec migrations/normalize-ruleset-coverage.ts --with-user-token -- --apply",
     "adapt:alchemist": "sanity exec migrations/adapt-pasted-alchemist.ts --with-user-token",
-    "adapt:alchemist:apply": "sanity exec migrations/adapt-pasted-alchemist.ts --with-user-token -- --apply"
+    "adapt:alchemist:apply": "sanity exec migrations/adapt-pasted-alchemist.ts --with-user-token -- --apply",
+    "merge:apothecary": "sanity exec migrations/merge-pasted-apothecary.ts --with-user-token",
+    "merge:apothecary:apply": "sanity exec migrations/merge-pasted-apothecary.ts --with-user-token -- --apply"
   },
   "dependencies": {
     "@sanity/icons": "^2.11.0",
