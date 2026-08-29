@@ -52,17 +52,20 @@ export interface DiceLineRowProps {
     canDuplicate: boolean;
     /** True while any roll is animating — a second one would cancel the first. */
     busy: boolean;
+    /** The roller is in its generous mode; the row warms to match the panel. */
+    lucky: boolean;
     /** Bumped by the parent on every roll, so a repeated total still pops. */
     pulse: number;
 }
 
 export function DiceLineRow({
-    line, onChange, onDuplicate, onRemove, onRoll, canDuplicate, busy, pulse,
+    line, onChange, onDuplicate, onRemove, onRoll, canDuplicate, busy, lucky, pulse,
 }: DiceLineRowProps) {
     const dropCeiling = maxKeepCount(line);
 
     return (
-        <li className="rounded-lg border border-gray-200 bg-gray-50/70 p-2 space-y-2">
+        <li className={`rounded-lg border p-2 space-y-2 transition-colors duration-500
+            ${lucky ? "border-amber-200 bg-amber-50/50" : "border-gray-200 bg-gray-50/70"}`}>
             {/* Name row */}
             <div className="flex items-center gap-1">
                 <button

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
     X, Minus, Plus, Volume2, VolumeX, ScrollText,
-    ChevronsDownUp, ChevronsUpDown, Sparkles,
+    ChevronsDownUp, ChevronsUpDown, Sparkles, Clover,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DiceGlyph, RollerGlyph } from "./DiceGlyphs";
@@ -9,6 +9,7 @@ import { DiceLineRow } from "./DiceLineRow";
 import { DiceRollLog } from "./DiceRollLog";
 import { NumberField } from "./DiceFields";
 import {
+    cheatCode,
     clampInt,
     createLine,
     critOf,
@@ -28,6 +29,7 @@ import {
     type DieSides,
     type LogBatch,
     type LoggedRoll,
+    type LuckSwitch,
 } from "../lib/dice";
 import { playDiceSound } from "../lib/dice-sound";
 
@@ -49,6 +51,12 @@ const STORAGE_KEY = "dnd-archive:dice-roller";
 const MAX_LINES = 20;
 const STAT_ARRAY_SIZE = 6;
 
+/** What a line carrying a code is called once the roller has answered it. */
+const CODE_REPLY: Record<LuckSwitch, string> = {
+    on: "The dice are listening",
+    off: "The dice are just dice",
+};
+
 interface StoredRoller {
     lines?: unknown;
     log?: unknown;
@@ -56,6 +64,7 @@ interface StoredRoller {
     modifier?: unknown;
     rollMode?: unknown;
     showLog?: unknown;
+    lucky?: unknown;
 }
 
 function readStored(): StoredRoller {
@@ -116,6 +125,13 @@ export function DiceRoller() {
             .slice(0, MAX_LINES);
     });
 
+    /**
+     * Off unless someone has talked the roller into it — see CODES in lib/dice.
+     * Being on is worth noticing without being announced, so the panel says it
+     * in warmth rather than words: paper instead of white, gold instead of grey.
+     */
+    const [lucky, setLucky] = useState(stored.lucky === true);
+
     const [log, setLog] = useState<LogBatch[]>(() => sanitizeLog(stored.log));
     const [showLog, setShowLog] = useState(stored.showLog === true);
     const [soundOn, setSoundOn] = useState(stored.sound === true);
@@ -133,8 +149,8 @@ export function DiceRoller() {
     }, []);
 
     useEffect(() => {
-        writeStored({ lines, log, sound: soundOn, modifier, rollMode, showLog });
-    }, [lines, log, soundOn, modifier, rollMode, showLog]);
+        writeStored({ lines, log, sound: soundOn, modifier, rollMode, showLog, lucky });
+    }, [lines, log, soundOn, modifier, rollMode, showLog, lucky]);
 
     /**
      * Tumbles a placeholder total for a few frames before the real one lands.
@@ -192,11 +208,28 @@ export function DiceRoller() {
     const rollLines = useCallback((targets: DiceLine[]) => {
         if (!targets.length) return;
 
+        // A code sitting in a name box is read before the dice are, so the very
+        // roll that enters it already runs under the luck it just asked for.
+        const code = targets.reduce<LuckSwitch | null>((found, line) => cheatCode(line.label) ?? found, null);
+        const generous = code ? code === "on" : lucky;
+
+        // The code is answered rather than echoed: it never reaches the log, and
+        // the box it was typed into comes back empty, ready to be a name again.
+        const rolling = targets.map((line) => {
+            const typed = cheatCode(line.label);
+            return typed ? { ...line, label: CODE_REPLY[typed] } : line;
+        });
+
+        if (code) {
+            setLucky(code === "on");
+            setLines((prev) => prev.map((line) => (cheatCode(line.label) ? { ...line, label: "" } : line)));
+        }
+
         // Name the roll before the tumble starts, so the readout has something
         // to sit under — and so the previous roll's dice are not left on screen
         // beside a total that is still settling.
         setHeadline({
-            title: targets.length === 1 ? lineName(targets[0]) : `${targets.length} rolls`,
+            title: rolling.length === 1 ? lineName(rolling[0]) : `${rolling.length} rolls`,
             detail: "",
             total: 0,
             crit: null,
@@ -204,10 +237,10 @@ export function DiceRoller() {
             parts: [],
         });
 
-        const ceiling = targets.reduce((running, line) => running + line.count * line.sides, 0);
+        const ceiling = rolling.reduce((running, line) => running + line.count * line.sides, 0);
 
         runShuffle(ceiling, () => {
-            const rolled = targets.map((line) => ({ line, roll: rollLine(line) }));
+            const rolled = rolling.map((line) => ({ line, roll: rollLine(line, generous) }));
             const logged = rolled.map(({ line, roll }) => toLoggedRoll(line, roll));
             const totals = new Map(rolled.map(({ line, roll }) => [line.id, roll.total]));
 
@@ -224,7 +257,7 @@ export function DiceRoller() {
             announce(logged);
             if (soundOn) playDiceSound(rolled.reduce((running, { roll }) => running + roll.dice.length, 0));
         });
-    }, [announce, pushBatch, runShuffle, soundOn]);
+    }, [announce, lucky, pushBatch, runShuffle, soundOn]);
 
     /**
      * The quick tray borrows the line engine rather than duplicating it, so
@@ -345,7 +378,8 @@ export function DiceRoller() {
                         initial={{ opacity: 0, y: 50, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                        className="fixed bg-white rounded-lg shadow-2xl z-50 overflow-hidden flex flex-col"
+                        className={`fixed rounded-lg shadow-2xl z-50 overflow-hidden flex flex-col transition-colors duration-500
+                            ${lucky ? "bg-[#fffcf3] ring-1 ring-amber-300/70" : "bg-white"}`}
                         style={{
                             bottom: isLargeScreen ? '32px' : '80px',
                             ...(isLargeScreen
@@ -358,8 +392,16 @@ export function DiceRoller() {
                         }}
                     >
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-4 py-3 flex items-center justify-between shrink-0">
-                            <span className="text-white text-[15px] font-normal">Dice Roller</span>
+                        <div className={`bg-gradient-to-r to-brand-700 px-4 py-3 flex items-center justify-between shrink-0
+                            transition-colors duration-500 ${lucky ? "from-amber-600" : "from-brand-600"}`}>
+                            <span className="text-white text-[15px] font-normal flex items-center gap-1.5">
+                                Dice Roller
+                                {lucky && (
+                                    <span title="The dice are listening" className="flex">
+                                        <Clover className="w-3.5 h-3.5 text-amber-200" />
+                                    </span>
+                                )}
+                            </span>
                             <div className="flex items-center gap-1">
                                 <button
                                     onClick={() => setSoundOn(!soundOn)}
@@ -402,7 +444,9 @@ export function DiceRoller() {
                                                     ? "bg-green-50 border-green-200"
                                                     : headline.crit === "failure"
                                                         ? "bg-red-50 border-red-200"
-                                                        : "bg-gray-100 border-gray-200"}`}
+                                                        : lucky
+                                                            ? "bg-amber-100/60 border-amber-200"
+                                                            : "bg-gray-100 border-gray-200"}`}
                                         >
                                             <div className="text-[11px] uppercase tracking-wide text-gray-500 font-semibold mb-0.5 z-10 relative">
                                                 {headline.crit === "success"
@@ -582,6 +626,7 @@ export function DiceRoller() {
                                         <DiceLineRow
                                             key={line.id}
                                             line={line}
+                                            lucky={lucky}
                                             pulse={pulses[line.id] ?? 0}
                                             busy={isRolling}
                                             canDuplicate={lines.length < MAX_LINES}

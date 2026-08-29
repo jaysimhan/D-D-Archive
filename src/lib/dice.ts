@@ -61,18 +61,38 @@ export interface LineRoll {
     total: number;
 }
 
-// The roller is deliberately generous: 2 out of 3 dice lean high by taking the
-// best of three draws (which lands in the top half 87.5% of the time), and the
-// remaining third is a straight uniform roll. Blended, 75% of rolls land in the
-// die's upper half. Every face stays reachable — crits and crit-fails included.
-const HIGH_BIAS_CHANCE = 2 / 3;
-const HIGH_BIAS_DRAWS = 3;
+/**
+ * Every die is a straight, even roll — unless the table has talked the roller
+ * into being generous, in which case 2 out of 3 dice lean high by taking the
+ * best of three draws (which lands in the top half 87.5% of the time) and the
+ * remaining third stays uniform. Blended, 75% of a lucky line's dice land in
+ * the upper half. Every face stays reachable either way, crits and crit-fails
+ * included — luck shifts the odds, it never removes a number from the die.
+ */
+const LUCKY_CHANCE = 2 / 3;
+const LUCKY_DRAWS = 3;
 
-export const rollDie = (sides: number): number => {
+export const rollDie = (sides: number, lucky = false): number => {
     const uniform = () => Math.floor(Math.random() * sides) + 1;
-    if (Math.random() >= HIGH_BIAS_CHANCE) return uniform();
-    return Math.max(...Array.from({ length: HIGH_BIAS_DRAWS }, uniform));
+    if (!lucky || Math.random() >= LUCKY_CHANCE) return uniform();
+    return Math.max(...Array.from({ length: LUCKY_DRAWS }, uniform));
 };
+
+/* --------------------------------------------------------------- the code */
+
+export type LuckSwitch = "on" | "off";
+
+/**
+ * A line's name box doubles as a console. Codes are matched on their letters
+ * alone, so shouting it or spacing it out — "I Am Feeling Lucky" — still lands.
+ */
+const CODES: Record<string, LuckSwitch> = {
+    iamfeelinglucky: "on",
+    leavemealone: "off",
+};
+
+export const cheatCode = (label: string): LuckSwitch | null =>
+    CODES[label.toLowerCase().replace(/[^a-z]/g, "")] ?? null;
 
 export const clampInt = (value: number, min: number, max: number): number =>
     Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : min;
@@ -165,9 +185,9 @@ function applyLimit(rolled: number, line: DiceLine): DieResult {
         : { value: limited, dropped: false, clampedFrom: rolled };
 }
 
-export function rollLine(line: DiceLine): LineRoll {
+export function rollLine(line: DiceLine, lucky = false): LineRoll {
     const count = clampInt(line.count, 1, MAX_COUNT);
-    const dice: DieResult[] = Array.from({ length: count }, () => applyLimit(rollDie(line.sides), line));
+    const dice: DieResult[] = Array.from({ length: count }, () => applyLimit(rollDie(line.sides, lucky), line));
 
     // Option 1 picks the same dice either way — the extremes — and only the
     // treatment differs: a drop takes them out of the total, a reroll replaces
@@ -183,7 +203,7 @@ export function rollLine(line: DiceLine): LineRoll {
                 dice[index].dropped = true;
             } else {
                 const before = dice[index].value;
-                dice[index] = { ...applyLimit(rollDie(line.sides), line), rerolledFrom: before };
+                dice[index] = { ...applyLimit(rollDie(line.sides, lucky), line), rerolledFrom: before };
             }
         }
     }
