@@ -33,7 +33,7 @@ export function RaceStep({
 
         // Filter non-core if needed
         if (!showNonCore) {
-            all = all.filter(r => r.source === "Player's Handbook" || r.source === "Official");
+            all = all.filter(r => r.isCore);
         }
 
         return all.sort((a, b) => a.name.localeCompare(b.name));

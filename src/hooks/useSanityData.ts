@@ -276,6 +276,7 @@ export function useRaces(ruleset?: CharacterRuleset) {
         ),
         subraces,
         "source": coalesce(source, select(isHomebrew => "Homebrew", "Official")),
+        "isCore": coalesce(isCore, false),
         "edition": coalesce(edition, select(
             count(rulesets) > 1 => "Both",
             rulesets[0]->key.current == "srd-2014" => "2014",

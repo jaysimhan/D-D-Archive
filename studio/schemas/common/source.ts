@@ -22,6 +22,20 @@ export const sourceBookField = {
     description: 'Book or publisher this entry comes from, e.g. "Xanathar\'s Guide to Everything" or "Kobold Press". Leave blank for user homebrew.',
 }
 
+/** Core is a narrower cut than `source`, and deliberately independent of it: the
+ *  Player's Handbook line-up plus its long-standing subraces. An entry can be Official
+ *  and still non-core — Owlin, Plasmoid and Thri-kreen are all WotC-published but come
+ *  from setting books. The character creator's "non-core" toggle filters on this field;
+ *  `source` stays the Official/Unofficial/Homebrew provenance label. */
+export const isCoreField = {
+    name: 'isCore',
+    title: 'Core?',
+    type: 'boolean',
+    initialValue: false,
+    description: 'Part of the core line-up the character creator shows when "non-core" is switched off. Independent of Source — an Official entry from a setting book is still non-core.',
+    validation: (Rule: any) => Rule.required(),
+}
+
 export const editionField = {
     name: 'edition',
     title: 'Legacy Edition',

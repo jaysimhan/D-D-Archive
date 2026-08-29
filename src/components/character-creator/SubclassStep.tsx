@@ -4,6 +4,7 @@ import { CharacterRuleset, Class, Subclass } from "../../types/dnd-types";
 import { useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 import { ClampedText } from "../ui/clamped-text";
+import { isOfficial } from "../../utils/source-label";
 
 
 // Subclass Step
@@ -40,7 +41,7 @@ export function SubclassStep({
     const filteredSubclasses = useMemo(() => {
         return availableSubclasses.filter((subclass) => {
             const matchesSearch = subclass.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSource = showNonCore || subclass.source === "Official";
+            const matchesSource = showNonCore || isOfficial(subclass);
             return matchesSearch && matchesSource;
         });
     }, [availableSubclasses, searchTerm, showNonCore]);

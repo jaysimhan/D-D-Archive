@@ -73,7 +73,9 @@
     "complete:monk": "sanity exec migrations/complete-monk-from-2024.ts --with-user-token",
     "complete:monk:apply": "sanity exec migrations/complete-monk-from-2024.ts --with-user-token -- --apply",
     "split:credit": "sanity exec migrations/split-footer-credit-prefix.ts --with-user-token",
-    "split:credit:apply": "sanity exec migrations/split-footer-credit-prefix.ts --with-user-token -- --apply"
+    "split:credit:apply": "sanity exec migrations/split-footer-credit-prefix.ts --with-user-token -- --apply",
+    "set:core-ancestries": "sanity exec migrations/set-core-ancestries.ts --with-user-token",
+    "set:core-ancestries:apply": "sanity exec migrations/set-core-ancestries.ts --with-user-token -- --apply"
   },
   "dependencies": {
     "@sanity/icons": "^2.11.0",

@@ -1,4 +1,4 @@
-import { rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
+import { sourceField, sourceBookField, isCoreField, rulesetField, rulesetsField, isHomebrewField, versionNotesField } from './common/source'
 
 export default {
     name: 'species',
@@ -35,6 +35,9 @@ export default {
                 hotspot: true,
             },
         },
+        sourceField,
+        sourceBookField,
+        isCoreField,
         rulesetsField,
         rulesetField,
         isHomebrewField,

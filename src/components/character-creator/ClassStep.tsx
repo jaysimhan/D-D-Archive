@@ -5,6 +5,7 @@ import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 import { subclassLevelFor } from "../../utils/class-progression";
 import { ClampedText } from "../ui/clamped-text";
+import { isOfficial } from "../../utils/source-label";
 
 
 // Class Step with Search - Limited to Level 1-3
@@ -43,7 +44,7 @@ export function ClassStep({
 
         // Filter non-core if needed
         if (!showNonCore) {
-            classes = classes.filter(c => c.source === "Player's Handbook" || c.source === "Official");
+            classes = classes.filter(isOfficial);
         }
 
         // Filter by search term

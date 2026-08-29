@@ -1,4 +1,4 @@
-import { sourceField, sourceBookField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField } from './common/source'
+import { sourceField, sourceBookField, isCoreField, editionField, versionField, rulesetField, rulesetsField, isHomebrewField } from './common/source'
 
 export default {
     name: 'race',
@@ -38,6 +38,7 @@ export default {
         },
         sourceField,
         sourceBookField,
+        isCoreField,
         rulesetsField,
         isHomebrewField,
         editionField,
@@ -139,7 +140,11 @@ export default {
     preview: {
         select: {
             title: 'name',
-            subtitle: 'source',
+            source: 'source',
+            isCore: 'isCore',
+        },
+        prepare({ title, source, isCore }: { title: string; source?: string; isCore?: boolean }) {
+            return { title, subtitle: `${source || 'Unclassified'} | ${isCore ? 'Core' : 'Non-core'}` }
         },
     },
 }

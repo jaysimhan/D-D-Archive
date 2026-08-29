@@ -4,6 +4,7 @@ import { Background, CharacterRuleset } from "../../types/dnd-types";
 import { useBackgrounds } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 import { ClampedText } from "../ui/clamped-text";
+import { isOfficial } from "../../utils/source-label";
 
 // Background Step
 export function BackgroundStep({
@@ -25,7 +26,7 @@ export function BackgroundStep({
     const filteredBackgrounds = useMemo(() => {
         return allBackgrounds.filter((bg) => {
             const matchesSearch = bg.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSource = showNonCore || bg.source === "Official";
+            const matchesSource = showNonCore || isOfficial(bg);
             return matchesSearch && matchesSource;
         });
     }, [searchTerm, allBackgrounds, showNonCore]);

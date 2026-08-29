@@ -88,6 +88,9 @@ export interface Race {
   imageUrl?: string;
   source: Source;
   sourceBook?: string;
+  /** Core is narrower than `source` and independent of it: the PHB line-up plus its
+   *  long-standing subraces. An Official setting-book ancestry is still non-core. */
+  isCore?: boolean;
   edition: Edition;
   version: number;
   abilityScoreIncrease: Partial<AbilityScores>;

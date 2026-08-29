@@ -24,3 +24,13 @@ export function sourceBadgeColor(source?: string): string {
       return "bg-zinc-800 text-gray-400 border border-zinc-700";
   }
 }
+
+/**
+ * Class, background and subclass filtering still keys off provenance: their toggles keep
+ * only what Wizards of the Coast published. Ancestries have moved on to the explicit
+ * `isCore` flag instead, because "Official" is broader than "core" — it takes in every
+ * setting book. These three get the same treatment once their core lists are drawn up.
+ */
+export function isOfficial(entity: HasSource): boolean {
+  return entity.source === "Official";
+}
