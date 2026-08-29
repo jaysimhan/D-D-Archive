@@ -76,7 +76,7 @@ function AppearanceField() {
     const [dragging, setDragging] = useState(false);
     const [error, setError] = useState("");
 
-    const useImage = (file?: File) => {
+    const applyImage = (file?: File) => {
         if (!file) return;
         if (!file.type.startsWith("image/")) {
             setError("Choose or paste an image file.");
@@ -97,7 +97,7 @@ function AppearanceField() {
     };
 
     const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        useImage(event.target.files?.[0]);
+        applyImage(event.target.files?.[0]);
         // Allows choosing the same file again after it has been removed.
         event.target.value = "";
     };
@@ -105,7 +105,7 @@ function AppearanceField() {
     const onDrop = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setDragging(false);
-        useImage(Array.from(event.dataTransfer.files).find((file) => file.type.startsWith("image/")));
+        applyImage(Array.from(event.dataTransfer.files).find((file) => file.type.startsWith("image/")));
     };
 
     return (
@@ -130,7 +130,7 @@ function AppearanceField() {
                     ?.getAsFile();
                 if (file) {
                     event.preventDefault();
-                    useImage(file);
+                    applyImage(file);
                 }
             }}
             tabIndex={image ? 0 : undefined}

@@ -5,7 +5,7 @@ import path from 'path';
 // Helper to deduce duplicate items by ID
 function deduplicateFile(filePath: string, variableName: string) {
     const fullPath = path.resolve(filePath);
-    let content = fs.readFileSync(fullPath, 'utf8');
+    const content = fs.readFileSync(fullPath, 'utf8');
 
     // Regex to extract the array content
     // Matches: export const VARIABLE = [ ... ];

@@ -1009,7 +1009,7 @@ export const PDFDocument = ({ character }: { character: CharacterData }) => {
         const armor = character.equipment?.find(item => item.type === 'Armor');
         const hasShield = character.equipment?.some(item => item.name.toLowerCase().includes('shield'));
         let baseAC = 10;
-        let dexBonus = mods['DEX'];
+        const dexBonus = mods['DEX'];
 
         if (armor) {
             const name = armor.name.toLowerCase();
@@ -1095,7 +1095,7 @@ export const PDFDocument = ({ character }: { character: CharacterData }) => {
         character.selectedSpells?.filter(s => s.level === 0).slice(0, 3).forEach(spell => {
             const castingAbility = character.class?.spellcastingAbility || 'INT';
             const spellAtk = mods[castingAbility] + profBonus;
-            let range = spell.range;
+            const range = spell.range;
             let damage = '—';
             const spellName = spell.name.toLowerCase();
 

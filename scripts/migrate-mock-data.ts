@@ -44,7 +44,7 @@ function loadMockData(relativePath: string) {
     // 2. Transform "export const X = " to "exports.X = "
     // And strip type annotations like ": Spell[]" or ": Background[]"
     const transformedContent = content
-        .replace(/export const (\w+)\s*:?\s*[\w\[\]]*\s*=/g, 'exports.$1 =');
+        .replace(/export const (\w+)\s*:?\s*[\w[\]]*\s*=/g, 'exports.$1 =');
 
     const sandbox = { exports: {} as any };
     vm.createContext(sandbox);

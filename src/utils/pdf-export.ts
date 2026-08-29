@@ -395,7 +395,7 @@ export function exportCharacterToPDF(character: Partial<Character>) {
 
   // Save the PDF
   const fileName = `${character.name || "Character"}_Sheet.pdf`.replace(
-    /[^a-z0-9_\-\.]/gi,
+    /[^a-z0-9_.-]/gi,
     "_"
   );
   doc.save(fileName);
