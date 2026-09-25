@@ -3,8 +3,9 @@ import {
     X, Minus, Plus, Volume2, VolumeX, ScrollText,
     ChevronsDownUp, ChevronsUpDown, Sparkles, Clover,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { DiceGlyph, RollerGlyph } from "./DiceGlyphs";
+import { HoverEdgeHighlight, HoverSparkles } from "./HoverSparkles";
 import { DiceLineRow } from "./DiceLineRow";
 import { DiceRollLog } from "./DiceRollLog";
 import { NumberField } from "./DiceFields";
@@ -104,10 +105,13 @@ function useIsLargeScreen(breakpoint: number = 1410) {
 
 export function DiceRoller() {
     const isLargeScreen = useIsLargeScreen(1410);
+    const reduceMotion = useReducedMotion();
     const [stored] = useState(readStored);
 
     const [isOpen, setIsOpen] = useState(false);
+    const [isRollerHovered, setIsRollerHovered] = useState(false);
     const [isRolling, setIsRolling] = useState(false);
+    const isRollerAnimated = isRollerHovered && !reduceMotion;
 
     // Quick tray settings — the one-tap dice grid, unchanged in spirit.
     const [modifier, setModifier] = useState(() =>
@@ -351,9 +355,25 @@ export function DiceRoller() {
             {!isOpen && (
                 <motion.button
                     initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                    animate={isRollerAnimated ? {
+                        scale: 1.04,
+                        boxShadow: "0 0 3.5rem 0.5rem rgba(153, 0, 36, 0.28)",
+                        outlineColor: "rgba(255, 0, 60, 0.12)",
+                    } : {
+                        scale: 1,
+                        boxShadow: "0 0 0 0 rgba(153, 0, 36, 0)",
+                        outlineColor: "rgba(255, 0, 60, 0)",
+                    }}
+                    onHoverStart={() => setIsRollerHovered(true)}
+                    onHoverEnd={() => setIsRollerHovered(false)}
+                    onFocus={() => setIsRollerHovered(true)}
+                    onBlur={() => setIsRollerHovered(false)}
+                    whileTap={reduceMotion ? undefined : { scale: 1 }}
+                    transition={isRollerAnimated
+                        ? { type: "spring", bounce: 0.12, duration: 0.55 }
+                        : { ease: [0.33, 1, 0.68, 1], duration: 0.3 }}
                     onClick={() => setIsOpen(true)}
-                    className="fixed z-50 group hover:scale-110 transition-all"
+                    className="fixed z-50 rounded-full"
                     style={{
                         bottom: isLargeScreen ? '32px' : '16px',
                         ...(isLargeScreen
@@ -362,12 +382,25 @@ export function DiceRoller() {
                         ),
                         width: isLargeScreen ? '80px' : '64px',
                         height: isLargeScreen ? '80px' : '64px',
-                        filter: 'drop-shadow(0 20px 25px rgba(124, 51, 6, 0.5))'
+                        filter: 'drop-shadow(0 20px 25px rgba(124, 51, 6, 0.5))',
+                        outlineStyle: 'solid',
+                        outlineWidth: 2,
                     }}
                 >
-                    <div className="relative w-full h-full group-hover:rotate-12 transition-transform">
+                    <HoverSparkles active={isRollerAnimated} />
+                    <HoverEdgeHighlight active={isRollerAnimated} roundedClassName="rounded-full" />
+                    <motion.div
+                        className="relative z-20 w-full h-full"
+                        animate={isRollerAnimated ? {
+                            opacity: [1, 0.86, 1],
+                            scale: [1, 0.97, 1.04, 1],
+                        } : { opacity: 1, scale: 1 }}
+                        transition={isRollerAnimated
+                            ? { duration: 1.1, delay: 0.25, repeat: Infinity, repeatDelay: 1.6 }
+                            : { duration: 0.2 }}
+                    >
                         <RollerGlyph />
-                    </div>
+                    </motion.div>
                 </motion.button>
             )}
 

@@ -1,9 +1,66 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Swords, BookOpen, Flame, Crown, ScrollText } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useHomepage } from "../hooks/useSanityData";
 import { hasRecentSheet } from "../lib/character-storage";
 import SanityImage from "./SanityImage";
+import { HoverEdgeHighlight, HoverSparkles } from "./HoverSparkles";
+
+function AnimatedCreateCharacterButton() {
+  const [isHovered, setIsHovered] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const isAnimated = isHovered && !reduceMotion;
+
+  return (
+    <motion.div
+      className="relative z-0 inline-block rounded"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      animate={isAnimated ? {
+        scale: 1.04,
+        boxShadow: "0 0 3.5rem 0.5rem rgba(153, 0, 36, 0.28)",
+        outlineColor: "rgba(255, 0, 60, 0.12)",
+      } : {
+        scale: 1,
+        boxShadow: "0 0 0 0 rgba(153, 0, 36, 0)",
+        outlineColor: "rgba(255, 0, 60, 0)",
+      }}
+      whileTap={reduceMotion ? undefined : { scale: 1 }}
+      transition={isAnimated
+        ? { type: "spring", bounce: 0.12, duration: 0.55 }
+        : { ease: [0.33, 1, 0.68, 1], duration: 0.3 }}
+      style={{ outlineStyle: "solid", outlineWidth: 2 }}
+    >
+      <HoverSparkles active={isAnimated} />
+
+      <Link
+        to="/creator"
+        onFocus={() => setIsHovered(true)}
+        onBlur={() => setIsHovered(false)}
+        className="group relative block overflow-hidden rounded border-2 border-brand-500/50 bg-gradient-to-r from-brand-600 to-brand-800 px-6 py-4 shadow-lg shadow-brand-900/50 transition-shadow sm:px-10 sm:py-5"
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+        <div className="relative flex items-center justify-center gap-2 sm:gap-3">
+          <motion.span
+            className="inline-flex"
+            animate={isAnimated ? {
+              opacity: [1, 0.86, 1],
+              scale: [1, 0.97, 1.04, 1],
+            } : { opacity: 1, scale: 1 }}
+            transition={isAnimated
+              ? { duration: 1.1, delay: 0.25, repeat: Infinity, repeatDelay: 1.6 }
+              : { duration: 0.2 }}
+          >
+            <Swords className="w-5 h-5 sm:w-6 sm:h-6" />
+          </motion.span>
+          <span className="font-serif tracking-wider text-base sm:text-lg">Create Character</span>
+        </div>
+      </Link>
+      <HoverEdgeHighlight active={isAnimated} />
+    </motion.div>
+  );
+}
 
 
 
@@ -139,15 +196,8 @@ export function LandingPage() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center w-full sm:w-auto">
-              <Link to="/creator" className="group relative px-6 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-brand-600 to-brand-800 rounded overflow-hidden border-2 border-brand-500/50 shadow-lg shadow-brand-900/50 hover:shadow-brand-900/80 transition-all hover:scale-105">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
-                <div className="relative flex items-center justify-center gap-2 sm:gap-3">
-                  <Swords className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="font-serif tracking-wider text-base sm:text-lg">Create Character</span>
-                </div>
-              </Link>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-6 justify-center w-full sm:w-auto">
+              <AnimatedCreateCharacterButton />
 
               <Link to="/library" className="group relative px-6 sm:px-10 py-4 sm:py-5 bg-black/40 backdrop-blur-sm rounded overflow-hidden border-2 border-brand-700/30 hover:border-brand-600/50 transition-all hover:scale-105">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-500/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
