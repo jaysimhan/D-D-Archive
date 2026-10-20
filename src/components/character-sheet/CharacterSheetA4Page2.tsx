@@ -408,15 +408,21 @@ const INVENTORY_COLUMNS: { label: string; grow: number; search?: boolean }[] = [
     { label: "Amount", grow: 156.375 },
 ];
 
-const INVENTORY_ROWS = 8;
+const INVENTORY_ROWS = 20;
 
 const MAGIC_ITEM_ROWS = 4;
 
-function InventoryDivider() {
+/** The item rows are set smaller than the header, their dividers with them. */
+const INVENTORY_ROW_DIVIDER = 36;
+
+function InventoryDivider({ height = 44.197 }: { height?: number }) {
     return (
-        <div className="relative flex h-[44.197px] w-0 shrink-0 items-center justify-center">
+        <div
+            className="relative flex w-0 shrink-0 items-center justify-center"
+            style={{ height: `${height}px` }}
+        >
             <div className="flex-none rotate-90">
-                <div className="relative h-0 w-[44.197px]">
+                <div className="relative h-0" style={{ width: `${height}px` }}>
                     <div className="absolute" style={{ inset: "-2px 0 0 0" }}>
                         <img
                             alt=""
@@ -712,7 +718,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                     {Array.from({ length: INVENTORY_ROWS }, (_, row) => (
                                         <div
                                             key={row}
-                                            className="relative flex w-full shrink-0 items-start gap-[26.812px] rounded-[26.812px] px-[53.625px] py-[26.812px]"
+                                            className="relative flex w-full shrink-0 items-start gap-[26.812px] rounded-[26.812px] px-[53.625px] py-[10px]"
                                         >
                                             {INVENTORY_COLUMNS.map((column, i) => {
                                                 const filled = inventory[row];
@@ -721,7 +727,9 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                                     : (filled?.amount ?? "");
                                                 return (
                                                     <div key={column.label} className="contents">
-                                                        {i > 0 && <InventoryDivider />}
+                                                        {i > 0 && (
+                                                            <InventoryDivider height={INVENTORY_ROW_DIVIDER} />
+                                                        )}
                                                         {column.search ? (
                                                             <AutocompleteField
                                                                 ariaLabel={`${column.label}, row ${row + 1}`}
@@ -734,8 +742,8 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                                                     minWidth: 0,
                                                                 }}
                                                                 sizer={column.label}
-                                                                sizerClassName="whitespace-nowrap text-[33.516px] font-medium not-italic leading-[normal] text-black"
-                                                                className="absolute inset-0 h-full w-full text-left text-[33.516px] font-medium not-italic leading-[normal] text-black"
+                                                                sizerClassName="whitespace-nowrap text-[28px] font-medium not-italic leading-[normal] text-black"
+                                                                className="absolute inset-0 h-full w-full text-left text-[28px] font-medium not-italic leading-[normal] text-black"
                                                             />
                                                         ) : (
                                                             <span
@@ -748,7 +756,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                                             >
                                                                 <span
                                                                     aria-hidden
-                                                                    className="block whitespace-nowrap text-[33.516px] font-medium not-italic leading-[normal] text-black opacity-0"
+                                                                    className="block whitespace-nowrap text-[28px] font-medium not-italic leading-[normal] text-black opacity-0"
                                                                 >
                                                                     {column.label}
                                                                 </span>
@@ -756,7 +764,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                                                     type="text"
                                                                     aria-label={`${column.label}, row ${row + 1}`}
                                                                     defaultValue={value}
-                                                                    className="absolute inset-0 h-full w-full text-left text-[33.516px] font-medium not-italic leading-[normal] text-black"
+                                                                    className="absolute inset-0 h-full w-full text-left text-[28px] font-medium not-italic leading-[normal] text-black"
                                                                 />
                                                             </span>
                                                         )}
@@ -772,7 +780,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
 
                     <WritingPanel
                         borderColor="#000000"
-                        height={2108}
+                        height={1760}
                         label="Backstory"
                         headerClassName="w-[487.454px] pl-[7px] pr-[39.159px] py-[19.58px]"
                         icon={<Icon src={asset("backstory")} w={62.739} h={60.749} />}
