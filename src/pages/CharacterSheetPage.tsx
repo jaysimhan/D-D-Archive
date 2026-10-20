@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { Code2, Copy, Download, Edit, Redo2, Save, Undo2, RefreshCw, KeyRound, Lock, Pencil } from "lucide-react";
+import { ChevronDown, Code2, Copy, Download, Edit, FileText, Redo2, Save, Undo2, RefreshCw, KeyRound, Lock, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
     CharacterSheetA4,
@@ -21,8 +21,12 @@ import { useSheetSpells } from "../hooks/useSheetSuggestions";
 import { useSharedSheetSession } from "../hooks/useSharedSheetSession";
 import { SheetScope, SheetSessionContext } from "../components/character-sheet/sheet-state";
 import { SheetPinDialog } from "../components/character-sheet/SheetPinDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 
 const toolbarButton = "inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+// Secondary actions are icons only; the title is the hover label, aria-label the spoken one.
+const iconButton = toolbarButton.replace("px-4", "px-2.5");
+const menuItem = "cursor-pointer items-start gap-3 px-3 py-2 text-white focus:bg-white/10 focus:text-white";
 
 /**
  * html2canvas and jsPDF are fetched at the click rather than shipped with the
@@ -240,11 +244,13 @@ export function CharacterSheetPage() {
                 onClose={closePin} onSubmit={submitPin} />}
             <div className="character-sheet-toolbar mx-auto mb-3 flex w-full max-w-[1700px] flex-wrap justify-end gap-2 px-3 sm:mb-4 sm:gap-3 sm:px-0">
                 {canEdit && <>
-                <button type="button" onClick={() => { session.undo(); setSaveMessage(""); }} disabled={!canEdit || !session.canUndo} className={toolbarButton}>
-                    <Undo2 className="size-4" aria-hidden /> Undo
+                <button type="button" onClick={() => { session.undo(); setSaveMessage(""); }} disabled={!canEdit || !session.canUndo}
+                    className={iconButton} title="Undo" aria-label="Undo">
+                    <Undo2 className="size-4" aria-hidden />
                 </button>
-                <button type="button" onClick={() => { session.redo(); setSaveMessage(""); }} disabled={!canEdit || !session.canRedo} className={toolbarButton}>
-                    <Redo2 className="size-4" aria-hidden /> Redo
+                <button type="button" onClick={() => { session.redo(); setSaveMessage(""); }} disabled={!canEdit || !session.canRedo}
+                    className={iconButton} title="Redo" aria-label="Redo">
+                    <Redo2 className="size-4" aria-hidden />
                 </button>
                 <button type="button" onClick={() => void save()} disabled={!canEdit || saving} className={toolbarButton}>
                     <Save className="size-4" aria-hidden /> {saving ? "Saving…" : "Save"}
@@ -267,8 +273,9 @@ export function CharacterSheetPage() {
                     </button>
                 )}
                 {canEdit && remote?.canManagePin && (
-                    <button type="button" onClick={() => openPin("pin")} disabled={saving} className={toolbarButton}>
-                        <KeyRound className="size-4" aria-hidden /> {remote.hasPin ? "Change PIN" : "Set PIN"}
+                    <button type="button" onClick={() => openPin("pin")} disabled={saving} className={iconButton}
+                        title={remote.hasPin ? "Change PIN" : "Set PIN"} aria-label={remote.hasPin ? "Change PIN" : "Set PIN"}>
+                        <KeyRound className="size-4" aria-hidden />
                     </button>
                 )}
                 <button type="button" onClick={() => void copyLink()} disabled={saving} className={toolbarButton}>
@@ -284,29 +291,39 @@ export function CharacterSheetPage() {
                         Edit Character
                     </button>
                 )}
-                <button
-                    type="button"
-                    onClick={() => void downloadHtml()}
-                    disabled={Boolean(downloading)}
-                    title="A single file that opens in any browser, with every blank still editable"
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
-                    <Code2 className="size-4" aria-hidden />
-                    {downloading === "html" ? "Preparing HTML…" : "Download HTML"}
-                </button>
-                <button
-                    type="button"
-                    onClick={() => void downloadSheet()}
-                    disabled={Boolean(downloading)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
-                    <Download className="size-4" aria-hidden />
-                    {downloading === "pdf" ? "Preparing PDF…" : "Download PDF"}
-                </button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild disabled={Boolean(downloading)}>
+                        <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                        >
+                            <Download className="size-4" aria-hidden />
+                            {downloading === "pdf" ? "Preparing PDF…" : downloading === "html" ? "Preparing HTML…" : "Download"}
+                            <ChevronDown className="size-4" aria-hidden />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64 border-zinc-700 bg-zinc-900 text-white">
+                        <DropdownMenuItem className={menuItem} onSelect={() => void downloadSheet()}>
+                            <FileText className="mt-0.5 size-4 text-zinc-300" aria-hidden />
+                            <span className="flex flex-col">
+                                <span className="font-semibold">PDF</span>
+                                <span className="text-xs text-zinc-400">Print-ready A4 pages</span>
+                            </span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className={menuItem} onSelect={() => void downloadHtml()}>
+                            <Code2 className="mt-0.5 size-4 text-zinc-300" aria-hidden />
+                            <span className="flex flex-col">
+                                <span className="font-semibold">HTML</span>
+                                <span className="text-xs text-zinc-400">One file that opens in any browser, with every blank still editable</span>
+                            </span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 {remote && (
-                    <button type="button" onClick={() => void reloadSaved()} disabled={saving} className={toolbarButton}
-                        title="Replace this browser’s draft with the latest saved sheet">
-                        <RefreshCw className="size-4" aria-hidden /> {canEdit ? "Reload saved sheet" : "Refresh sheet"}
+                    <button type="button" onClick={() => void reloadSaved()} disabled={saving} className={iconButton}
+                        title={canEdit ? "Reload saved sheet (replaces this browser’s draft)" : "Refresh sheet"}
+                        aria-label={canEdit ? "Reload saved sheet" : "Refresh sheet"}>
+                        <RefreshCw className="size-4" aria-hidden />
                     </button>
                 )}
                 {failure && (
