@@ -2238,7 +2238,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                         aria-label="Character name"
                                         value={characterName}
                                         onChange={(event) => setCharacterName(event.target.value)}
-                                        className="relative min-h-[1px] w-full flex-[1_0_0] text-[32.268px] font-medium not-italic leading-[normal] text-black"
+                                        className="relative mt-[16px] min-h-[1px] w-full flex-[1_0_0] text-[50px] font-bold not-italic leading-[1.15] text-black"
                                     />
                                 </div>
                             </div>
