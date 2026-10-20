@@ -1,4 +1,4 @@
-import { decodeSheet, type SheetSnapshot } from "./sheet-session";
+import { decodeSheet, type SheetSnapshot } from "./sheet-session.js";
 
 export const SHARED_SHEET_ID = /^[a-f0-9]{32}$/;
 export const MAX_SHARED_SHEET_BYTES = 3_000_000;

@@ -2,12 +2,12 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { gzipSync, gunzipSync } from "node:zlib";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createClient } from "@sanity/client";
-import { decodeSheet, type SheetSnapshot } from "../src/lib/sheet-session";
-import { MAX_SHARED_SHEET_BYTES, SHARED_SHEET_ID } from "../src/lib/shared-sheets";
+import { decodeSheet, type SheetSnapshot } from "../src/lib/sheet-session.js";
+import { MAX_SHARED_SHEET_BYTES, SHARED_SHEET_ID } from "../src/lib/shared-sheets.js";
 import {
     ACCESS_PREFIX, EDIT_SECONDS, editorCookieName, hasGrant, HttpError, makeAccess,
     matchesPin, requirePin, unlockWithPin, type SheetAccess, type AccessRepository,
-} from "./sheet-pin";
+} from "./sheet-pin.js";
 
 const OWNER_COOKIE = "dnd_sheet_owner";
 const ID_PREFIX = "sharedSheet.";
