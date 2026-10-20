@@ -20,7 +20,7 @@ export class SharedSheetError extends Error {
     constructor(message: string, readonly status: number) { super(message); }
 }
 
-async function request(init: RequestInit, id?: string, action?: "unlock" | "pin"): Promise<SharedSheet> {
+async function request(init: RequestInit, id?: string, action?: "unlock" | "pin" | "lock"): Promise<SharedSheet> {
     const response = await fetch(`/api/sheets${id ? `?id=${encodeURIComponent(id)}` : ""}${action ? `&action=${action}` : ""}`, {
         ...init, credentials: "same-origin", cache: "no-store",
     });
@@ -79,4 +79,10 @@ export async function submitSheetPin(id: string, pin: string, action: "unlock" |
         return verified;
     }
     return result;
+}
+
+/** Give up this browser's PIN unlock; the creator's own access is unaffected. */
+export async function lockSharedSheet(id: string) {
+    sharedSheetPath(id);
+    return request({ method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }, id, "lock");
 }

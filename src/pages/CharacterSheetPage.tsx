@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { Code2, Copy, Download, Edit, Redo2, Save, Undo2, RefreshCw, KeyRound } from "lucide-react";
+import { Code2, Copy, Download, Edit, Redo2, Save, Undo2, RefreshCw, KeyRound, Lock, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
     CharacterSheetA4,
@@ -47,7 +47,7 @@ const isStaleBuild = (cause: unknown) =>
 export function CharacterSheetPage() {
     const navigate = useNavigate();
     const {
-        opened, session, remote, canEdit, saving, save, copyLink, reloadSaved,
+        opened, session, remote, canEdit, saving, save, copyLink, reloadSaved, exitEditing, resumeEditing,
         sessionError, saveMessage, setSaveMessage, loading, loadFailed,
         pinMode, pinError, pinBusy, submitPin, openPin, closePin,
     } = useSharedSheetSession();
@@ -249,13 +249,24 @@ export function CharacterSheetPage() {
                 <button type="button" onClick={() => void save()} disabled={!canEdit || saving} className={toolbarButton}>
                     <Save className="size-4" aria-hidden /> {saving ? "Saving…" : "Save"}
                 </button>
+                {remote && (
+                    <button type="button" onClick={() => void exitEditing()} disabled={saving} className={toolbarButton}
+                        title={session.dirty ? "Save your changes and switch to view only" : "Switch to view only"}>
+                        <Lock className="size-4" aria-hidden /> Exit editing
+                    </button>
+                )}
                 </>}
-                {!canEdit && remote?.hasPin && (
+                {!canEdit && remote?.canEdit && (
+                    <button type="button" onClick={() => void resumeEditing()} className={toolbarButton}>
+                        <Pencil className="size-4" aria-hidden /> Edit
+                    </button>
+                )}
+                {!canEdit && !remote?.canEdit && remote?.hasPin && (
                     <button type="button" onClick={() => openPin("unlock")} className={toolbarButton}>
                         <KeyRound className="size-4" aria-hidden /> Unlock editing
                     </button>
                 )}
-                {remote?.canManagePin && (
+                {canEdit && remote?.canManagePin && (
                     <button type="button" onClick={() => openPin("pin")} disabled={saving} className={toolbarButton}>
                         <KeyRound className="size-4" aria-hidden /> {remote.hasPin ? "Change PIN" : "Set PIN"}
                     </button>

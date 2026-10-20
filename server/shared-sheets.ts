@@ -6,7 +6,7 @@ import { decodeSheet, type SheetSnapshot } from "../src/lib/sheet-session.js";
 import { MAX_SHARED_SHEET_BYTES, SHARED_SHEET_ID } from "../src/lib/shared-sheets.js";
 import {
     ACCESS_PREFIX, EDIT_SECONDS, editorCookieName, hasGrant, HttpError, makeAccess,
-    matchesPin, requirePin, unlockWithPin, type SheetAccess, type AccessRepository,
+    matchesPin, requirePin, revokeGrant, unlockWithPin, type SheetAccess, type AccessRepository,
 } from "./sheet-pin.js";
 
 const OWNER_COOKIE = "dnd_sheet_owner";
@@ -119,7 +119,7 @@ export function createSheetHandler(repository: () => SheetRepository) {
             const params = new URL(req.url || "/", "http://localhost").searchParams;
             const id = params.get("id");
             const action = params.get("action");
-            if (action && !["unlock", "pin"].includes(action)) throw new HttpError(400, "Unknown sheet action.");
+            if (action && !["unlock", "pin", "lock"].includes(action)) throw new HttpError(400, "Unknown sheet action.");
             if (action && method !== "POST") throw new HttpError(405, "Use POST for this action.");
             if (id !== null && !SHARED_SHEET_ID.test(id)) throw new HttpError(400, "Invalid sheet link.");
             const token = cookieToken(req);
@@ -162,6 +162,12 @@ export function createSheetHandler(repository: () => SheetRepository) {
             if (action) {
                 const record = await store.get(recordId);
                 if (!record || record._type !== "sharedSheet") throw new HttpError(404, "This shared sheet was not found.");
+                if (action === "lock") {
+                    if (editToken) await revokeGrant(store, id, editToken);
+                    setCookie(editorCookieName(id), "", 0, "/api/sheets");
+                    send(200, publicRecord(record, token, await store.getAccess(`${ACCESS_PREFIX}${id}`)));
+                    return;
+                }
                 const pin = requirePin(body.pin);
                 if (action === "unlock") {
                     const editor = await unlockWithPin(store, id, pin);

@@ -5,7 +5,7 @@ import {
     readLocalSheet, readSharedSheet, readSheetDraft, SheetSession, writeLocalSheet,
 } from "../lib/sheet-session";
 import {
-    fetchSharedSheet, saveSharedSheet, SharedSheetError, SHARED_SHEET_ID,
+    fetchSharedSheet, lockSharedSheet, saveSharedSheet, SharedSheetError, SHARED_SHEET_ID,
     sharedSheetPath, submitSheetPin, type SharedSheet,
 } from "../lib/shared-sheets";
 import { collectCharacterSpells } from "../utils/character-spells";
@@ -38,11 +38,25 @@ function openLocal(): OpenedSheet {
     }
 }
 
+// "Exit editing" is remembered per sheet, so a reload stays view-only.
+const viewOnlyKey = (id: string) => `dnd-sheet-view-only:${id}`;
+const viewOnlySheets = new Set<string>(); // Used when browser storage is unavailable.
+function isViewOnly(id: string) {
+    try { return localStorage.getItem(viewOnlyKey(id)) === "1"; } catch { return viewOnlySheets.has(id); }
+}
+function setViewOnly(id: string, viewOnly: boolean) {
+    if (viewOnly) viewOnlySheets.add(id); else viewOnlySheets.delete(id);
+    try {
+        if (viewOnly) localStorage.setItem(viewOnlyKey(id), "1"); else localStorage.removeItem(viewOnlyKey(id));
+    } catch { /* The in-memory flag still applies to this tab. */ }
+}
+
 function openRemote(remote: SharedSheet, restoreDraft: boolean): OpenedSheet {
-    const draft = restoreDraft && remote.canEdit ? readSheetDraft(remote.id) : null;
+    const editing = remote.canEdit && !isViewOnly(remote.id);
+    const draft = restoreDraft && editing ? readSheetDraft(remote.id) : null;
     const hasDraft = draft?.dirty && draft.remote?.id === remote.id;
     const snapshot = hasDraft ? draft.snapshot : remote.snapshot;
-    const session = new SheetSession(snapshot.character, snapshot.fields, true, !remote.canEdit);
+    const session = new SheetSession(snapshot.character, snapshot.fields, true, !editing);
     session.markSaved(remote.snapshot.fields);
     // Preserve the draft's base revision: an older tab must not overwrite newer data.
     const stale = Boolean(hasDraft && draft.remote?.revision !== remote.revision);
@@ -223,6 +237,7 @@ export function useSharedSheetSession() {
                 const updated = await submitSheetPin(remote.id, pin, pinMode);
                 if (!mounted.current || latest.current.remote?.id !== updated.id) return;
                 if (pinMode === "unlock") {
+                    setViewOnly(updated.id, false);
                     setOpened(openRemote(updated, true));
                     setSaveMessage("Editing unlocked. Save your changes to update the shared sheet.");
                 } else {
@@ -241,6 +256,44 @@ export function useSharedSheetSession() {
         } finally {
             pinRequest.current = false;
             if (mounted.current) setPinBusy(false);
+        }
+    };
+    const exitEditing = async () => {
+        if (!remote || !canEdit || savingRef.current) return;
+        // Unsaved edits are saved first; a failed save keeps the editor open.
+        if (session.dirty && !await save()) return;
+        const current = latest.current.remote;
+        if (!current || !mounted.current) return;
+        setViewOnly(current.id, true);
+        setSessionError("");
+        if (current.canManagePin) {
+            // The creator's browser keeps its rights; it only hides editing.
+            setOpened(openRemote(current, false));
+            setSaveMessage("View only. Use Edit to make changes again.");
+            return;
+        }
+        try {
+            const updated = await lockSharedSheet(current.id);
+            if (!mounted.current || latest.current.remote?.id !== updated.id) return;
+            setOpened(openRemote(updated, false));
+            setSaveMessage("View only. Enter the PIN to edit again.");
+        } catch (error) {
+            setOpened(openRemote(current, false));
+            setSessionError(error instanceof Error ? error.message : "Could not end editing access.");
+        }
+    };
+    const resumeEditing = async () => {
+        const id = latest.current.remote?.id;
+        if (!id) return;
+        setSessionError("");
+        try {
+            const updated = await fetchSharedSheet(id);
+            if (!mounted.current || latest.current.remote?.id !== id) return;
+            setViewOnly(id, false);
+            setOpened(openRemote(updated, true));
+            setSaveMessage(updated.canEdit ? "Editing enabled." : "View only. Enter the PIN to edit.");
+        } catch (error) {
+            setSessionError(error instanceof Error ? error.message : "Could not load the sheet.");
         }
     };
     const reloadSaved = useCallback(async () => {
@@ -298,7 +351,7 @@ export function useSharedSheetSession() {
     }, [remote?.id]);
 
     return {
-        opened, session, remote, canEdit, saving, save, copyLink, reloadSaved,
+        opened, session, remote, canEdit, saving, save, copyLink, reloadSaved, exitEditing, resumeEditing,
         sessionError, saveMessage, setSaveMessage,
         pinMode, pinError, pinBusy, submitPin,
         openPin: (mode: "unlock" | "pin") => { setPinError(""); setPinMode(mode); },

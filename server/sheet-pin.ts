@@ -56,6 +56,20 @@ export function hasGrant(access: SheetAccess | undefined, token?: string) {
 }
 const conflict = (error: unknown) => (error as { statusCode?: number })?.statusCode === 409;
 
+/** Exit editing: this browser's PIN unlock stops working; others keep theirs. */
+export async function revokeGrant(store: AccessRepository, id: string, token: string): Promise<void> {
+    const hash = tokenHash(token);
+    for (let retry = 0; retry < 8; retry++) {
+        const current = await store.getAccess(`${ACCESS_PREFIX}${id}`);
+        if (!current?.grants.some((grant) => grant.split(":")[0] === hash)) return;
+        try {
+            await store.writeAccess({ ...current, grants: current.grants.filter((grant) => grant.split(":")[0] !== hash) });
+            return;
+        } catch (error) { if (!conflict(error)) throw error; }
+    }
+    throw new HttpError(429, "Too many requests. Please try again shortly.");
+}
+
 /** Reserve every attempt atomically, including across concurrent API instances. */
 export async function unlockWithPin(store: AccessRepository, id: string, pin: string): Promise<string> {
     requirePin(pin);

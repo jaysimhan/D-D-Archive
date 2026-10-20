@@ -37,6 +37,10 @@ creates the link. Each character has its own link and its own PIN.
 - **PIN editors:** entering the correct PIN on any browser grants that browser a
   30-day HttpOnly editing cookie for that one sheet. Its saves update the shared
   sheet for everyone. Changing the PIN revokes every earlier PIN unlock.
+- **Exit editing:** saves any unsaved changes, then switches to view only. For a
+  PIN editor it also revokes that browser's unlock on the server, so editing
+  again needs the PIN. The creator's browser keeps its rights and remembers the
+  view-only choice per sheet; **Edit** switches back without a PIN.
 
 The PIN is never put in the link or browser storage. It is stored as a salted
 scrypt hash in a `drafts.sharedSheetAccess.<id>` document, which Sanity does not
