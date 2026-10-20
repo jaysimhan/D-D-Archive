@@ -9,6 +9,7 @@ import monster from './monster'
 import trait from './trait'
 import { proficiencyRule, spellGrant } from './objects/rules'
 import homepage from './homepage'
+import sharedSheet from './sharedSheet'
 
 // New imports
 import ruleset from './ruleset'
@@ -29,6 +30,7 @@ export const schemaTypes = [
     item,
     trait,
     homepage,
+    sharedSheet,
     // Objects
     proficiencyRule,
     spellGrant,

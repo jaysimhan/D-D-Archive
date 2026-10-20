@@ -1,3 +1,4 @@
+import { useSheetState } from "./sheet-state";
 import {
     memo,
     useCallback,
@@ -18,6 +19,7 @@ import {
     type ProficiencyLevel,
 } from "./markers";
 import { useEditableAutoValue } from "./use-editable-auto-value";
+import { NotesTextArea, formatEntryNames, noteMap } from "./entry-notes";
 import { spellSlotsByLevel, type SpellSlots } from "./spell-slots";
 import { finalAbilityScores } from "../../utils/ability-scores";
 import { calculateArmorClass } from "../../utils/armor-class";
@@ -198,7 +200,7 @@ function Blank({
     /** Styling for the typed text when it should differ from the sizer's. */
     valueClassName?: string;
 }) {
-    const [typed, setTyped] = useState("");
+    const [typed, setTyped] = useSheetState(`blank:${label}`, "");
     const text = value ?? typed;
     const [inputRef, fitStyle] = useFitText<HTMLInputElement>(text);
 
@@ -233,7 +235,7 @@ function Blank({
  * Same shrink-to-fit behaviour, but no wrapper element, so it keeps whatever
  * flex and sizing classes the surrounding layout puts on it.
  */
-function FitInput({
+export function FitInput({
     label,
     className,
     inputMode,
@@ -248,7 +250,7 @@ function FitInput({
     onChange?: (value: string) => void;
     readOnly?: boolean;
 }) {
-    const [internal, setInternal] = useState("");
+    const [internal, setInternal] = useSheetState(`fit:${label}`, "");
     const text = value ?? internal;
     const [inputRef, fitStyle] = useFitText<HTMLInputElement>(text);
     return (
@@ -335,7 +337,7 @@ function DerivedValue({
 
 /** Three individually toggleable death-save markers on their connecting line. */
 function DeathSaveTrack({ kind }: { kind: "success" | "failure" }) {
-    const [marked, setMarked] = useState([false, false, false]);
+    const [marked, setMarked] = useSheetState(`death:${kind}`, [false, false, false]);
     const success = kind === "success";
     // Both columns share the marker box and track height even though the two
     // shapes differ in size, so a circle and the diamond beside it land on the
@@ -514,7 +516,7 @@ export function SuggestInput({
      */
     renderOption?: (option: string) => ReactNode;
 }) {
-    const [internal, setInternal] = useState(initialValue);
+    const [internal, setInternal] = useSheetState(`suggest:${label}`, initialValue);
     const current = value ?? internal;
     const [inputRef, fitStyle] = useFitText<HTMLInputElement>(current);
     const setCurrent = (next: string) => {
@@ -671,7 +673,7 @@ export function SuggestTextArea({
     className: string;
     initialValue?: string;
 }) {
-    const [value, setValue] = useState(initialValue);
+    const [value, setValue] = useSheetState(`suggest-text:${label}`, initialValue);
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(-1);
     const [caretLine, setCaretLine] = useState(0);
@@ -974,7 +976,7 @@ function AbilityScoreGrid({
     onModifierChange: (modifier: number | null) => void;
     initialScore?: number;
 }) {
-    const [score, setScore] = useState(initialScore === undefined ? "" : `${initialScore}`);
+    const [score, setScore] = useSheetState(`score:${abilityKey}`, initialScore === undefined ? "" : `${initialScore}`);
     const parsed = Number.parseInt(score, 10);
     const modifier = Number.isNaN(parsed) ? "" : formatModifier(abilityModifier(parsed));
 
@@ -1044,7 +1046,7 @@ function SkillRow({
     /** Reports the ring, for a skill another page derives a value from. */
     onLevelChange?: (level: ProficiencyLevel) => void;
 }) {
-    const [proficiencyLevel, setProficiencyLevel] = useState<ProficiencyLevel>(initialLevel);
+    const [proficiencyLevel, setProficiencyLevel] = useSheetState<ProficiencyLevel>(`skill:${abilityKey}:${skill.label}`, initialLevel);
     const total =
         proficiencyLevel > 0 && modifier !== null && proficiencyBonus !== null
             ? formatModifier(modifier + proficiencyBonus * proficiencyLevel)
@@ -1099,7 +1101,7 @@ function AbilityCard({
     const { abbr, rest, skills } = ability;
     const name = `${abbr}${rest}`.toUpperCase();
     const abilityKey = abbr.toUpperCase();
-    const [modifier, setModifier] = useState<number | null>(
+    const [modifier, setModifier] = useSheetState<number | null>(`modifier:${abilityKey}`,
         initialScore === undefined ? null : abilityModifier(initialScore),
     );
     return (
@@ -1374,24 +1376,25 @@ const ACTION_COLUMNS = [
 
 const ACTION_ROW_COUNT = 6;
 
+/**
+ * The features reached by a level, by name only — each one's description opens
+ * over the panel on hover; see entry-notes.tsx.
+ */
 function formatFeatures(
     features: { level: number; name: string; description?: string }[] | undefined,
     maximumLevel: number,
 ) {
-    return (features ?? [])
-        .filter((feature) => !feature.level || feature.level <= maximumLevel)
-        .sort((a, b) => (a.level ?? 0) - (b.level ?? 0))
-        .map(
-            (feature) =>
-                `${feature.name}${feature.description ? `: ${feature.description}` : ""}`,
-        )
-        .join("\n\n");
+    return formatEntryNames(
+        (features ?? [])
+            .filter((feature) => !feature.level || feature.level <= maximumLevel)
+            .sort((a, b) => (a.level ?? 0) - (b.level ?? 0)),
+    );
 }
 
 type ActionValue = { action?: string; attack?: string; damage?: string; range?: string };
 
 function ActionRow({ index, initial }: { index: number; initial?: ActionValue }) {
-    const [values, setValues] = useState([
+    const [values, setValues] = useSheetState(`action:${index}`, [
         initial?.action ?? "",
         initial?.attack ?? "",
         initial?.damage ?? "",
@@ -1503,19 +1506,19 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     onPerceptionModifierChange?: (modifier: number | null) => void;
 }) {
     const suggestions = useSheetSuggestions();
-    const [characterName, setCharacterName] = useState(initialCharacter?.name ?? "");
-    const [characterClass, setCharacterClass] = useState(initialCharacter?.class?.name ?? "");
-    const [characterSubclass, setCharacterSubclass] = useState(
+    const [characterName, setCharacterName] = useSheetState("characterName", initialCharacter?.name ?? "");
+    const [characterClass, setCharacterClass] = useSheetState("characterClass", initialCharacter?.class?.name ?? "");
+    const [characterSubclass, setCharacterSubclass] = useSheetState("characterSubclass", 
         initialCharacter?.subclass?.name ?? "",
     );
-    const [species, setSpecies] = useState(initialCharacter?.race?.name ?? "");
-    const [background, setBackground] = useState(initialCharacter?.background?.name ?? "");
-    const [characterLevel, setCharacterLevel] = useState(
+    const [species, setSpecies] = useSheetState("species", initialCharacter?.race?.name ?? "");
+    const [background, setBackground] = useSheetState("background", initialCharacter?.background?.name ?? "");
+    const [characterLevel, setCharacterLevel] = useSheetState("characterLevel", 
         initialCharacter ? `${initialCharacter.level}` : "",
     );
-    const [abilityModifiers, setAbilityModifiers] = useState<
+    const [abilityModifiers, setAbilityModifiers] = useSheetState<
         Partial<Record<string, number | null>>
-    >(() => {
+    >("abilityModifiers", () => {
         if (!initialCharacter) return {};
         const scores = finalAbilityScores(initialCharacter);
         return Object.fromEntries(
@@ -1527,20 +1530,20 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     });
     // Every other skill ring is the row's own business; Perception's is read
     // back because page 2's Passive Perception is derived from it.
-    const [perceptionLevel, setPerceptionLevel] = useState<ProficiencyLevel>(() => {
+    const [perceptionLevel, setPerceptionLevel] = useSheetState<ProficiencyLevel>("perceptionLevel", () => {
         const perception = initialCharacter?.proficiencies?.skills.find(
             (skill) => skill.name.trim().toLowerCase() === "perception",
         );
         return perception?.expertise ? 2 : perception?.proficient ? 1 : 0;
     });
-    const [hitDieOverride, setHitDieOverride] = useState<{
+    const [hitDieOverride, setHitDieOverride] = useSheetState<{
         source: string;
         value: string;
-    } | null>(null);
-    const [pointOverride, setPointOverride] = useState<{
+    } | null>("hitDieOverride", null);
+    const [pointOverride, setPointOverride] = useSheetState<{
         source: string;
         value: string;
-    } | null>(null);
+    } | null>("pointOverride", null);
 
     // Preserve the order in which classes were entered: any remainder from an
     // uneven level split belongs to the earliest classes, especially the first.
@@ -1649,7 +1652,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         Number.isInteger(totalLevel) && totalLevel > 0
             ? formatModifier(proficiencyBonusAt(totalLevel))
             : "";
-    const [proficiencyBonus, setProficiencyBonus] = useEditableAutoValue(
+    const [proficiencyBonus, setProficiencyBonus] = useEditableAutoValue("proficiencyBonus", 
         automaticProficiencyBonus,
     );
     const parsedProficiencyBonus = parseProficiencyBonus(proficiencyBonus);
@@ -1680,7 +1683,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         parsedProficiencyBonus !== null && typeof skillSaveModifier === "number"
             ? `${8 + parsedProficiencyBonus + skillSaveModifier}`
             : "";
-    const [skillSaveDc, setSkillSaveDc] = useEditableAutoValue(automaticSkillSaveDc);
+    const [skillSaveDc, setSkillSaveDc] = useEditableAutoValue("skillSaveDc", automaticSkillSaveDc);
 
     const selectedSpecies = suggestions.species.find(
         (item) => item.name.toLowerCase() === species.trim().toLowerCase(),
@@ -1690,7 +1693,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     const automaticSpeed = typeof selectedSpecies?.speed === "number"
         ? `${walkingSpeed(selectedSpecies.speed, monkLevel, initialCharacter?.equipment ?? [])}`
         : "";
-    const [speed, setSpeed] = useEditableAutoValue(automaticSpeed);
+    const [speed, setSpeed] = useEditableAutoValue("speed", automaticSpeed);
 
     // The spellbook pages head every page with where the character's magic
     // comes from and the numbers it sets, so report both upward as they are
@@ -1874,8 +1877,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
             Number.isInteger(totalLevel) ? totalLevel : 1,
         ))
         : "";
-    const [armorClass, setArmorClass] = useEditableAutoValue(automaticArmorClass);
-    const [initiative, setInitiative] = useEditableAutoValue(automaticInitiative);
+    const [armorClass, setArmorClass] = useEditableAutoValue("armorClass", automaticArmorClass);
+    const [initiative, setInitiative] = useEditableAutoValue("initiative", automaticInitiative);
 
     const constitutionModifier = abilityModifiers.CON ?? 0;
     const automaticMaximumHitPoints = useMemo(() => {
@@ -1894,7 +1897,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         );
         return maximum > 0 ? `${maximum}` : "";
     }, [selectedClasses, hitDieClassLevels, constitutionModifier]);
-    const [maximumHitPoints, setMaximumHitPoints] = useEditableAutoValue(
+    const [maximumHitPoints, setMaximumHitPoints] = useEditableAutoValue("maximumHitPoints", 
         automaticMaximumHitPoints,
     );
 
@@ -1910,7 +1913,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         initialCharacter?.metamagicChoices?.length
             ? `Metamagic: ${initialCharacter.metamagicChoices.join(", ")}`
             : "",
-    ].filter(Boolean).join("\n\n");
+    ].filter(Boolean).join("\n");
     const automaticClassFeatures = selectedClasses.length
         ? selectedClasses
               .map((item, index) =>
@@ -1924,7 +1927,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                   ),
               )
               .filter(Boolean)
-              .join("\n\n")
+              .join("\n")
         : creatorClassFeatures;
     const creatorSubclassFeatures =
         initialCharacter?.subclass &&
@@ -1950,13 +1953,26 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                   );
               })
               .filter(Boolean)
-              .join("\n\n")
+              .join("\n")
         : creatorSubclassFeatures;
-    const [classFeatures, setClassFeatures] = useEditableAutoValue(
+    const [classFeatures, setClassFeatures] = useEditableAutoValue("classFeatures", 
         automaticClassFeatures,
     );
-    const [subclassFeatures, setSubclassFeatures] = useEditableAutoValue(
+    const [subclassFeatures, setSubclassFeatures] = useEditableAutoValue("subclassFeatures", 
         automaticSubclassFeatures,
+    );
+    // Every description the panels could name, whichever level reached it.
+    const classFeatureNotes = useMemo(
+        () =>
+            noteMap(
+                initialCharacter?.class?.features,
+                ...selectedClasses.map((item) => item.features),
+            ),
+        [initialCharacter?.class?.features, selectedClasses],
+    );
+    const subclassFeatureNotes = noteMap(
+        initialCharacter?.subclass?.features,
+        ...selectedSubclassDocs.map((item) => item.features),
     );
 
     const spellAttackBonus =
@@ -2574,20 +2590,18 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                 </div>
                                             </div>
 
-                                            <textarea
-                                                aria-label="Class features"
+                                            <NotesTextArea
+                                                label="Class features"
                                                 value={classFeatures}
-                                                onChange={(event) =>
-                                                    setClassFeatures(event.target.value)
-                                                }
+                                                onChange={setClassFeatures}
+                                                notes={classFeatureNotes}
                                                 className="absolute bottom-[23.768px] left-[47.535px] top-[23.768px] w-[calc(50%_-_59.419px)] text-[29.71px] font-medium not-italic leading-[normal] text-black"
                                             />
-                                            <textarea
-                                                aria-label="Subclass features"
+                                            <NotesTextArea
+                                                label="Subclass features"
                                                 value={subclassFeatures}
-                                                onChange={(event) =>
-                                                    setSubclassFeatures(event.target.value)
-                                                }
+                                                onChange={setSubclassFeatures}
+                                                notes={subclassFeatureNotes}
                                                 className="absolute bottom-[220px] right-[47.535px] top-[23.768px] w-[calc(50%_-_59.419px)] text-[29.71px] font-medium not-italic leading-[normal] text-black"
                                             />
 

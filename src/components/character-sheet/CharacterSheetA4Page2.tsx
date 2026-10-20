@@ -1,14 +1,23 @@
-import { memo, useCallback, useEffect, useState, type ReactNode } from "react";
+import { SheetInput, SheetTextArea } from "./sheet-state";
+import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSheetSuggestions, type SheetSuggestions } from "../../hooks/useSheetSuggestions";
 import type { CharacterData } from "../../types/character-creator";
 import { AutocompleteField } from "./AutocompleteField";
 import {
+    FitInput,
     SHEET_HEIGHT,
     SHEET_WIDTH,
     SuggestTextArea,
     appendList,
     splitList,
 } from "./CharacterSheetA4";
+import {
+    NotesTextArea,
+    entryNames,
+    formatEntryNames,
+    noteMap,
+    type NoteMap,
+} from "./entry-notes";
 import { AttunementMarker } from "./markers";
 import { useEditableAutoValue } from "./use-editable-auto-value";
 import { featGrantsSpells, spellGrantingSources } from "./spellcasting-sources";
@@ -75,26 +84,6 @@ function characterPerceptionModifier(character: CharacterData) {
         abilityModifier(character.abilityScores.WIS) +
         proficiencyBonus(character.level) * rank
     );
-}
-
-/** "Name: description", one blank line apart, as page 1 writes its features. */
-function formatEntries(entries: { name?: string; description?: string }[]) {
-    return entries
-        .filter((entry) => entry.name?.trim())
-        .map((entry) => `${entry.name}${entry.description ? `: ${entry.description}` : ""}`)
-        .join("\n\n");
-}
-
-/**
- * The names out of a panel written as formatEntries writes it — one entry per
- * blank line, "Name: description". Whatever else the player types is left
- * alone; only the leading name of each entry is read back.
- */
-function entryNames(text: string) {
-    return text
-        .split(/\n\s*\n/)
-        .map((entry) => entry.trim().split("\n")[0].split(":")[0].trim())
-        .filter(Boolean);
 }
 
 /**
@@ -198,6 +187,9 @@ function PanelHeader({
     );
 }
 
+const PANEL_TEXT =
+    "relative min-h-[1px] w-full flex-[1_0_0] rounded-[23.893px] bg-white px-[28px] py-[22px] text-[30px] font-medium not-italic leading-[1.35] text-black";
+
 /**
  * A titled panel with a large blank underneath — Allies & Org., Symbols,
  * Species Traits, Character Feats, Treasure, Backstory.
@@ -215,6 +207,7 @@ function WritingPanel({
     search,
     onTextChange,
     exportField,
+    notes,
 }: {
     borderColor: string;
     icon: ReactNode;
@@ -237,8 +230,13 @@ function WritingPanel({
     search?: { options: { name: string; description?: string }[]; placeholder: string };
     /** Reports what the panel holds, however it was written. */
     onTextChange?: (text: string) => void;
+    /**
+     * Descriptions by name. A panel given these lists names only, and each
+     * opens its description on hover or long press.
+     */
+    notes?: NoteMap;
 }) {
-    const [text, setText] = useEditableAutoValue(value ?? "");
+    const [text, setText] = useEditableAutoValue(label, value ?? "");
 
     // Reported from an effect rather than the handlers, so a pick from the
     // search field is carried as well as a keystroke.
@@ -249,12 +247,11 @@ function WritingPanel({
         const option = search?.options.find((item) => item.name === name);
         if (!option) return;
         const written = text.trimEnd();
-        const already = written
-            .split("\n")
-            .some((line) => line.trim().toLowerCase().startsWith(name.toLowerCase()));
+        const already = entryNames(written).some(
+            (entry) => entry.toLowerCase() === name.toLowerCase(),
+        );
         if (already) return;
-        const entry = formatEntries([option]);
-        setText(written ? `${written}\n\n${entry}` : entry);
+        setText(written ? `${written}\n${option.name}` : option.name);
     };
 
     return (
@@ -287,12 +284,22 @@ function WritingPanel({
                             />
                         </div>
                     )}
-                    <textarea
-                        aria-label={label}
-                        value={text}
-                        onChange={(event) => setText(event.target.value)}
-                        className="relative min-h-[1px] w-full flex-[1_0_0] rounded-[23.893px] bg-white px-[28px] py-[22px] text-[30px] font-medium not-italic leading-[1.35] text-black"
-                    />
+                    {notes ? (
+                        <NotesTextArea
+                            label={label}
+                            value={text}
+                            onChange={setText}
+                            notes={notes}
+                            className={PANEL_TEXT}
+                        />
+                    ) : (
+                        <SheetTextArea
+                            aria-label={label}
+                            value={text}
+                            onChange={(event) => setText(event.target.value)}
+                            className={PANEL_TEXT}
+                        />
+                    )}
                 </div>
             </div>
         </div>
@@ -349,12 +356,12 @@ function StatPanel({
                             className="text-[34px] font-medium not-italic leading-[1.3] text-black"
                         />
                     ) : multiline ? (
-                        <textarea
+                        <SheetTextArea
                             aria-label={label}
                             className="relative h-full w-full text-[34px] font-medium not-italic leading-[1.3] text-black"
                         />
                     ) : (
-                        <input
+                        <SheetInput
                             type="text"
                             aria-label={label}
                             className="relative h-full w-full text-center text-[72.483px] font-medium not-italic leading-[normal] text-black"
@@ -374,11 +381,13 @@ function CurrencyPanel({ label }: { label: string }) {
             style={{ borderColor: YELLOW }}
         >
             <div className="relative flex h-full min-w-[1px] flex-[1_0_0] items-center gap-[36.059px] overflow-clip rounded-[24.181px] bg-[#f8f8f8] py-[18.135px] pl-[18.135px] pr-[30.226px]">
-                <div className="relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-center rounded-[13.522px] border-2 border-solid border-black bg-white px-[22.537px] py-[18.029px]">
-                    <input
-                        type="text"
-                        aria-label={`${label} coins`}
-                        className="relative h-full w-full text-center text-[105.172px] font-medium not-italic leading-[normal] text-black"
+                {/* Sized to the box the column leaves each coin, not Figma's
+                    105px — that drew taller than the blank and lost the top
+                    and bottom of every digit. Shrinks further for a long sum. */}
+                <div className="relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-center rounded-[13.522px] border-2 border-solid border-black bg-white px-[22.537px] py-[4px]">
+                    <FitInput
+                        label={`${label} coins`}
+                        className="relative h-full w-full text-center text-[60px] font-medium not-italic leading-[normal] text-black"
                     />
                 </div>
                 <p className="relative shrink-0 whitespace-nowrap text-[45.074px] font-normal not-italic leading-[normal] text-black">
@@ -445,7 +454,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     onFeatsChange?: (feats: string) => void;
 } = {}) {
     const suggestions = useSheetSuggestions();
-    const characterFeats = formatEntries(initialCharacter?.feats ?? []);
+    const characterFeats = formatEntryNames(initialCharacter?.feats ?? []);
 
     // Held as well as reported: Observant raises passive Perception,
     // and the panel is where this page learns the character has taken them.
@@ -477,10 +486,21 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
         perception === null
             ? ""
             : `${10 + perception + passivePerceptionFeatBonus(entryNames(feats))}`;
-    const [passiveValue, setPassiveValue] = useEditableAutoValue(passive);
+    const [passiveValue, setPassiveValue] = useEditableAutoValue("passive", passive);
 
-    const traits = formatEntries(
-        speciesTraits({ species, options: suggestions.species, character: initialCharacter }),
+    const traitEntries = speciesTraits({
+        species,
+        options: suggestions.species,
+        character: initialCharacter,
+    });
+    const traits = formatEntryNames(traitEntries);
+    const traitNotes = noteMap(
+        traitEntries,
+        ...suggestions.species.map((option) => option.traits),
+    );
+    const featNotes = useMemo(
+        () => noteMap(initialCharacter?.feats, suggestions.feats),
+        [initialCharacter?.feats, suggestions.feats],
     );
     const inventory = inventoryRows(initialCharacter).slice(0, INVENTORY_ROWS);
     const magicItems = (initialCharacter?.magicItems ?? [])
@@ -594,6 +614,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         height={551.64}
                         label="Species Traits"
                         value={traits}
+                        notes={traitNotes}
                         outerClassName="p-[12.547px] rounded-[22.795px]"
                         innerClassName="p-[19.245px] rounded-[15.396px]"
                         icon={<Icon src={asset("species-traits")} w={28.245} h={37.66} />}
@@ -604,6 +625,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         label="Character Feats"
                         exportField="feats"
                         value={characterFeats}
+                        notes={featNotes}
                         onTextChange={reportFeats}
                         search={{ options: suggestions.feats, placeholder: "Search feats…" }}
                         outerClassName="p-[12.547px] rounded-[19.717px]"
@@ -730,7 +752,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                                                 >
                                                                     {column.label}
                                                                 </span>
-                                                                <input
+                                                                <SheetInput
                                                                     type="text"
                                                                     aria-label={`${column.label}, row ${row + 1}`}
                                                                     defaultValue={value}

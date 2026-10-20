@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "target": "ES2022",
+        "types": ["node"],
+        "composite": false
+    },
+    "include": ["server", "api", "scripts/qa-shared-sheets.ts"],
+    "references": []
+}

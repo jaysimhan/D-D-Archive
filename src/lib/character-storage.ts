@@ -4,6 +4,7 @@ import {
     type CreationStep,
 } from "../types/character-creator";
 import type { AbilityScores, Spell, SpellSchool } from "../types/dnd-types";
+import { SHEET_DRAFT_KEY } from "./sheet-session";
 
 /**
  * The creator used to hold the whole character in React state, so a refresh —
@@ -225,6 +226,8 @@ export function clearDraft(): void {
 
 export function saveCompletedSheet(character: CharacterData): void {
     writeJson(SHEET_KEY, { completedAt: Date.now(), character });
+    // Finishing the creator explicitly starts a new sheet session.
+    removeKey(SHEET_DRAFT_KEY);
 }
 
 /**

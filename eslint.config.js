@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 export default defineConfig(
   globalIgnores(["dist", "studio"]),
   {
-    files: ["{src,scripts}/**/*.{ts,tsx}", "vite.config.ts"],
+    files: ["{src,scripts,server,api}/**/*.{ts,tsx}", "vite.config.ts"],
     extends: [js.configs.recommended, tseslint.configs.recommended],
     rules: {
       // Match the project's TypeScript settings while legacy code is migrated.
@@ -34,7 +34,7 @@ export default defineConfig(
     },
   },
   {
-    files: ["scripts/**/*.ts", "vite.config.ts"],
+    files: ["{scripts,server,api}/**/*.ts", "vite.config.ts"],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,

@@ -258,16 +258,16 @@
         return out.join(" / ");
     }
 
-    /**
-     * The names out of a panel written "Name: description", one entry per blank
-     * line — how the sheet fills its feats and traits panels in.
-     */
+    /** The name a panel line stands for; "Name: notes" is read by its name. */
+    function lineName(line) {
+        return String(line || "").split(":")[0].trim();
+    }
+
+    /** The names out of a panel, one per line — how the sheet fills them in. */
     function entryNames(text) {
         return String(text || "")
-            .split(/\n\s*\n/)
-            .map(function (entry) {
-                return entry.trim().split("\n")[0].split(":")[0].trim();
-            })
+            .split("\n")
+            .map(lineName)
             .filter(Boolean);
     }
 
@@ -458,9 +458,66 @@
             Math.max(0, Math.min(DETAILS_HEIGHT, openBelow ? below : above)) + "px";
     }
 
+    /* -------------------------------------------------------------- */
+    /* Long press                                                      */
+    /* -------------------------------------------------------------- */
+
+    /** How long a finger rests before a card opens, and how far it may drift. */
+    var LONG_PRESS_MS = 450;
+    var LONG_PRESS_SLOP = 10;
+
+    /**
+     * A touch screen's hover: a finger held still on the element calls
+     * onPress with where it rests, and the next touch anywhere calls onRelease.
+     * A press that drifts, or that the browser takes over to scroll, is let go.
+     */
+    function onLongPress(element, onPress, onRelease) {
+        var timer = null;
+        var start = null;
+        var fired = false;
+
+        function cancel() {
+            window.clearTimeout(timer);
+            timer = null;
+            start = null;
+        }
+
+        element.addEventListener("pointerdown", function (event) {
+            fired = false;
+            if (event.pointerType === "mouse") return;
+            cancel();
+            var point = { clientX: event.clientX, clientY: event.clientY };
+            start = { x: event.clientX, y: event.clientY };
+            timer = window.setTimeout(function () {
+                fired = true;
+                start = null;
+                if (onPress(point) === false) return;
+                window.setTimeout(function () {
+                    document.addEventListener("pointerdown", onRelease, { once: true });
+                }, 0);
+            }, LONG_PRESS_MS);
+        });
+        element.addEventListener("pointermove", function (event) {
+            if (!start) return;
+            if (
+                Math.abs(event.clientX - start.x) > LONG_PRESS_SLOP ||
+                Math.abs(event.clientY - start.y) > LONG_PRESS_SLOP
+            ) {
+                cancel();
+            }
+        });
+        element.addEventListener("pointerup", cancel);
+        element.addEventListener("pointercancel", cancel);
+        // Android opens the text menu on the same press; the card answers it.
+        element.addEventListener("contextmenu", function (event) {
+            if (fired) event.preventDefault();
+        });
+    }
+
     /**
      * A row's own spell card, held back while the blank is being typed into so
-     * the card never sits over the value being written.
+     * the card never sits over the value being written — unless a long press
+     * asked for it.
      */
     function wireSpellCards() {
         all("[data-cs-card]").forEach(function (card) {
@@ -468,21 +525,35 @@
             var field = anchor.querySelector("input");
             var editing = false;
             var hovered = false;
+            var pressed = false;
 
             function sync() {
-                var open = hovered && !editing;
+                var open = pressed || (hovered && !editing);
                 card.hidden = !open;
                 if (open) placeCard(anchor, card);
             }
 
-            anchor.addEventListener("mouseenter", function () {
+            anchor.addEventListener("pointerenter", function (event) {
+                if (event.pointerType !== "mouse") return;
                 hovered = true;
                 sync();
             });
-            anchor.addEventListener("mouseleave", function () {
+            anchor.addEventListener("pointerleave", function (event) {
+                if (event.pointerType !== "mouse") return;
                 hovered = false;
                 sync();
             });
+            onLongPress(
+                anchor,
+                function () {
+                    pressed = true;
+                    sync();
+                },
+                function () {
+                    pressed = false;
+                    sync();
+                },
+            );
             if (field) {
                 field.addEventListener("focus", function () {
                     editing = true;
@@ -493,6 +564,191 @@
                     sync();
                 });
             }
+        });
+    }
+
+    /* -------------------------------------------------------------- */
+    /* Feature, trait and feat cards                                   */
+    /* -------------------------------------------------------------- */
+
+    var NOTE_CARD_HEIGHT = 620;
+    var NOTE_CARD_WIDTH = 760;
+    var NOTE_CARD_GAP = 10;
+
+    var MIRRORED_PROPERTIES = [
+        "boxSizing",
+        "paddingTop",
+        "paddingRight",
+        "paddingBottom",
+        "paddingLeft",
+        "borderTopWidth",
+        "borderRightWidth",
+        "borderBottomWidth",
+        "borderLeftWidth",
+        "borderStyle",
+        "fontFamily",
+        "fontSize",
+        "fontWeight",
+        "fontStyle",
+        "lineHeight",
+        "letterSpacing",
+        "textTransform",
+    ];
+
+    /**
+     * The line under a point, found by laying the panel's text out again in an
+     * unseen copy of it — the only way to know where a wrapped line falls. The
+     * same measure as entry-notes.tsx on the site.
+     */
+    function lineAtPoint(field, clientY) {
+        var page = field.closest(".cs-root");
+        if (!page) return null;
+        var pageBox = page.getBoundingClientRect();
+        var scale = page.offsetWidth ? pageBox.width / page.offsetWidth : 0;
+        if (!scale) return null;
+
+        var fieldBox = field.getBoundingClientRect();
+        var y = (clientY - fieldBox.top) / scale + field.scrollTop;
+
+        var style = window.getComputedStyle(field);
+        var mirror = document.createElement("div");
+        MIRRORED_PROPERTIES.forEach(function (property) {
+            mirror.style[property] = style[property];
+        });
+        mirror.style.position = "absolute";
+        mirror.style.visibility = "hidden";
+        mirror.style.left = "-99999px";
+        mirror.style.top = "0";
+        mirror.style.whiteSpace = "pre-wrap";
+        mirror.style.overflowWrap = "break-word";
+        mirror.style.width = field.offsetWidth + "px";
+
+        var lines = field.value.split("\n");
+        var rows = lines.map(function (line) {
+            var row = document.createElement("div");
+            row.textContent = line || "\u200b";
+            mirror.appendChild(row);
+            return row;
+        });
+        document.body.appendChild(mirror);
+
+        var hit = null;
+        for (var index = 0; index < rows.length; index++) {
+            var row = rows[index];
+            if (y >= row.offsetTop && y < row.offsetTop + row.offsetHeight) {
+                if (lineName(lines[index])) {
+                    var fieldTop = (fieldBox.top - pageBox.top) / scale - field.scrollTop;
+                    hit = {
+                        line: lines[index],
+                        top: fieldTop + row.offsetTop,
+                        bottom: fieldTop + row.offsetTop + row.offsetHeight,
+                        left: (fieldBox.left - pageBox.left) / scale,
+                    };
+                }
+                break;
+            }
+        }
+        document.body.removeChild(mirror);
+        return hit;
+    }
+
+    /** Below the line unless above buys more room, and never past the page. */
+    function placeNoteCard(card, hit, page) {
+        var below = page.offsetHeight - hit.bottom - NOTE_CARD_GAP - PAGE_MARGIN;
+        var above = hit.top - NOTE_CARD_GAP - PAGE_MARGIN;
+        var openBelow = below >= NOTE_CARD_HEIGHT || below >= above;
+        card.style.left =
+            Math.max(
+                PAGE_MARGIN,
+                Math.min(hit.left, page.offsetWidth - NOTE_CARD_WIDTH - PAGE_MARGIN),
+            ) + "px";
+        card.style.top = openBelow ? hit.bottom + NOTE_CARD_GAP + "px" : "";
+        card.style.bottom = openBelow ? "" : page.offsetHeight - hit.top + NOTE_CARD_GAP + "px";
+        card.style.maxHeight =
+            Math.max(0, Math.min(NOTE_CARD_HEIGHT, openBelow ? below : above)) + "px";
+    }
+
+    /**
+     * The Class & Subclass Features, Species Traits and Feats panels list
+     * names; each carries its descriptions as `data-cs-notes`, and the line
+     * under the pointer — or under a held finger — opens its own.
+     */
+    function wireNoteCards() {
+        if (!data.noteCard) return;
+        var template = document.createElement("div");
+        template.innerHTML = data.noteCard;
+        template = template.firstElementChild;
+        if (!template) return;
+
+        all("textarea[data-cs-notes]").forEach(function (field) {
+            var notes = {};
+            try {
+                notes = JSON.parse(field.getAttribute("data-cs-notes")) || {};
+            } catch (cause) {
+                return;
+            }
+            var page = field.closest(".cs-root");
+            if (!page) return;
+
+            var card = null;
+            var shownTop = null;
+            var pressed = false;
+            var editing = false;
+
+            function close() {
+                if (card && card.parentNode) card.parentNode.removeChild(card);
+                card = null;
+                shownTop = null;
+            }
+
+            function openAt(clientY) {
+                var hit = lineAtPoint(field, clientY);
+                var name = hit ? lineName(hit.line) : "";
+                var description = name ? notes[name.toLowerCase()] : "";
+                if (!description) {
+                    close();
+                    return false;
+                }
+                if (card && shownTop === hit.top) return true;
+                close();
+                card = template.cloneNode(true);
+                card.querySelector("[data-cs-note-name]").textContent = name;
+                card.querySelector("[data-cs-note-description]").textContent = description;
+                placeNoteCard(card, hit, page);
+                page.appendChild(card);
+                shownTop = hit.top;
+                return true;
+            }
+
+            field.addEventListener("pointermove", function (event) {
+                if (event.pointerType !== "mouse" || pressed) return;
+                if (editing) close();
+                else openAt(event.clientY);
+            });
+            field.addEventListener("pointerleave", function (event) {
+                if (event.pointerType === "mouse" && !pressed) close();
+            });
+            field.addEventListener("scroll", function () {
+                if (!pressed) close();
+            });
+            field.addEventListener("focus", function () {
+                editing = true;
+                if (!pressed) close();
+            });
+            field.addEventListener("blur", function () {
+                editing = false;
+            });
+            onLongPress(
+                field,
+                function (point) {
+                    pressed = openAt(point.clientY);
+                    return pressed;
+                },
+                function () {
+                    pressed = false;
+                    close();
+                },
+            );
         });
     }
 
@@ -513,6 +769,7 @@
     fitPages();
     fitAllFields();
     wireSpellCards();
+    wireNoteCards();
     recompute();
 
     // A webfont landing after first paint changes every measurement.

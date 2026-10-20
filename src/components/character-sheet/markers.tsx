@@ -1,3 +1,4 @@
+import { useSheetState } from "./sheet-state";
 import { useState, type ReactNode } from "react";
 import { useEditableAutoValue } from "./use-editable-auto-value";
 
@@ -79,7 +80,7 @@ export function ProfRing({
     onLevelChange?: (level: ProficiencyLevel) => void;
 }) {
     const { src, allowExpertise } = PROF_RING_VARIANTS[variant];
-    const [internalLevel, setInternalLevel] = useState<ProficiencyLevel>(0);
+    const [internalLevel, setInternalLevel] = useSheetState<ProficiencyLevel>(`ring:${label}`, 0);
     const currentLevel = level ?? internalLevel;
 
     const toggle = () => {
@@ -176,7 +177,7 @@ export function AttunementMarker({
     label: string;
     initialAttuned?: boolean;
 }) {
-    const [attuned, setAttuned] = useState(initialAttuned);
+    const [attuned, setAttuned] = useSheetState(`attuned:${label}`, initialAttuned);
     return (
         <button
             type="button"
@@ -225,7 +226,7 @@ const MARKER_LABELS: Record<MarkerName, string> = {
 
 /** A spell marker whose automatic value can still be changed by hand. */
 export function SpellMarker({ name, automatic }: { name: MarkerName; automatic: boolean }) {
-    const [selectedValue, setSelectedValue] = useEditableAutoValue(String(automatic));
+    const [selectedValue, setSelectedValue] = useEditableAutoValue(`marker:${name}`, String(automatic));
     const selected = selectedValue === "true";
     const label = MARKER_LABELS[name];
     const selectedAsset =
@@ -257,7 +258,7 @@ export function SpellMarker({ name, automatic }: { name: MarkerName; automatic: 
 
 /** The prepared/in-use circle, initially selected for spells from the creator list. */
 export function PreparedMarker({ automatic, row }: { automatic: boolean; row: string }) {
-    const [selectedValue, setSelectedValue] = useEditableAutoValue(String(automatic));
+    const [selectedValue, setSelectedValue] = useEditableAutoValue(`prepared:${row}`, String(automatic));
     const selected = selectedValue === "true";
 
     return (

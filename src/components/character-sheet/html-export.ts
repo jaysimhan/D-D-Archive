@@ -30,6 +30,7 @@ import type { SheetSpell } from "../../hooks/useSheetSuggestions";
 import { SHEET_HEIGHT, SHEET_WIDTH } from "./CharacterSheetA4";
 import { PASSIVE_PERCEPTION_FEATS } from "./CharacterSheetA4Page2";
 import { SpellDetails } from "./CharacterSheetA4Page3";
+import { NoteCard } from "./entry-notes";
 import { MARKER_VARIANTS } from "./markers";
 import { removeScreenOnlyControls } from "./pdf-fields";
 
@@ -110,6 +111,18 @@ function harvestSpellCards(spells: SheetSpell[]): Map<string, Element> {
 }
 
 /**
+ * One feature/trait/feat card, empty, for the runtime to fill in with whichever
+ * line is hovered — the panels' descriptions already travel on the panels as
+ * `data-cs-notes`.
+ */
+function harvestNoteCard(): string {
+    return renderToMarkup((render) => {
+        const card = render(createElement(NoteCard, { name: "", description: "" }));
+        return card?.outerHTML ?? "";
+    });
+}
+
+/**
  * Writes each field's value into the markup, so the file opens on the sheet as
  * it stood rather than on a blank one.
  *
@@ -144,6 +157,9 @@ function bakeFieldValues(live: Element, clone: Element) {
 function removeSearchAffordances(root: Element) {
     removeScreenOnlyControls(root);
     root.querySelectorAll('[role="listbox"]').forEach((menu) => menu.remove());
+    // A feature's card the pointer happened to be resting on; the runtime
+    // opens its own.
+    root.querySelectorAll("[data-cs-note-card]").forEach((card) => card.remove());
     root.querySelectorAll('[role="combobox"]').forEach((field) => {
         field.removeAttribute("role");
         field.removeAttribute("aria-expanded");
@@ -390,6 +406,7 @@ export async function downloadSheetHtml({ pages, spells, title }: HtmlExportOpti
         spells.filter((spell) => written.has(spell.name.trim().toLowerCase())),
     );
     const markers = harvestMarkers();
+    const noteCard = harvestNoteCard();
 
     const clones = roots.map((root) => {
         const clone = root.cloneNode(true) as Element;
@@ -429,6 +446,7 @@ export async function downloadSheetHtml({ pages, spells, title }: HtmlExportOpti
                 states.map((state) => ({ ...state, html: assets.rewrite(state.html) })),
             ]),
         ),
+        noteCard,
         passivePerceptionFeats: PASSIVE_PERCEPTION_FEATS,
         sheetWidth: SHEET_WIDTH,
     };

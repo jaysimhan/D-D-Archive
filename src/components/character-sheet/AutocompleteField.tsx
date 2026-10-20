@@ -1,3 +1,4 @@
+import { useSheetState } from "./sheet-state";
 import { useState, useRef, useEffect, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useMenuPlacement } from "./useMenuPlacement";
 
@@ -45,7 +46,7 @@ export function AutocompleteField({
     /** For a field that adds to something else and is then ready for the next. */
     clearOnSelect?: boolean;
 }) {
-    const [value, setValue] = useState(defaultValue);
+    const [value, setValue] = useSheetState(`autocomplete:${ariaLabel}`, defaultValue);
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const wrapperRef = useRef<HTMLDivElement>(null);

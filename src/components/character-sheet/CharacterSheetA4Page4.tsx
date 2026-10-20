@@ -1,3 +1,4 @@
+import { SheetTextArea, useSheetState } from "./sheet-state";
 import { useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from "react";
 import { ImagePlus, Trash2, Upload } from "lucide-react";
 import type { Spell } from "../../types/dnd-types";
@@ -53,7 +54,7 @@ function ProsePanel({
                         </p>
                     </div>
                     {children ?? (
-                        <textarea
+                        <SheetTextArea
                             aria-label={label}
                             className="relative min-h-[1px] w-full flex-[1_0_0] rounded-[23.88px] bg-white px-[28px] py-[22px] text-[30px] font-medium not-italic leading-[1.35] text-black"
                         />
@@ -71,8 +72,8 @@ function ProsePanel({
  */
 function AppearanceField() {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [text, setText] = useState("");
-    const [image, setImage] = useState<string>();
+    const [appearance, setAppearance] = useSheetState("appearance", { text: "", image: "" });
+    const { text, image } = appearance;
     const [dragging, setDragging] = useState(false);
     const [error, setError] = useState("");
 
@@ -88,8 +89,7 @@ function AppearanceField() {
             if (typeof reader.result !== "string") return;
             // Appearance is intentionally either prose or a picture. Replacing
             // prose with a picture clears it instead of keeping hidden text.
-            setText("");
-            setImage(reader.result);
+            setAppearance({ text: "", image: reader.result });
             setError("");
         };
         reader.onerror = () => setError("That image could not be read. Please try another.");
@@ -146,7 +146,7 @@ function AppearanceField() {
                 <textarea
                     aria-label="Appearance"
                     value={text}
-                    onChange={(event) => setText(event.target.value)}
+                    onChange={(event) => setAppearance({ text: event.target.value, image: "" })}
                     data-cs-export-padding-top="22px"
                     className="absolute inset-0 size-full bg-white px-[28px] pb-[22px] pt-[82px] text-[30px] font-medium not-italic leading-[1.35] text-black"
                 />
@@ -177,7 +177,7 @@ function AppearanceField() {
                     <button
                         type="button"
                         onClick={() => {
-                            setImage(undefined);
+                            setAppearance({ text: "", image: "" });
                             setError("");
                         }}
                         className="inline-flex items-center gap-[9px] rounded-[12px] border-[2px] border-red-300 bg-white/95 px-[16px] py-[10px] text-[22px] font-semibold leading-none text-red-700 shadow-sm"

@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && tsc -p tsconfig.server.json && vite build",
     "qa:character-spells": "tsx scripts/qa-character-spells.ts",
+    "qa:sheet-session": "node --import tsx scripts/qa-sheet-session.ts",
+    "qa:shared-sheets": "node --import tsx scripts/qa-shared-sheets.ts",
+    "qa:shared-sheets-live": "node --import tsx scripts/qa-shared-sheets-live.ts",
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview"
   },

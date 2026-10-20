@@ -1,3 +1,4 @@
+import { SheetScope } from "./sheet-state";
 import {
     createContext,
     memo,
@@ -24,6 +25,7 @@ import {
     type SpellcastingSummary,
 } from "./CharacterSheetA4";
 import { PreparedMarker, SpellMarker } from "./markers";
+import { useDismissOnNextPointer, useLongPress } from "./entry-notes";
 import { useEditableAutoValue } from "./use-editable-auto-value";
 import { useMenuPlacement } from "./useMenuPlacement";
 import "./character-sheet.css";
@@ -260,7 +262,7 @@ function LabelledTile({
     autoValue?: string;
     options?: string[];
 }) {
-    const [value, setValue] = useEditableAutoValue(autoValue);
+    const [value, setValue] = useEditableAutoValue(label, autoValue);
     const fieldClass = `font-medium not-italic leading-[normal] text-black ${fieldClassName}`;
 
     return (
@@ -318,7 +320,7 @@ function NumericTile({
     /** The casting abilities behind it, "INT / WIS", appended as page 1 writes them. */
     abilities?: string;
 }) {
-    const [value, setValue] = useEditableAutoValue(autoValue);
+    const [value, setValue] = useEditableAutoValue(label, autoValue);
     return (
         <div
             data-cs={exportField}
@@ -466,7 +468,7 @@ function SlotBox({
     /** Set on the total, which the HTML download re-derives as Level is edited. */
     exportLevel?: number;
 }) {
-    const [value, setValue] = useEditableAutoValue(autoValue);
+    const [value, setValue] = useEditableAutoValue(label, autoValue);
     return (
         <div
             data-cs={exportLevel === undefined ? undefined : "slot-total"}
@@ -684,10 +686,15 @@ function SpellRow({
     onFilledChange: (row: number, filled: boolean) => void;
 }) {
     const row = `${title}, row ${index + 1}`;
-    const [name, setName] = useEditableAutoValue(spell?.name ?? "");
+    const [name, setName] = useEditableAutoValue(`spell:${row}`, spell?.name ?? "");
     const nameRef = useRef<HTMLDivElement>(null);
     const [hovered, setHovered] = useState(false);
     const [editing, setEditing] = useState(false);
+    // A touch screen's hover: a finger held on the name opens the card.
+    const [pressed, setPressed] = useState(false);
+    const longPress = useLongPress(() => setPressed(true));
+    const release = useCallback(() => setPressed(false), []);
+    useDismissOnNextPointer(pressed, release);
 
     const filled = Boolean(name.trim());
     useEffect(() => onFilledChange(index, filled), [onFilledChange, index, filled]);
@@ -698,6 +705,7 @@ function SpellRow({
         (key && key === spell?.name.trim().toLowerCase() ? spell : undefined);
 
     return (
+        <SheetScope name={row}>
         <div
             data-cs="spell-row"
             className="relative flex min-h-[1px] w-full flex-[1_0_0] items-center rounded-[25.946px] bg-white px-[23.802px]"
@@ -710,10 +718,11 @@ function SpellRow({
                 ref={nameRef}
                 data-cs="spell-name"
                 className="relative flex h-[40.041px] min-w-[1px] flex-[1_0_0] items-center gap-[12px]"
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
+                onPointerEnter={(event) => event.pointerType === "mouse" && setHovered(true)}
+                onPointerLeave={(event) => event.pointerType === "mouse" && setHovered(false)}
                 onFocus={() => setEditing(true)}
                 onBlur={() => setEditing(false)}
+                {...longPress.handlers}
             >
                 <SuggestInput
                     label={`Spell name, ${row}`}
@@ -740,7 +749,7 @@ function SpellRow({
                     <SpellDetails
                         spell={resolved}
                         anchorRef={nameRef}
-                        open={hovered && !editing}
+                        open={pressed || (hovered && !editing)}
                     />
                 )}
             </div>
@@ -767,6 +776,7 @@ function SpellRow({
             <CellDivider />
             <ComponentMarkers key={`components:${resolved?.name ?? ""}`} spell={resolved} />
         </div>
+        </SheetScope>
     );
 }
 

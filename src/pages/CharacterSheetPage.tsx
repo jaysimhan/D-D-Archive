@@ -1,5 +1,5 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Code2, Download, Edit } from "lucide-react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Code2, Copy, Download, Edit, Redo2, Save, Undo2, RefreshCw, KeyRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
     CharacterSheetA4,
@@ -16,9 +16,13 @@ import {
     flattenFieldsForCapture,
     removeScreenOnlyControls,
 } from "../components/character-sheet/pdf-fields";
+import { expandNotesForPrint } from "../components/character-sheet/entry-notes";
 import { useSheetSpells } from "../hooks/useSheetSuggestions";
-import { loadCompletedSheet } from "../lib/character-storage";
-import { collectCharacterSpells } from "../utils/character-spells";
+import { useSharedSheetSession } from "../hooks/useSharedSheetSession";
+import { SheetScope, SheetSessionContext } from "../components/character-sheet/sheet-state";
+import { SheetPinDialog } from "../components/character-sheet/SheetPinDialog";
+
+const toolbarButton = "inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 /**
  * html2canvas and jsPDF are fetched at the click rather than shipped with the
@@ -42,15 +46,13 @@ const isStaleBuild = (cause: unknown) =>
  */
 export function CharacterSheetPage() {
     const navigate = useNavigate();
-    // The sheet's fields seed themselves from this on their first render only,
-    // so the character has to be in hand before that render — hence a lazy
-    // initial state over an effect.
-    const [initialCharacter] = useState(() => {
-        const stored = loadCompletedSheet();
-        return stored
-            ? { ...stored, selectedSpells: collectCharacterSpells(stored) }
-            : undefined;
-    });
+    const {
+        opened, session, remote, canEdit, saving, save, copyLink, reloadSaved,
+        sessionError, saveMessage, setSaveMessage, loading, loadFailed,
+        pinMode, pinError, pinBusy, submitPin, openPin, closePin,
+    } = useSharedSheetSession();
+    const initialCharacter = session.character;
+    useSyncExternalStore(session.subscribe, session.getRevision);
     const viewportRef = useRef<HTMLDivElement>(null);
     const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [scale, setScale] = useState(1);
@@ -94,7 +96,7 @@ export function CharacterSheetPage() {
         const observer = new ResizeObserver(measure);
         observer.observe(el);
         return () => observer.disconnect();
-    }, [measure]);
+    }, [measure, session, loading]);
 
     const clearFieldFocus = () => {
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
@@ -190,6 +192,9 @@ export function CharacterSheetPage() {
                                 (node as HTMLElement).style.transform = "none";
                             });
                         removeScreenOnlyControls(documentClone);
+                        // Nothing hovers on paper: the features, traits and
+                        // feats carry their descriptions, shrunk to fit.
+                        expandNotesForPrint(documentClone);
                         flattenFieldsForCapture(documentClone);
                     },
                 });
@@ -219,10 +224,46 @@ export function CharacterSheetPage() {
         }
     };
 
+    if (loading || loadFailed) {
+        return (
+            <div className="mx-auto flex min-h-[50vh] max-w-xl flex-col items-center justify-center gap-4 px-4 text-center text-zinc-200">
+                <p role={loadFailed ? "alert" : "status"}>{loadFailed ? opened.error : "Loading shared sheet…"}</p>
+                {loadFailed && <button className={toolbarButton} onClick={() => void reloadSaved()}>Try again</button>}
+            </div>
+        );
+    }
+
     return (
+        <SheetSessionContext.Provider key={session.id} value={session}>
         <div className="character-sheet-page min-h-screen bg-zinc-950 px-0 py-4 sm:px-4 sm:py-8">
+            {pinMode && <SheetPinDialog key={pinMode} mode={pinMode} busy={pinBusy} error={pinError}
+                onClose={closePin} onSubmit={submitPin} />}
             <div className="character-sheet-toolbar mx-auto mb-3 flex w-full max-w-[1700px] flex-wrap justify-end gap-2 px-3 sm:mb-4 sm:gap-3 sm:px-0">
-                {initialCharacter && (
+                {canEdit && <>
+                <button type="button" onClick={() => { session.undo(); setSaveMessage(""); }} disabled={!canEdit || !session.canUndo} className={toolbarButton}>
+                    <Undo2 className="size-4" aria-hidden /> Undo
+                </button>
+                <button type="button" onClick={() => { session.redo(); setSaveMessage(""); }} disabled={!canEdit || !session.canRedo} className={toolbarButton}>
+                    <Redo2 className="size-4" aria-hidden /> Redo
+                </button>
+                <button type="button" onClick={() => void save()} disabled={!canEdit || saving} className={toolbarButton}>
+                    <Save className="size-4" aria-hidden /> {saving ? "Saving…" : "Save"}
+                </button>
+                </>}
+                {!canEdit && remote?.hasPin && (
+                    <button type="button" onClick={() => openPin("unlock")} className={toolbarButton}>
+                        <KeyRound className="size-4" aria-hidden /> Unlock editing
+                    </button>
+                )}
+                {remote?.canManagePin && (
+                    <button type="button" onClick={() => openPin("pin")} disabled={saving} className={toolbarButton}>
+                        <KeyRound className="size-4" aria-hidden /> {remote.hasPin ? "Change PIN" : "Set PIN"}
+                    </button>
+                )}
+                <button type="button" onClick={() => void copyLink()} disabled={saving} className={toolbarButton}>
+                    <Copy className="size-4" aria-hidden /> Copy link
+                </button>
+                {initialCharacter && canEdit && (!remote || remote.canManagePin) && (
                     <button
                         type="button"
                         onClick={() => navigate("/creator")}
@@ -251,6 +292,12 @@ export function CharacterSheetPage() {
                     <Download className="size-4" aria-hidden />
                     {downloading === "pdf" ? "Preparing PDF…" : "Download PDF"}
                 </button>
+                {remote && (
+                    <button type="button" onClick={() => void reloadSaved()} disabled={saving} className={toolbarButton}
+                        title="Replace this browser’s draft with the latest saved sheet">
+                        <RefreshCw className="size-4" aria-hidden /> {canEdit ? "Reload saved sheet" : "Refresh sheet"}
+                    </button>
+                )}
                 {failure && (
                     <p
                         role="alert"
@@ -273,9 +320,17 @@ export function CharacterSheetPage() {
                         )}
                     </p>
                 )}
+                <p role="status" className="w-full text-right text-sm text-zinc-300">
+                    {saveMessage || (!canEdit ? "Shared sheet · View only" : session.dirty ? "Unsaved changes. Save to update your shared link." : "Saved sheet")}
+                </p>
+                {(opened.error || sessionError) && (
+                    <p role="alert" className="w-full text-right text-sm text-red-300">{opened.error || sessionError}</p>
+                )}
             </div>
+            <fieldset disabled={!canEdit} className="m-0 min-w-0 border-0 p-0">
             <div
                 ref={viewportRef}
+                onBlurCapture={session.endGroup}
                 className="character-sheet-viewport mx-auto flex w-full max-w-[1700px] flex-col gap-4 overflow-x-auto overscroll-x-contain sm:gap-8"
             >
                 {/* Pages 2-4 sit below page 1 on screen, in the order the PDF uses. */}
@@ -321,11 +376,13 @@ export function CharacterSheetPage() {
                                 transform: `scale(${scale})`,
                             }}
                         >
-                            {content}
+                            <SheetScope name={`page${index + 1}`}>{content}</SheetScope>
                         </div>
                     </div>
                 ))}
             </div>
+            </fieldset>
         </div>
+        </SheetSessionContext.Provider>
     );
 }

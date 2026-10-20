@@ -146,6 +146,7 @@ export default function App() {
               <Route path="/creator" element={<CharacterCreatorEntry />} />
               <Route path="/creator/:step" element={<CharacterCreatorPage />} />
               <Route path="/character-sheet" element={<CharacterSheetPage />} />
+              <Route path="/s/:sheetId" element={<CharacterSheetPage />} />
             </Routes>
           </Suspense>
 
