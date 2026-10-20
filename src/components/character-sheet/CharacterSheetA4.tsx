@@ -869,6 +869,147 @@ function HeaderFieldSm({
 }
 
 /* ------------------------------------------------------------------ */
+/* Experience                                                          */
+/* ------------------------------------------------------------------ */
+
+/** PHB: the experience each level is reached at, level 1 first. */
+const XP_THRESHOLDS = [
+    0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000,
+    165000, 195000, 225000, 265000, 305000, 355000,
+];
+
+/** The level a total of experience has reached. */
+function levelForExperience(experience: number) {
+    let level = 1;
+    while (level < XP_THRESHOLDS.length && experience >= XP_THRESHOLDS[level]) level += 1;
+    return level;
+}
+
+type Leveling = "xp" | "milestone";
+
+const XP_TEXT = "text-[30.893px] font-medium not-italic leading-[normal] text-black";
+
+/**
+ * Total XP, the threshold of the level after the one reached, and how far off
+ * it is. Sits above Species, in the title row's empty right half; a milestone
+ * game takes it off the sheet.
+ */
+function ExperienceField({
+    total,
+    onTotalChange,
+    level,
+}: {
+    total: string;
+    onTotalChange: (digits: string) => void;
+    /** The Level blank, so a level written past the XP still gets its next one. */
+    level: number | null;
+}) {
+    // An award is added on Enter and gone straight after: only the total is kept.
+    const [award, setAward] = useState("");
+    const experience = Number.parseInt(total, 10) || 0;
+    const reached = Math.max(levelForExperience(experience), level ?? 1);
+    const next = reached < XP_THRESHOLDS.length ? XP_THRESHOLDS[reached] : null;
+
+    const addAward = () => {
+        const points = Number.parseInt(award, 10);
+        if (points > 0) onTotalChange(`${experience + points}`);
+        setAward("");
+    };
+
+    return (
+        <div
+            data-cs="experience"
+            className="absolute right-[2.726px] top-[-10px] flex h-[75.8px] w-[1034.677px] items-center gap-[24.714px] rounded-[24.714px] border-[3.089px] border-solid border-black px-[24.714px]"
+        >
+            <Icon src={asset("experience")} w={37} h={37} />
+            <p className={`relative shrink-0 whitespace-nowrap ${XP_TEXT}`}>XP</p>
+            <span data-cs="xp-total" className="contents">
+                <Blank
+                    label="Experience points"
+                    sizer="000000"
+                    align="left"
+                    value={total}
+                    onChange={(next) => onTotalChange(next.replace(/\D/g, "").replace(/^0+(?=\d)/, ""))}
+                    inputMode="numeric"
+                    maxLength={6}
+                    textClassName={`whitespace-nowrap tabular-nums ${XP_TEXT}`}
+                />
+            </span>
+            <label
+                data-screen-only
+                className="relative flex shrink-0 items-center gap-[8px] rounded-[16px] bg-black/5 px-[16px] py-[6px]"
+            >
+                <span className={`shrink-0 ${XP_TEXT}`}>+</span>
+                <input
+                    type="text"
+                    inputMode="numeric"
+                    aria-label="Add experience points"
+                    placeholder="Add"
+                    value={award}
+                    onChange={(event) => setAward(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") addAward();
+                    }}
+                    onBlur={addAward}
+                    className={`w-[130px] bg-transparent tabular-nums placeholder:text-black/40 ${XP_TEXT}`}
+                />
+            </label>
+            <div className="ml-auto flex shrink-0 items-center gap-[18px] border-l-[3.089px] border-solid border-black pl-[24.714px]">
+                <p className={`shrink-0 whitespace-nowrap ${XP_TEXT}`}>Next level</p>
+                <p data-cs="xp-next" className={`shrink-0 whitespace-nowrap tabular-nums ${XP_TEXT}`}>
+                    {next === null ? "Max" : next.toLocaleString("en-US")}
+                </p>
+                <p
+                    data-cs="xp-to-go"
+                    className="shrink-0 whitespace-nowrap text-[24px] font-medium not-italic leading-[normal] tabular-nums text-black/55"
+                >
+                    {next === null ? "" : `${Math.max(next - experience, 0).toLocaleString("en-US")} to go`}
+                </p>
+            </div>
+        </div>
+    );
+}
+
+/** XP or milestone leveling; on screen only, it decides whether XP is on the sheet. */
+function LevelingToggle({
+    value,
+    onChange,
+}: {
+    value: Leveling;
+    onChange: (value: Leveling) => void;
+}) {
+    const options: { value: Leveling; label: string }[] = [
+        { value: "xp", label: "XP" },
+        { value: "milestone", label: "Milestone" },
+    ];
+    return (
+        <div
+            data-screen-only
+            role="group"
+            aria-label="Leveling"
+            className="absolute right-[1066px] top-[3px] flex items-center gap-[16px]"
+        >
+            <span className="whitespace-nowrap text-[26px] font-medium text-black/55">Leveling</span>
+            <div className="flex gap-[8px] rounded-[18px] border-[3px] border-solid border-black p-[4px]">
+                {options.map((option) => (
+                    <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={value === option.value}
+                        onClick={() => onChange(option.value)}
+                        className={`rounded-[13px] px-[20px] py-[6px] text-[26px] font-medium leading-[normal] transition-colors ${
+                            value === option.value ? "bg-black text-white" : "text-black hover:bg-black/10"
+                        }`}
+                    >
+                        {option.label}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ------------------------------------------------------------------ */
 /* Ability cards                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -1492,6 +1633,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     onSpellcastingChange,
     onSpeciesChange,
     onPerceptionModifierChange,
+    confirmMilestone,
 }: {
     initialCharacter?: CharacterData;
     /** Reports what pages 3 and 4 fill their Spell Casting header row with. */
@@ -1504,6 +1646,11 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
      * page keeps a blank of its own rather than showing a bare 10.
      */
     onPerceptionModifierChange?: (modifier: number | null) => void;
+    /**
+     * Asked before switching to milestone leveling; the switch waits for it
+     * and is dropped on false. The page host asks for the PIN here.
+     */
+    confirmMilestone?: () => Promise<boolean>;
 }) {
     const suggestions = useSheetSuggestions();
     const [characterName, setCharacterName] = useSheetState("characterName", initialCharacter?.name ?? "");
@@ -1516,6 +1663,22 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     const [characterLevel, setCharacterLevel] = useSheetState("characterLevel", 
         initialCharacter ? `${initialCharacter.level}` : "",
     );
+    const [leveling, setLeveling] = useSheetState<Leveling>("leveling", "xp");
+    const changeLeveling = async (next: Leveling) => {
+        if (next === leveling) return;
+        if (next === "milestone" && confirmMilestone && !(await confirmMilestone())) return;
+        setLeveling(next);
+    };
+    // A character arriving from the creator has at least its level's worth.
+    const [experience, setExperience] = useSheetState("experience", () =>
+        initialCharacter ? `${XP_THRESHOLDS[initialCharacter.level - 1] ?? 0}` : "",
+    );
+    // Level follows the XP as it is written, either way, so a mistyped total
+    // corrected takes the level back with it.
+    const handleExperienceChange = (digits: string) => {
+        setExperience(digits);
+        if (digits) setCharacterLevel(`${levelForExperience(Number.parseInt(digits, 10))}`);
+    };
     const [abilityModifiers, setAbilityModifiers] = useSheetState<
         Partial<Record<string, number | null>>
     >("abilityModifiers", () => {
@@ -2051,6 +2214,15 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                         Character Sheet for D&amp;D
                     </p>
                 </div>
+
+                <LevelingToggle value={leveling} onChange={(next) => void changeLeveling(next)} />
+                {leveling === "xp" && (
+                    <ExperienceField
+                        total={experience}
+                        onTotalChange={handleExperienceChange}
+                        level={Number.parseInt(characterLevel, 10) || null}
+                    />
+                )}
 
                 <div className="absolute left-0 top-[82.73px] flex flex-col items-start gap-[57.908px]">
                     {/* ---------------- Personal information ---------------- */}

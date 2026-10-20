@@ -162,6 +162,13 @@ assert.equal((await call("POST", id2, { snapshot, pin: "9999" }, cookie)).status
 assert.equal((await call("GET", id2, undefined, editorCookie)).body.canEdit, false, "one character's grant cannot edit another");
 assert.equal((await pinCall("unlock", "0042", undefined, id2)).status, 401);
 assert.equal((await pinCall("unlock", "9999", undefined, id2)).status, 200);
+// Verifying the PIN (the switch to milestone leveling) confirms it and grants nothing.
+assert.equal((await pinCall("verify", "0000", undefined, id2)).status, 401);
+const verified = await pinCall("verify", "9999", undefined, id2);
+assert.equal(verified.status, 200, "the right PIN verifies");
+assert.equal(verified.headers["Set-Cookie"], undefined, "verifying sets no editor cookie");
+assert.equal(verified.body.canEdit, false, "verifying alone does not unlock editing");
+assert.equal(accessRecords.get(`${ACCESS_PREFIX}${id2}`)!.attempts, 0, "a verified PIN clears the attempt count");
 assert.equal((await pinCall("pin", "4321", cookie)).status, 200);
 assert.equal((await call("GET", id, undefined, editorCookie)).body.canEdit, false, "changing a PIN revokes previous editor grants");
 assert.equal((await call("PUT", id, { snapshot, revision: editorSave.body.revision }, editorCookie)).status, 403);
@@ -194,4 +201,4 @@ assert.deepEqual(readSheetDraft(id)?.snapshot, snapshot, "drafts are isolated by
 assert.equal(readSheetDraft(id)?.remote?.revision, "one");
 assert.deepEqual(readSheetDraft(id2)?.snapshot, changed);
 assert.equal(readSheetDraft("c".repeat(32)), null);
-console.log("Shared sheets QA passed: creation, stable links, live reads, owner/viewer access, retry safety, conflicts, validation, size limits, draft isolation, and in-flight edits, per-character PINs, cross-device editing, PIN revocation, exit editing, and concurrent guess limits.");
+console.log("Shared sheets QA passed: creation, stable links, live reads, owner/viewer access, retry safety, conflicts, validation, size limits, draft isolation, and in-flight edits, per-character PINs, cross-device editing, PIN revocation, exit editing, PIN verification, and concurrent guess limits.");

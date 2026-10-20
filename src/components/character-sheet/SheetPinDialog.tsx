@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 
 export function SheetPinDialog({ mode, busy, error, onClose, onSubmit }: {
-    mode: "create" | "unlock" | "pin";
+    mode: "create" | "unlock" | "pin" | "verify";
     busy: boolean;
     error: string;
     onClose: () => void;
@@ -11,19 +11,21 @@ export function SheetPinDialog({ mode, busy, error, onClose, onSubmit }: {
     const [pin, setPin] = useState("");
     const [confirm, setConfirm] = useState("");
     const [validation, setValidation] = useState("");
-    const choosing = mode !== "unlock";
+    const choosing = mode === "create" || mode === "pin";
     return (
         <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
             <DialogContent className="border-zinc-700 bg-zinc-950 text-white"
                 onEscapeKeyDown={(event) => { if (busy) event.preventDefault(); }}
                 onInteractOutside={(event) => { if (busy) event.preventDefault(); }}>
-                <DialogTitle>{mode === "create" ? "Set this character’s PIN" : mode === "pin" ? "Change character PIN" : "Unlock editing"}</DialogTitle>
+                <DialogTitle>{mode === "create" ? "Set this character’s PIN" : mode === "pin" ? "Change character PIN" : mode === "verify" ? "Switch to milestone leveling" : "Unlock editing"}</DialogTitle>
                 <DialogDescription className="text-zinc-300">
                     {mode === "create"
                         ? "Choose a four-digit PIN before creating this character’s shared link. Your browser keeps editing access; anyone with the PIN can edit and save from another device."
                         : mode === "pin"
                             ? "Choose a new four-digit PIN for this character. Other browsers will need the new PIN to edit."
-                            : "Enter this character’s four-digit PIN. Saved changes will be visible to everyone using its shared link."}
+                            : mode === "verify"
+                                ? "This character was saved using XP. Enter its four-digit PIN to switch to milestone leveling. The XP is kept, hidden, if you switch back."
+                                : "Enter this character’s four-digit PIN. Saved changes will be visible to everyone using its shared link."}
                 </DialogDescription>
                 <form className="flex flex-col gap-4" onSubmit={(event) => {
                     event.preventDefault();
@@ -49,7 +51,7 @@ export function SheetPinDialog({ mode, busy, error, onClose, onSubmit }: {
                     {(validation || error) && <p role="alert" className="text-sm text-red-300">{validation || error}</p>}
                     <button type="submit" disabled={busy}
                         className="rounded-lg bg-white px-4 py-2 font-semibold text-zinc-950 disabled:opacity-50">
-                        {busy ? "Please wait…" : mode === "create" ? "Save & create link" : mode === "pin" ? "Update PIN" : "Unlock editing"}
+                        {busy ? "Please wait…" : mode === "create" ? "Save & create link" : mode === "pin" ? "Update PIN" : mode === "verify" ? "Switch to milestone" : "Unlock editing"}
                     </button>
                 </form>
             </DialogContent>

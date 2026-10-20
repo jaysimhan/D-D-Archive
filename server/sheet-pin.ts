@@ -71,7 +71,7 @@ export async function revokeGrant(store: AccessRepository, id: string, token: st
 }
 
 /** Reserve every attempt atomically, including across concurrent API instances. */
-export async function unlockWithPin(store: AccessRepository, id: string, pin: string): Promise<string> {
+async function attemptPin(store: AccessRepository, id: string, pin: string): Promise<SheetAccess> {
     requirePin(pin);
     let reserved: SheetAccess | undefined;
     for (let retry = 0; retry < 8; retry++) {
@@ -92,6 +92,31 @@ export async function unlockWithPin(store: AccessRepository, id: string, pin: st
     }
     if (!reserved) throw new HttpError(429, "Too many PIN requests. Please try again shortly.");
     if (!await matchesPin(reserved, pin)) throw new HttpError(401, "Incorrect PIN.");
+    return reserved;
+}
+
+/**
+ * Confirms the PIN and grants nothing: a guarded change on a sheet that is
+ * already open for editing. A right answer clears the attempt count, as an
+ * unlock does.
+ */
+export async function verifyPin(store: AccessRepository, id: string, pin: string): Promise<void> {
+    const reserved = await attemptPin(store, id, pin);
+    for (let retry = 0; retry < 8; retry++) {
+        const current = await store.getAccess(`${ACCESS_PREFIX}${id}`);
+        if (!current || current.pinHash !== reserved.pinHash) {
+            throw new HttpError(401, "The PIN changed. Enter the current PIN.");
+        }
+        try {
+            await store.writeAccess({ ...current, attempts: 0, windowStarted: Date.now() });
+            return;
+        } catch (error) { if (!conflict(error)) throw error; }
+    }
+    throw new HttpError(429, "Too many PIN requests. Please try again shortly.");
+}
+
+export async function unlockWithPin(store: AccessRepository, id: string, pin: string): Promise<string> {
+    const reserved = await attemptPin(store, id, pin);
     const token = randomBytes(32).toString("hex");
     for (let retry = 0; retry < 8; retry++) {
         const current = await store.getAccess(`${ACCESS_PREFIX}${id}`);

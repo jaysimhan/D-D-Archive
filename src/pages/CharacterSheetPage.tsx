@@ -53,7 +53,7 @@ export function CharacterSheetPage() {
     const {
         opened, session, remote, canEdit, saving, save, copyLink, reloadSaved, exitEditing, resumeEditing,
         sessionError, saveMessage, setSaveMessage, loading, loadFailed,
-        pinMode, pinError, pinBusy, submitPin, openPin, closePin,
+        pinMode, pinError, pinBusy, submitPin, openPin, closePin, confirmWithPin,
     } = useSharedSheetSession();
     const initialCharacter = session.character;
     useSyncExternalStore(session.subscribe, session.getRevision);
@@ -84,6 +84,21 @@ export function CharacterSheetPage() {
     // which is page 2's cue to fall back on the character it was opened with.
     const [species, setSpecies] = useState<string>();
     const [perceptionModifier, setPerceptionModifier] = useState<number | null>();
+
+    // A sheet saved on XP takes the PIN to move to milestones, even mid-edit,
+    // so one stray click cannot drop the XP off a shared sheet. Asked once:
+    // after that this sheet may go back and forth until it is reopened.
+    const milestoneVerified = useRef<number>();
+    const confirmMilestoneRef = useRef<() => Promise<boolean>>(async () => true);
+    confirmMilestoneRef.current = async () => {
+        const saved = remote?.snapshot.fields["/page1/leveling"];
+        if (!remote || saved === "milestone" || milestoneVerified.current === session.id) return true;
+        const verified = await confirmWithPin();
+        if (verified) milestoneVerified.current = session.id;
+        return verified;
+    };
+    // Stable, so page 1 stays memoised across this page's re-renders.
+    const confirmMilestone = useCallback(() => confirmMilestoneRef.current(), []);
 
     const measure = useCallback(() => {
         const el = viewportRef.current;
@@ -368,6 +383,7 @@ export function CharacterSheetPage() {
                         onSpellcastingChange={setSpellcasting}
                         onSpeciesChange={setSpecies}
                         onPerceptionModifierChange={setPerceptionModifier}
+                        confirmMilestone={confirmMilestone}
                     />,
                     <CharacterSheetA4Page2
                         initialCharacter={initialCharacter}

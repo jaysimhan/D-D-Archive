@@ -6,7 +6,7 @@ import {
 } from "../lib/sheet-session";
 import {
     fetchSharedSheet, lockSharedSheet, saveSharedSheet, SharedSheetError, SHARED_SHEET_ID,
-    sharedSheetPath, submitSheetPin, type SharedSheet,
+    sharedSheetPath, submitSheetPin, verifySheetPin, type SharedSheet,
 } from "../lib/shared-sheets";
 import { collectCharacterSpells } from "../utils/character-spells";
 
@@ -76,11 +76,17 @@ export function useSharedSheetSession() {
     const [sessionError, setSessionError] = useState("");
     const [saveMessage, setSaveMessage] = useState("");
     const [saving, setSaving] = useState(false);
-    const [pinMode, setPinMode] = useState<"create" | "unlock" | "pin" | null>(null);
+    const [pinMode, setPinMode] = useState<"create" | "unlock" | "pin" | "verify" | null>(null);
     const [pinError, setPinError] = useState("");
     const [pinBusy, setPinBusy] = useState(false);
     const pinRequest = useRef(false);
     const copyAfterCreate = useRef(false);
+    // Answers a pending `confirmWithPin`: true once the PIN checks out.
+    const verifyAnswer = useRef<(verified: boolean) => void>();
+    const answerVerify = (verified: boolean) => {
+        verifyAnswer.current?.(verified);
+        verifyAnswer.current = undefined;
+    };
     const savingRef = useRef(false);
     const mounted = useRef(true);
     const discardedSessions = useRef(new Set<number>());
@@ -108,6 +114,8 @@ export function useSharedSheetSession() {
         setSaveMessage("");
         setPinMode(null);
         setPinError("");
+        verifyAnswer.current?.(false);
+        verifyAnswer.current = undefined;
         pendingId.current = undefined;
         if (!sheetId) {
             loadedSource.current = source;
@@ -229,7 +237,13 @@ export function useSharedSheetSession() {
         setPinBusy(true);
         setPinError("");
         try {
-            if (pinMode === "create") {
+            if (pinMode === "verify") {
+                if (!remote) return;
+                await verifySheetPin(remote.id, pin);
+                if (!mounted.current) return;
+                setPinMode(null);
+                answerVerify(true);
+            } else if (pinMode === "create") {
                 const link = await save(pin);
                 if (link && copyAfterCreate.current) await copy(link);
                 if (link) copyAfterCreate.current = false;
@@ -355,7 +369,24 @@ export function useSharedSheetSession() {
         sessionError, saveMessage, setSaveMessage,
         pinMode, pinError, pinBusy, submitPin,
         openPin: (mode: "unlock" | "pin") => { setPinError(""); setPinMode(mode); },
-        closePin: () => { if (!pinRequest.current) { setPinMode(null); copyAfterCreate.current = false; } },
+        /**
+         * Asks for the PIN before a change worth guarding, even mid-edit.
+         * Resolves false when the dialog is closed, and true straight away on
+         * a sheet with no PIN to ask for.
+         */
+        confirmWithPin: () => {
+            if (!remote?.hasPin) return Promise.resolve(true);
+            answerVerify(false);
+            setPinError("");
+            setPinMode("verify");
+            return new Promise<boolean>((resolve) => { verifyAnswer.current = resolve; });
+        },
+        closePin: () => {
+            if (pinRequest.current) return;
+            setPinMode(null);
+            copyAfterCreate.current = false;
+            answerVerify(false);
+        },
         loading: opened.loading || (Boolean(sheetId) && loadedSource.current !== source),
         loadFailed: Boolean(sheetId && !opened.loading && !remote && opened.error),
     };

@@ -20,7 +20,7 @@ export class SharedSheetError extends Error {
     constructor(message: string, readonly status: number) { super(message); }
 }
 
-async function request(init: RequestInit, id?: string, action?: "unlock" | "pin" | "lock"): Promise<SharedSheet> {
+async function request(init: RequestInit, id?: string, action?: "unlock" | "verify" | "pin" | "lock"): Promise<SharedSheet> {
     const response = await fetch(`/api/sheets${id ? `?id=${encodeURIComponent(id)}` : ""}${action ? `&action=${action}` : ""}`, {
         ...init, credentials: "same-origin", cache: "no-store",
     });
@@ -79,6 +79,15 @@ export async function submitSheetPin(id: string, pin: string, action: "unlock" |
         return verified;
     }
     return result;
+}
+
+/** Checks the PIN without changing who can edit, for a change worth guarding. */
+export async function verifySheetPin(id: string, pin: string) {
+    sharedSheetPath(id);
+    if (!/^\d{4}$/.test(pin)) throw new SharedSheetError("Enter exactly four digits.", 400);
+    await request({
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pin }),
+    }, id, "verify");
 }
 
 /** Give up this browser's PIN unlock; the creator's own access is unaffected. */

@@ -276,6 +276,12 @@
         return /^\+?\d+$/.test(trimmed) ? parseInt(trimmed, 10) : null;
     }
 
+    /** PHB: the experience each level is reached at, level 1 first. */
+    var XP_THRESHOLDS = [
+        0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000,
+        165000, 195000, 225000, 265000, 305000, 355000,
+    ];
+
     /** Everything the sheet re-derives, in the order the values depend on. */
     function recompute() {
         var levelAt = derived && derived.byLevel;
@@ -398,6 +404,25 @@
                       ),
             );
         });
+
+        // Experience: the threshold of the level after the one reached, by the
+        // XP or the Level blank, whichever is further on.
+        var experienceBox = document.querySelector('[data-cs="xp-total"]');
+        if (experienceBox) {
+            var experience = parseWholeNumber(fieldValue(experienceBox)) || 0;
+            var reached = 1;
+            while (reached < XP_THRESHOLDS.length && experience >= XP_THRESHOLDS[reached]) reached += 1;
+            reached = Math.max(reached, level || 1);
+            var next = reached < XP_THRESHOLDS.length ? XP_THRESHOLDS[reached] : null;
+            applyOutput(
+                document.querySelector('[data-cs="xp-next"]'),
+                next === null ? "Max" : next.toLocaleString("en-US"),
+            );
+            applyOutput(
+                document.querySelector('[data-cs="xp-to-go"]'),
+                next === null ? "" : Math.max(next - experience, 0).toLocaleString("en-US") + " to go",
+            );
+        }
 
         // What the level table answers: hit dice, the class resource, maximum
         // hit points and the spell slots each block is headed with.
