@@ -110,14 +110,39 @@ function meetsPrerequisite(classData: Class, scores: AbilityScores): boolean {
  * has nothing to meet; a multiclassed one must meet every class's, the first
  * one included — "both your current class and the class you're entering".
  */
+export interface UnmetPrerequisite {
+    classData: Class;
+    requirement: string;
+    /** Any one of the scores below will do (a Fighter's Strength or Dexterity). */
+    eitherOne: boolean;
+    /** The scores still short of 13, with what the character has now. */
+    shortfalls: { ability: AbilityScore; name: string; have: number; need: number }[];
+}
+
 export function unmetMulticlassPrerequisites(
     character: ClassLevelInput,
     scores: AbilityScores,
-): { classData: Class; requirement: string }[] {
+): UnmetPrerequisite[] {
     if (!isMulticlassed(character)) return [];
     return classLevels(character)
         .filter((entry) => !meetsPrerequisite(entry.class, scores))
-        .map((entry) => ({ classData: entry.class, requirement: prerequisiteText(entry.class) }));
+        .map((entry) => {
+            const rule = PREREQUISITES[entry.class.id] ?? { any: entry.class.primaryAbility };
+            const abilities = rule.all?.length ? rule.all : rule.any ?? [];
+            return {
+                classData: entry.class,
+                requirement: prerequisiteText(entry.class),
+                eitherOne: !rule.all?.length,
+                shortfalls: abilities
+                    .filter((ability) => scores[ability] < MULTICLASS_MINIMUM)
+                    .map((ability) => ({
+                        ability,
+                        name: ABILITY_NAMES[ability],
+                        have: scores[ability],
+                        need: MULTICLASS_MINIMUM,
+                    })),
+            };
+        });
 }
 
 // ===== Proficiencies =====

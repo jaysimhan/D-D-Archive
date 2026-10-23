@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ArrowLeft, Check, Crown, Loader2, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowRight, ArrowLeft, Check, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { CharacterData, CreationStep, isCreationStep } from "../types/character-creator";
 
@@ -534,19 +534,48 @@ export function CharacterCreator() {
             <div className="p-4 md:p-8 min-h-[600px]">
               {/* Step Content */}
 
-              {currentStep === prerequisiteStep && unmetPrerequisites.length > 0 && (
-                <div className="mb-6 rounded-xl border border-amber-700/60 bg-amber-950/30 p-4 text-sm text-amber-200">
-                  <p className="font-semibold mb-1">Your scores don't allow this multiclass yet.</p>
-                  <ul className="list-disc list-inside text-amber-200/80">
-                    {unmetPrerequisites.map(({ classData, requirement }) => (
-                      <li key={classData.id}>{classData.name} needs {requirement}.</li>
-                    ))}
-                  </ul>
-                  <p className="mt-1 text-amber-200/70">
-                    {prerequisiteStep === "feats"
-                      ? "Raise a score here with an improvement, or change your class levels to continue."
-                      : "Adjust your ability scores, or change your class levels to continue."}
-                  </p>
+              {/* Multiclass prerequisites: a warning wherever scores can still
+                  change, and the reason Next is held on the step that checks. */}
+              {(currentStep === "abilities" || currentStep === "feats") && unmetPrerequisites.length > 0 && (
+                <div
+                  role="alert"
+                  className={`mb-6 rounded-xl border p-4 text-sm flex gap-3 ${currentStep === prerequisiteStep
+                    ? "border-brand-600/70 bg-brand-950/40 text-brand-100"
+                    : "border-amber-700/60 bg-amber-950/30 text-amber-100"
+                  }`}
+                >
+                  <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${currentStep === prerequisiteStep ? "text-brand-400" : "text-amber-400"}`} />
+                  <div className="flex-1">
+                    <p className="font-semibold">
+                      {currentStep === prerequisiteStep
+                        ? "You can't continue yet: your multiclass needs these scores."
+                        : "Heads up: your multiclass needs these scores."}
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {unmetPrerequisites.map(({ classData, eitherOne, shortfalls }) => (
+                        <li key={classData.id}>
+                          <span className="font-semibold">{classData.name}:</span>{" "}
+                          {shortfalls.map(({ ability, name, have, need }, index) => (
+                            <span key={ability}>
+                              {index > 0 && (eitherOne ? " or " : ", ")}
+                              {name} <span className="font-mono">{have}</span> → needs{" "}
+                              <span className="font-mono font-semibold">{need}</span>
+                              <span className="opacity-70"> (+{need - have})</span>
+                            </span>
+                          ))}
+                          {eitherOne && shortfalls.length > 1 && <span className="opacity-70"> — either one is enough</span>}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 opacity-75">
+                      {currentStep === "feats"
+                        ? "Take an Ability Score Improvement in one of these, go back to Ability Scores, or change your class levels."
+                        : prerequisiteStep === "feats"
+                          ? "Raise them here, or with an Ability Score Improvement in the next step. You won't be able to continue past it until they're met."
+                          : "Raise them here, or change your class levels, to continue."}
+                      {" "}Scores count species, background and feat bonuses.
+                    </p>
+                  </div>
                 </div>
               )}
 
