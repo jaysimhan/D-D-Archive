@@ -1,9 +1,10 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { Library, filterCategory } from "../components/Library";
 import { LIBRARY_CATEGORIES, categoryById } from "../components/library/categories";
 import { LibraryShell } from "../components/library/LibraryShell";
-import { LibraryEntry } from "../components/library/LibraryEntry";
+import { LibraryEntry, findEntry } from "../components/library/LibraryEntry";
+import { editionsDiffer } from "../components/library/edition-content";
 import { useLibraryData } from "../components/library/useLibraryData";
 
 /** /library — one tile per section, with how many entries each holds. */
@@ -70,8 +71,31 @@ export function LibraryCategoryPage() {
 export function LibraryEntryPage() {
     const { category: categoryId, id } = useParams();
     const category = categoryById(categoryId);
-    const data = useLibraryData();
+    const shared = useLibraryData();
+    const legacy = useLibraryData("2014");
+    const modern = useLibraryData("2024");
+    const [params, setParams] = useSearchParams();
 
     if (!category || !id) return <Navigate to="/library" replace />;
-    return <LibraryEntry category={category} id={id} data={data} />;
+    const oldEntry = findEntry(category, id, legacy);
+    const newEntry = findEntry(category, id, modern);
+    const ready = !legacy.loading && !modern.loading;
+    const year = params.get("edition") === "2014" ? "2014" : "2024";
+    const selected = year === "2014" ? legacy : modern;
+    const data = findEntry(category, id, selected) ? selected : newEntry ? modern : oldEntry ? legacy : shared;
+    const differs = category.id !== "subclasses" && editionsDiffer(oldEntry, newEntry);
+    const control = ready && differs ? (
+        <div className="mb-6 flex items-center gap-3" role="group" aria-label="Rules version">
+            <span className="text-sm text-gray-400">Rules version</span>
+            {(["2014", "2024"] as const).map((edition) => (
+                <button key={edition} type="button" aria-pressed={year === edition}
+                    className={`rounded-lg border px-3 py-2 text-sm ${year === edition ? "border-brand-500 bg-brand-900/50 text-white" : "border-zinc-700 text-gray-300 hover:bg-zinc-800"}`}
+                    onClick={() => setParams(previous => { const next = new URLSearchParams(previous); next.set("edition", edition); return next; })}>
+                    {edition === "2014" ? "5e · 2014" : "5.5e · 2024"}
+                </button>
+            ))}
+        </div>
+    ) : null;
+    if (!ready) return <LibraryShell title="Loading…" icon={category.icon}><p role="status">Loading rules versions…</p></LibraryShell>;
+    return <LibraryEntry category={category} id={id} data={data} editionControl={control} />;
 }

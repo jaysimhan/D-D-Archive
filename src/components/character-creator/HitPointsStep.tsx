@@ -6,6 +6,7 @@ import { CharacterData } from "../../types/character-creator";
 // Hit Points Calculator Step
 export function HitPointsStep({
     classData,
+    finalConScore,
     abilityScores,
     level,
     race,
@@ -17,6 +18,7 @@ export function HitPointsStep({
     onMaxHpChange
 }: {
     classData?: Class;
+    finalConScore?: number;
     abilityScores: AbilityScores;
     level: number;
     race?: Race | CharacterData['race'];
@@ -52,7 +54,7 @@ export function HitPointsStep({
         return score;
     };
 
-    const finalCon = getFinalCon();
+    const finalCon = finalConScore ?? getFinalCon();
     const conMod = Math.floor((finalCon - 10) / 2);
 
     // Constants

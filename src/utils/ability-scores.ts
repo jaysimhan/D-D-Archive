@@ -20,11 +20,11 @@ export function finalAbilityScores(
   character: Pick<
     CharacterData,
     "abilityScores" | "race" | "subrace" | "racialBonusAllocation" | "feats" | "featAbilityChoices"
-  >,
+  > & { ruleset?: "2014" | "2024" },
 ): AbilityScores {
   const result = { ...character.abilityScores };
   const abilities = Object.keys(result) as AbilityScore[];
-  const flexible = character.race?.flexibleAbilityScores === true;
+  const flexible = character.ruleset === "2024" || character.race?.flexibleAbilityScores === true;
   // Half feats carry both a printed increase and one the character placed
   // themselves, and both have to land before the sheet reads a modifier.
   const fromFeats = featAbilityBonuses(character.feats ?? [], character.featAbilityChoices);

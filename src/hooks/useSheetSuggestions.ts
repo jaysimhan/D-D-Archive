@@ -1,3 +1,4 @@
+import { editionQuery } from '../lib/ruleset-query';
 import { useEffect, useState } from 'react';
 import { sanityClient } from '../lib/sanity';
 import {
@@ -39,7 +40,7 @@ export interface SheetSuggestions {
         isSpellcaster?: boolean;
         traits?: { name: string; description?: string }[];
     }[];
-    backgrounds: { name: string; skillProficiencies?: string[] }[];
+    backgrounds: { name: string; skillProficiencies?: string[]; feats?: { name: string }[]; originFeatSpellList?: string }[];
     subclasses: {
         name: string;
         parentClassId?: string;
@@ -119,7 +120,9 @@ const QUERY = `{
     },
     "backgrounds": *[_type == "background" && defined(name)] | order(name asc) {
         name,
-        skillProficiencies
+        skillProficiencies,
+        feats[]->{name},
+        originFeatSpellList
     },
     "subclasses": *[_type == "subclass" && defined(name)] | order(name asc) {
         name,
@@ -362,32 +365,36 @@ function normalizeSpells(values: unknown): SheetSpell[] {
 }
 
 /** Shared, so pages 3 and 4 open the spell library on one round trip. */
-let spellsRequest: Promise<SheetSpell[]> | null = null;
+const spellsRequests = new Map<string, Promise<SheetSpell[]>>();
 
-function fetchSheetSpells(): Promise<SheetSpell[]> {
+function fetchSheetSpells(edition: string): Promise<SheetSpell[]> {
+    let spellsRequest = spellsRequests.get(edition);
     if (!spellsRequest) {
         spellsRequest = sanityClient
-            .fetch<unknown>(SPELLS_QUERY)
+            .fetch<unknown>(editionQuery(SPELLS_QUERY, edition), { edition, rulesetKey: `srd-${edition}` })
             .then(normalizeSpells)
             .catch((err) => {
                 // Drop the failure so a later mount can try again.
-                spellsRequest = null;
+                spellsRequests.delete(edition);
                 throw err;
             });
     }
+    spellsRequests.set(edition, spellsRequest);
     return spellsRequest;
 }
 
 /** Every spell in the Archive, for the spellbook pages' searchable blanks. */
-export function useSheetSpells(): SheetSpell[] {
+export function useSheetSpells(edition = '2024'): SheetSpell[] {
     const [spells, setSpells] = useState<SheetSpell[]>(NO_SPELLS);
+    const [loadedEdition, setLoadedEdition] = useState<string>();
 
     useEffect(() => {
         let isMounted = true;
 
-        fetchSheetSpells()
+        setSpells(NO_SPELLS);
+        fetchSheetSpells(edition)
             .then((result) => {
-                if (isMounted) setSpells(result);
+                if (isMounted) { setSpells(result); setLoadedEdition(edition); }
             })
             .catch((err) => {
                 // The blanks stay plain text fields without these.
@@ -397,21 +404,24 @@ export function useSheetSpells(): SheetSpell[] {
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [edition]);
 
-    return spells;
+    return loadedEdition === edition ? spells : NO_SPELLS;
 }
 
-export function useSheetSuggestions(): SheetSuggestions {
+export function useSheetSuggestions(edition = '2024'): SheetSuggestions {
     const [data, setData] = useState<SheetSuggestions>(EMPTY);
+    const [loadedEdition, setLoadedEdition] = useState<string>();
 
     useEffect(() => {
         let isMounted = true;
 
+        setData(EMPTY);
         sanityClient
-            .fetch<Record<string, unknown>>(QUERY)
+            .fetch<Record<string, unknown>>(editionQuery(QUERY, edition), { edition, rulesetKey: `srd-${edition}` })
             .then((result) => {
                 if (!isMounted || !result) return;
+                setLoadedEdition(edition);
                 setData({
                     classes: uniqueDocs<{
                         name: string;
@@ -434,6 +444,8 @@ export function useSheetSuggestions(): SheetSuggestions {
                     backgrounds: uniqueDocs<{
                         name: string;
                         skillProficiencies?: string[];
+                        feats?: { name: string }[];
+                        originFeatSpellList?: string;
                     }>(result.backgrounds),
                     subclasses: uniqueDocs<{
                         name: string;
@@ -472,7 +484,7 @@ export function useSheetSuggestions(): SheetSuggestions {
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [edition]);
 
-    return data;
+    return loadedEdition === edition ? data : EMPTY;
 }

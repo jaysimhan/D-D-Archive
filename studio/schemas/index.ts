@@ -1,3 +1,4 @@
+import { withEditionVariants } from './common/editionVariants'
 import race from './race'
 import classType from './class'
 import subclass from './subclass'
@@ -23,28 +24,28 @@ import campaign from './campaign'
 import { featureGrant } from './objects/featureGrant'
 
 export const schemaTypes = [
-    race,
-    classType,
-    subclass,
-    spell,
-    item,
-    trait,
+    withEditionVariants(race),
+    withEditionVariants(classType),
+    withEditionVariants(subclass),
+    withEditionVariants(spell),
+    withEditionVariants(item),
+    withEditionVariants(trait),
     homepage,
     sharedSheet,
     // Objects
     proficiencyRule,
     spellGrant,
     featureGrant,
-    feat,
-    background,
+    withEditionVariants(feat),
+    withEditionVariants(background),
     monster,
     // New schemas
     ruleset,
     magicSchool,
     weaponProperty,
     weaponMastery,
-    feature,
-    species,
+    withEditionVariants(feature),
+    withEditionVariants(species),
     character,
     campaign,
 ]

@@ -5,6 +5,7 @@ import { mergeLibraryItems } from "./library-items";
 import { RULES_REFERENCE, type RuleEntry } from "../../data/srd-rules-reference";
 
 export interface LibraryData {
+  ruleset?: "2014" | "2024";
   spells: Spell[];
   classes: Class[];
   subclasses: Subclass[];
@@ -20,18 +21,21 @@ export interface LibraryData {
  * Every collection the Library shows. The fetches are cached, so each page can
  * call this freely. Items have the SRD equipment catalogue folded in.
  */
-export function useLibraryData(): LibraryData {
-  const races = useRaces();
-  const classes = useClasses();
-  const subclasses = useSubclasses();
-  const spells = useSpells();
-  const items = useItems();
-  const feats = useFeats();
-  const backgrounds = useBackgrounds();
+export function useLibraryData(ruleset?: "2014" | "2024"): LibraryData {
+  const races = useRaces(ruleset);
+  const classes = useClasses(ruleset);
+  const subclasses = useSubclasses(ruleset);
+  const spells = useSpells(ruleset);
+  const items = useItems(ruleset);
+  const feats = useFeats(ruleset);
+  const backgrounds = useBackgrounds(ruleset);
   const archiveItems = items.data;
-  const mergedItems = useMemo(() => mergeLibraryItems(archiveItems || []), [archiveItems]);
+  // Static fallback text is not edition-resolved and must not fill deliberate
+  // empty overrides or reintroduce items unavailable in the selected year.
+  const mergedItems = useMemo(() => ruleset ? archiveItems : mergeLibraryItems(archiveItems || []), [archiveItems, ruleset]);
 
   return {
+    ruleset,
     spells: spells.data || [],
     classes: classes.data || [],
     subclasses: subclasses.data || [],

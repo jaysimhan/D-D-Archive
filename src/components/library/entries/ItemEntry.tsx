@@ -34,13 +34,13 @@ function baseStats(item: Item) {
 export function ItemEntry({ item, data }: { item: Item; data: LibraryData }) {
   const { weapon, armor, bonus, magic } = baseStats(item);
   const raw = item as Item & { damage?: { diceCount?: number; diceType?: string; damageType?: string } };
-  const damage = weapon?.damage
+  const damage = raw.damage?.diceType ? `${raw.damage.diceCount ?? 1}${raw.damage.diceType}${bonus ? ` + ${bonus}` : ""} ${raw.damage.damageType ?? ""}`.trim() : weapon?.damage
     ? `${weapon.damage}${bonus ? ` + ${bonus}` : ""} ${weapon.damageType}`
     : raw.damage?.diceType ? `${raw.damage.diceCount ?? 1}${raw.damage.diceType} ${raw.damage.damageType ?? ""}`.trim() : undefined;
   // The SRD's own wording first; an Archive property naming the same rule ("Versatile (1d8/1d10)") is dropped.
   const ruleProperties = weapon ? weaponProperties(weapon) : [];
   const ruleWords = new Set(ruleProperties.map((p) => p.split(" ")[0].toLowerCase()));
-  const properties = [...ruleProperties, ...(item.properties || []).filter((p) => !ruleWords.has(p.split(" ")[0].toLowerCase()))];
+  const properties = data.ruleset && item.properties ? item.properties : [...ruleProperties, ...(item.properties || []).filter((p) => !ruleWords.has(p.split(" ")[0].toLowerCase()))];
   const listCategory = item.magical ? "magic-items" : "equipment";
   const baseItemName = weapon?.name ?? armor?.name;
   const baseItem = item.magical && baseItemName ? data.items.find((other) => !other.magical && other.name.toLowerCase() === baseItemName.toLowerCase()) : undefined;
@@ -48,7 +48,7 @@ export function ItemEntry({ item, data }: { item: Item; data: LibraryData }) {
   const sameType = data.items
     .filter((other) => other.id !== item.id && other.type === item.type && !!other.magical === !!item.magical)
     .slice(0, 18);
-  const attunement = item.requiresAttunement || magic?.attunement;
+  const attunement = item.requiresAttunement ?? magic?.attunement;
 
   return (
     <div className="space-y-6">
@@ -74,8 +74,8 @@ export function ItemEntry({ item, data }: { item: Item; data: LibraryData }) {
           { label: "Damage", value: damage },
           { label: "Category", value: weapon ? `${weapon.category} ${weapon.kind} Weapon` : armor ? (armor.category === "Shield" ? "Shield" : `${armor.category} Armor`) : undefined },
           { label: "Range", value: weapon?.range ? `${weapon.range[0]}/${weapon.range[1]} ft.` : undefined },
-          { label: "Mastery", value: weapon?.mastery },
-          { label: "Armor Class", value: armor ? armorClassText(armor, bonus) : item.armorClass?.base ? `${item.armorClass.base}` : undefined },
+          { label: "Mastery", value: data.ruleset === "2014" ? undefined : weapon?.mastery },
+          { label: "Armor Class", value: item.armorClass?.base !== undefined ? `${item.armorClass.base}${item.armorClass.dexterityModifier === "full" ? " + Dex modifier" : item.armorClass.dexterityModifier === "max2" ? " + Dex modifier (max 2)" : ""}` : armor ? armorClassText(armor, bonus) : undefined },
           { label: "Strength", value: armor?.strength ? `Str ${armor.strength}` : undefined },
           { label: "Stealth", value: armor?.stealthDisadvantage || item.armorClass?.stealthDisadvantage ? "Disadvantage" : undefined },
         ]}

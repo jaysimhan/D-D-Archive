@@ -1831,7 +1831,6 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     /** Asked before switching between 5e and 5.5e; as above, false drops it. */
     confirmRulesetChange?: () => Promise<boolean>;
 }) {
-    const suggestions = useSheetSuggestions();
     const [characterName, setCharacterName] = useSheetState("characterName", initialCharacter?.name ?? "");
     const [characterClass, setCharacterClass] = useSheetState("characterClass", initialCharacter?.class?.name ?? "");
     const [characterSubclass, setCharacterSubclass] = useSheetState("characterSubclass", 
@@ -1853,6 +1852,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     // creator brings its own; a blank sheet starts on the current rules.
     const [savedRuleset, setRuleset] = useSheetState<Ruleset>("ruleset", initialCharacter?.ruleset ?? "2024");
     const ruleset: Ruleset = savedRuleset === "2014" ? "2014" : "2024";
+    const suggestions = useSheetSuggestions(ruleset);
     const changeRuleset = async (next: Ruleset) => {
         if (next === ruleset) return;
         if (confirmRulesetChange && !(await confirmRulesetChange())) return;
@@ -2219,10 +2219,10 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     const classFeatureNotes = useMemo(
         () =>
             noteMap(
-                initialCharacter?.class?.features,
                 ...selectedClasses.map((item) => item.features),
+                initialCharacter?.ruleset === ruleset ? initialCharacter.class?.features : undefined,
             ),
-        [initialCharacter?.class?.features, selectedClasses],
+        [initialCharacter, ruleset, selectedClasses],
     );
     const subclassFeatureNotes = noteMap(
         initialCharacter?.subclass?.features,
@@ -2259,15 +2259,15 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         const named = featNames === undefined
             ? (initialCharacter?.feats ?? []).map((feat) => feat.name)
             : entryNames(featNames);
-        const originFeat = ruleset === "2014"
-            ? undefined
-            : BACKGROUND_ORIGIN_FEATS[background.trim().toLowerCase()];
-        const fromBackground =
-            originFeat && !named.some((name) => name.toLowerCase() === originFeat.toLowerCase())
-                ? originFeat
-                : undefined;
+        const backgroundDoc = suggestions.backgrounds.find(item => item.name.toLowerCase() === background.trim().toLowerCase());
+        const granted = backgroundDoc?.feats?.map(feat => feat.name) ??
+            (ruleset === "2024" && BACKGROUND_ORIGIN_FEATS[background.trim().toLowerCase()]
+                ? [BACKGROUND_ORIGIN_FEATS[background.trim().toLowerCase()]] : []);
+        const fromBackground = granted.filter(name => !named.some(existing =>
+            existing.toLowerCase() === name.toLowerCase() ||
+            (existing.startsWith("Magic Initiate") && name.startsWith("Magic Initiate"))));
 
-        return [...named, ...(fromBackground ? [fromBackground] : [])].map((name) => {
+        return [...named, ...fromBackground].map((name) => {
             const key = name.trim().toLowerCase();
             const doc = suggestions.feats.find((feat) => feat.name.toLowerCase() === key) ??
                 // "Magic Initiate (Cleric)" is the one feat, whichever list.
@@ -2279,11 +2279,11 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                 benefits: doc?.benefits,
                 grantsSpells: doc ? featGrantsSpells(doc) : /\binitiate\b|touched\b/i.test(name),
                 spellcastingAbility: own ? initialCharacter?.featSpellcastingAbilities?.[own.id] : undefined,
-                spellList: initialCharacter?.magicInitiateClass,
-                fromBackground: name === fromBackground ? background : undefined,
+                spellList: backgroundDoc?.originFeatSpellList || initialCharacter?.magicInitiateClass,
+                fromBackground: fromBackground.includes(name) ? background : undefined,
             };
         });
-    }, [featNames, initialCharacter, ruleset, background, suggestions.feats]);
+    }, [featNames, initialCharacter, ruleset, background, suggestions.feats, suggestions.backgrounds]);
 
     const speciesInputs = splitList(species).map((name) => {
         const key = name.toLowerCase();
@@ -2445,7 +2445,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
 
     /* ---------------- Actions ---------------- */
 
-    const sheetSpells = useSheetSpells();
+    const sheetSpells = useSheetSpells(ruleset);
     const spellsByName = useMemo(
         () => new Map(sheetSpells.map((spell) => [spell.name.toLowerCase(), spell])),
         [sheetSpells],

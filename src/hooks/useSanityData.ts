@@ -1,16 +1,11 @@
+import { editionQuery } from '../lib/ruleset-query';
 import { useState, useEffect } from 'react';
 import { sanityClient } from '../lib/sanity';
 import type { Class, Subclass, Race, Background, Spell, Feat, Item, HomepageData, CharacterRuleset } from '../types/dnd-types';
 
 function rulesetFilter(ruleset?: CharacterRuleset): string {
     if (!ruleset) return '';
-    return ` && (
-        $rulesetKey in rulesets[]._key ||
-        $rulesetKey in rulesets[]->key.current ||
-        ruleset._key == $rulesetKey ||
-        ruleset->key.current == $rulesetKey ||
-        edition == $edition || edition in ["Both", "5e"]
-    )`;
+    return ''; // Edition availability is applied centrally before projection.
 }
 
 function rulesetParams(ruleset?: CharacterRuleset): Record<string, string> {
@@ -43,9 +38,11 @@ function cachedFetch<T>(key: string, query: string, params: Record<string, any>)
 
 // Helper hook for Sanity queries
 function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
+    query = editionQuery(query, params.edition);
     const cacheKey = `${query}::${JSON.stringify(params)}`;
     const cached = resolvedCache.get(cacheKey) as T[] | undefined;
-    const [data, setData] = useState<T[]>(cached ?? []);
+    const [resultState, setResultState] = useState({ key: cacheKey, data: cached ?? [] });
+    const data = resultState.key === cacheKey ? resultState.data : cached ?? [];
     const [loading, setLoading] = useState(!cached);
     const [error, setError] = useState<Error | null>(null);
 
@@ -57,7 +54,7 @@ function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
             try {
                 const result = await cachedFetch<T[]>(cacheKey, query, params);
                 if (isMounted) {
-                    setData(result);
+                    setResultState({ key: cacheKey, data: result });
                     setError(null);
                 }
             } catch (err) {
@@ -79,7 +76,7 @@ function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
         };
     }, [cacheKey]);
 
-    return { data, loading, error, refetch: () => { /* Logic to trigger re-fetch could be added here */ } };
+    return { data, loading: loading || (resultState.key !== cacheKey && !cached), error, refetch: () => { /* Logic to trigger re-fetch could be added here */ } };
 }
 
 // ===== CLASSES =====
@@ -324,6 +321,8 @@ export function useBackgrounds(ruleset?: CharacterRuleset) {
             asset->{ _id, url, metadata { lqip, dimensions } }
         },
         skillProficiencies,
+        abilityScoreOptions,
+        originFeatSpellList,
         toolProficiencies,
         proficiencies,
         traits[]->{name, description},

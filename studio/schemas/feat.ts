@@ -46,6 +46,7 @@ export default {
                     { title: 'General', value: 'General' },
                     { title: 'Fighting Style', value: 'Fighting Style' },
                     { title: 'Epic Boon', value: 'Epic Boon' },
+                    { title: 'Dragonmark', value: 'Dragonmark' },
                 ],
                 layout: 'radio',
             },

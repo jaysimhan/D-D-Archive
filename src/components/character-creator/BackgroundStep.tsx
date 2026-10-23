@@ -165,7 +165,9 @@ export function BackgroundStep({
                         <h3 className="text-3xl font-bold text-brand-500 mb-2 font-serif border-b border-brand-900/30 pb-2">{selected.name}</h3>
                         <p className="text-gray-300 leading-relaxed mb-6 text-sm">{selected.description}</p>
 
-                        {/* Could add Skills, Tools, Languages here if available in Background object */}
+                        {displayedBackground?.feature && <div className="mb-4 text-sm text-gray-300"><h4 className="font-semibold text-brand-400">{displayedBackground.feature.name}</h4><p>{displayedBackground.feature.description}</p></div>}
+                        {!!displayedBackground?.feats?.length && <div className="mb-4 text-sm text-gray-300"><h4 className="font-semibold text-brand-400">Starting feats</h4>{displayedBackground.feats.map(feat => <p key={feat.id}>{feat.name}</p>)}</div>}
+                        {ruleset === "2024" && !!displayedBackground?.abilityScoreOptions?.length && <p className="text-sm text-gray-300">Ability increases: choose +2 and +1, or +1 to each, from {displayedBackground.abilityScoreOptions.join(", ")}.</p>}
                     </div>
                 ) : (
                     <div className="text-center text-gray-500 mt-12">

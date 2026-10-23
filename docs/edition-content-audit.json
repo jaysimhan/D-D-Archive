@@ -1,0 +1,3316 @@
+{
+  "catalogue": [
+    {
+      "type": "spell",
+      "name": "Shining Smite",
+      "status": "existing duplicates preserved"
+    },
+    {
+      "type": "feat",
+      "name": "Alert",
+      "status": "existing duplicate entries preserved"
+    },
+    {
+      "type": "feat",
+      "name": "Tavern Brawler",
+      "status": "existing duplicate entries preserved"
+    },
+    {
+      "id": "2d4a2438-cf68-4edf-87d9-438ba926fb38",
+      "type": "race",
+      "name": "Apeling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "47c62370-a26b-4f32-8cd5-440ecadcb461",
+      "type": "race",
+      "name": "Apefolk",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "88253ab7-6bbe-4cdc-9627-4ef44d94eeb7",
+      "type": "race",
+      "name": "Khoravar",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-aberrant-heir",
+      "type": "background",
+      "name": "Aberrant Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-anthropologist",
+      "type": "background",
+      "name": "Anthropologist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-archaeologist",
+      "type": "background",
+      "name": "Archaeologist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-astral-drifter",
+      "type": "background",
+      "name": "Astral Drifter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-athlete",
+      "type": "background",
+      "name": "Athlete",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-azorius-functionary",
+      "type": "background",
+      "name": "Azorius Functionary",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-boros-legionnaire",
+      "type": "background",
+      "name": "Boros Legionnaire",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-carouser",
+      "type": "background",
+      "name": "Carouser",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-celebrity-adventurer-s-scion",
+      "type": "background",
+      "name": "Celebrity Adventurer's Scion",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-chondathan-freebooter",
+      "type": "background",
+      "name": "Chondathan Freebooter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-city-watch",
+      "type": "background",
+      "name": "City Watch",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-clan-crafter",
+      "type": "background",
+      "name": "Clan Crafter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-cloistered-scholar",
+      "type": "background",
+      "name": "Cloistered Scholar",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-courtier",
+      "type": "background",
+      "name": "Courtier",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-dead-magic-dweller",
+      "type": "background",
+      "name": "Dead Magic Dweller",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-dimir-operative",
+      "type": "background",
+      "name": "Dimir Operative",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-dragon-cultist",
+      "type": "background",
+      "name": "Dragon Cultist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-emerald-enclave-caretaker",
+      "type": "background",
+      "name": "Emerald Enclave Caretaker",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-faceless",
+      "type": "background",
+      "name": "Faceless",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-faction-agent",
+      "type": "background",
+      "name": "Faction Agent",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-failed-merchant",
+      "type": "background",
+      "name": "Failed Merchant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-far-traveler",
+      "type": "background",
+      "name": "Far Traveler",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-feylost",
+      "type": "background",
+      "name": "Feylost",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-fisher",
+      "type": "background",
+      "name": "Fisher",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-flaming-fist-mercenary",
+      "type": "background",
+      "name": "Flaming Fist Mercenary",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-folk-hero",
+      "type": "background",
+      "name": "Folk Hero",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-gambler",
+      "type": "background",
+      "name": "Gambler",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-gate-warden",
+      "type": "background",
+      "name": "Gate Warden",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-genie-touched",
+      "type": "background",
+      "name": "Genie Touched",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-giant-foundling",
+      "type": "background",
+      "name": "Giant Foundling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-gladiator",
+      "type": "background",
+      "name": "Gladiator",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-golgari-agent",
+      "type": "background",
+      "name": "Golgari Agent",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-gruul-anarch",
+      "type": "background",
+      "name": "Gruul Anarch",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-guild-artisan",
+      "type": "background",
+      "name": "Guild Artisan",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-harper",
+      "type": "background",
+      "name": "Harper",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-haunted-one",
+      "type": "background",
+      "name": "Haunted One",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-agent",
+      "type": "background",
+      "name": "House Agent",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-cannith-heir",
+      "type": "background",
+      "name": "House Cannith Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-deneith-heir",
+      "type": "background",
+      "name": "House Deneith Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-ghallanda-heir",
+      "type": "background",
+      "name": "House Ghallanda Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-jorasco-heir",
+      "type": "background",
+      "name": "House Jorasco Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-kundarak-heir",
+      "type": "background",
+      "name": "House Kundarak Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-lyrandar-heir",
+      "type": "background",
+      "name": "House Lyrandar Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-medani-heir",
+      "type": "background",
+      "name": "House Medani Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-orien-heir",
+      "type": "background",
+      "name": "House Orien Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-phiarlan-heir",
+      "type": "background",
+      "name": "House Phiarlan Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-sivis-heir",
+      "type": "background",
+      "name": "House Sivis Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-tharashk-heir",
+      "type": "background",
+      "name": "House Tharashk Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-thuranni-heir",
+      "type": "background",
+      "name": "House Thuranni Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-house-vadalis-heir",
+      "type": "background",
+      "name": "House Vadalis Heir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-ice-fisher",
+      "type": "background",
+      "name": "Ice Fisher",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-inheritor",
+      "type": "background",
+      "name": "Inheritor",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-inquisitive",
+      "type": "background",
+      "name": "Inquisitive",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-investigator",
+      "type": "background",
+      "name": "Investigator",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-izzet-engineer",
+      "type": "background",
+      "name": "Izzet Engineer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-knight",
+      "type": "background",
+      "name": "Knight",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-knight-of-solamnia",
+      "type": "background",
+      "name": "Knight of Solamnia",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-knight-of-the-gauntlet",
+      "type": "background",
+      "name": "Knight of the Gauntlet",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-knight-of-the-order",
+      "type": "background",
+      "name": "Knight of the Order",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-lords-alliance-vassal",
+      "type": "background",
+      "name": "Lords' Alliance Vassal",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-lorwyn-expert",
+      "type": "background",
+      "name": "Lorwyn Expert",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-mage-of-high-sorcery",
+      "type": "background",
+      "name": "Mage of High Sorcery",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-marine",
+      "type": "background",
+      "name": "Marine",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-mercenary-veteran",
+      "type": "background",
+      "name": "Mercenary Veteran",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-moonwell-pilgrim",
+      "type": "background",
+      "name": "Moonwell Pilgrim",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-mulhorandi-tomb-raider",
+      "type": "background",
+      "name": "Mulhorandi Tomb Raider",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-mythalkeeper",
+      "type": "background",
+      "name": "Mythalkeeper",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-orzhov-representative",
+      "type": "background",
+      "name": "Orzhov Representative",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-outlander",
+      "type": "background",
+      "name": "Outlander",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-pirate",
+      "type": "background",
+      "name": "Pirate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-plaintiff",
+      "type": "background",
+      "name": "Plaintiff",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-planar-philosopher",
+      "type": "background",
+      "name": "Planar Philosopher",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-purple-dragon-squire",
+      "type": "background",
+      "name": "Purple Dragon Squire",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-rakdos-cultist",
+      "type": "background",
+      "name": "Rakdos Cultist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-rashemi-wanderer",
+      "type": "background",
+      "name": "Rashemi Wanderer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-rewarded",
+      "type": "background",
+      "name": "Rewarded",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-rival-intern",
+      "type": "background",
+      "name": "Rival Intern",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-ruined",
+      "type": "background",
+      "name": "Ruined",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-rune-carver",
+      "type": "background",
+      "name": "Rune Carver",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-selesnya-initiate",
+      "type": "background",
+      "name": "Selesnya Initiate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-shadowmasters-exile",
+      "type": "background",
+      "name": "Shadowmasters Exile",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-shadowmoor-expert",
+      "type": "background",
+      "name": "Shadowmoor Expert",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-shipwright",
+      "type": "background",
+      "name": "Shipwright",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-simic-scientist",
+      "type": "background",
+      "name": "Simic Scientist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-smuggler",
+      "type": "background",
+      "name": "Smuggler",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-spellfire-initiate",
+      "type": "background",
+      "name": "Spellfire Initiate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-urban-bounty-hunter",
+      "type": "background",
+      "name": "Urban Bounty Hunter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-urchin",
+      "type": "background",
+      "name": "Urchin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-uthgardt-tribe-member",
+      "type": "background",
+      "name": "Uthgardt Tribe Member",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-vampire-devotee",
+      "type": "background",
+      "name": "Vampire Devotee",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-vampire-survivor",
+      "type": "background",
+      "name": "Vampire Survivor",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-waterdhavian-noble",
+      "type": "background",
+      "name": "Waterdhavian Noble",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-wildspacer",
+      "type": "background",
+      "name": "Wildspacer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-witchlight-hand",
+      "type": "background",
+      "name": "Witchlight Hand",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "background-zhentarim-mercenary",
+      "type": "background",
+      "name": "Zhentarim Mercenary",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "c56a2799-ece3-4631-b080-c475ae9c406d",
+      "type": "race",
+      "name": "Lightfoot Halfling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "cb2a333e-cdbd-4f82-adb0-8e1753e6086d",
+      "type": "race",
+      "name": "Vanara",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-accursed",
+      "type": "class",
+      "name": "Accursed",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-acolyte",
+      "type": "class",
+      "name": "Acolyte",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-adept",
+      "type": "class",
+      "name": "Adept",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-alchemist",
+      "type": "class",
+      "name": "Alchemist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-animal-master",
+      "type": "class",
+      "name": "Animal Master",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-apothecary",
+      "type": "class",
+      "name": "Apothecary",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-artificer",
+      "type": "class",
+      "name": "Artificer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-beastheart",
+      "type": "class",
+      "name": "Beastheart",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-blood-hunter",
+      "type": "class",
+      "name": "Blood Hunter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-blood-mage",
+      "type": "class",
+      "name": "Blood Mage",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-captain",
+      "type": "class",
+      "name": "Captain",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-craftsman",
+      "type": "class",
+      "name": "Craftsman",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-gunslinger",
+      "type": "class",
+      "name": "Gunslinger",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-illrigger",
+      "type": "class",
+      "name": "Illrigger",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-investigator",
+      "type": "class",
+      "name": "Investigator",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-martyr",
+      "type": "class",
+      "name": "Martyr",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-monster-hunter",
+      "type": "class",
+      "name": "Monster Hunter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-necromancer",
+      "type": "class",
+      "name": "Necromancer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-pugilist",
+      "type": "class",
+      "name": "Pugilist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-warden",
+      "type": "class",
+      "name": "Warden",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-warmage",
+      "type": "class",
+      "name": "Warmage",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "class-witch",
+      "type": "class",
+      "name": "Witch",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-aberrant-dragonmark",
+      "type": "feat",
+      "name": "Aberrant Dragonmark",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-actor",
+      "type": "feat",
+      "name": "Actor",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-adept-of-the-black-robes",
+      "type": "feat",
+      "name": "Adept of the Black Robes",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-adept-of-the-red-robes",
+      "type": "feat",
+      "name": "Adept of the Red Robes",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-adept-of-the-white-robes",
+      "type": "feat",
+      "name": "Adept of the White Robes",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-agent-of-order",
+      "type": "feat",
+      "name": "Agent of Order",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-artificer-initiate",
+      "type": "feat",
+      "name": "Artificer Initiate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-athlete",
+      "type": "feat",
+      "name": "Athlete",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-baleful-scion",
+      "type": "feat",
+      "name": "Baleful Scion",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-blind-fighting",
+      "type": "feat",
+      "name": "Blind Fighting",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-bloodlust",
+      "type": "feat",
+      "name": "Bloodlust",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-bomber",
+      "type": "feat",
+      "name": "Bomber",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-boon-of-fortitude-2024",
+      "type": "feat",
+      "name": "Boon of Fortitude",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-boon-of-recovery-2024",
+      "type": "feat",
+      "name": "Boon of Recovery",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-boon-of-skill-2024",
+      "type": "feat",
+      "name": "Boon of Skill",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-boon-of-speed-2024",
+      "type": "feat",
+      "name": "Boon of Speed",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-bountiful-luck",
+      "type": "feat",
+      "name": "Bountiful Luck",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-cartomancer",
+      "type": "feat",
+      "name": "Cartomancer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-charger",
+      "type": "feat",
+      "name": "Charger",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-chef",
+      "type": "feat",
+      "name": "Chef",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-child-of-the-sun",
+      "type": "feat",
+      "name": "Child of the Sun",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-cloying-mists",
+      "type": "feat",
+      "name": "Cloying Mists",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-cohort-of-chaos",
+      "type": "feat",
+      "name": "Cohort of Chaos",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-cold-caster",
+      "type": "feat",
+      "name": "Cold Caster",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-crossbow-expert",
+      "type": "feat",
+      "name": "Crossbow Expert",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-crusher",
+      "type": "feat",
+      "name": "Crusher",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-cult-of-the-dragon-initiate",
+      "type": "feat",
+      "name": "Cult of the Dragon Initiate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-defensive-duelist",
+      "type": "feat",
+      "name": "Defensive Duelist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-delicious-pain",
+      "type": "feat",
+      "name": "Delicious Pain",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-divinely-favored",
+      "type": "feat",
+      "name": "Divinely Favored",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-dragon-fear",
+      "type": "feat",
+      "name": "Dragon Fear",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-dragon-hide",
+      "type": "feat",
+      "name": "Dragon Hide",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-dragonscarred",
+      "type": "feat",
+      "name": "Dragonscarred",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-drow-high-magic",
+      "type": "feat",
+      "name": "Drow High Magic",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-dual-wielder",
+      "type": "feat",
+      "name": "Dual Wielder",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-dueling",
+      "type": "feat",
+      "name": "Dueling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-dungeon-delver",
+      "type": "feat",
+      "name": "Dungeon Delver",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-durable",
+      "type": "feat",
+      "name": "Durable",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-dwarven-fortitude",
+      "type": "feat",
+      "name": "Dwarven Fortitude",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-eldritch-adept",
+      "type": "feat",
+      "name": "Eldritch Adept",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-elemental-adept",
+      "type": "feat",
+      "name": "Elemental Adept",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-elven-accuracy",
+      "type": "feat",
+      "name": "Elven Accuracy",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-ember-of-the-fire-giant",
+      "type": "feat",
+      "name": "Ember of the Fire Giant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-emerald-enclave-fledgling",
+      "type": "feat",
+      "name": "Emerald Enclave Fledgling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-enclave-magic",
+      "type": "feat",
+      "name": "Enclave Magic",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-fade-away",
+      "type": "feat",
+      "name": "Fade Away",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-fairy-trickster",
+      "type": "feat",
+      "name": "Fairy Trickster",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-fey-touched-15",
+      "type": "feat",
+      "name": "Fey Touched",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-great-weapon-master-4",
+      "type": "feat",
+      "name": "Great Weapon Master",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-keen-mind-20",
+      "type": "feat",
+      "name": "Keen Mind",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-metamagic-initiate-13",
+      "type": "feat",
+      "name": "Metamagic Initiate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-observant-21",
+      "type": "feat",
+      "name": "Observant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-polearm-master-8",
+      "type": "feat",
+      "name": "Polearm Master",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-resilient-10",
+      "type": "feat",
+      "name": "Resilient",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-sentinel-7",
+      "type": "feat",
+      "name": "Sentinel",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-shadow-touched-16",
+      "type": "feat",
+      "name": "Shadow Touched",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-sharpshooter-5",
+      "type": "feat",
+      "name": "Sharpshooter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-telekinetic-17",
+      "type": "feat",
+      "name": "Telekinetic",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-feat-war-caster-3",
+      "type": "feat",
+      "name": "War Caster",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-fey-teleportation",
+      "type": "feat",
+      "name": "Fey Teleportation",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-fighting-initiate",
+      "type": "feat",
+      "name": "Fighting Initiate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-flames-of-phlegethos",
+      "type": "feat",
+      "name": "Flames of Phlegethos",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-fury-of-the-frost-giant",
+      "type": "feat",
+      "name": "Fury of the Frost Giant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-genie-magic",
+      "type": "feat",
+      "name": "Genie Magic",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-gift-of-the-chromatic-dragon",
+      "type": "feat",
+      "name": "Gift of the Chromatic Dragon",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-gift-of-the-gem-dragon",
+      "type": "feat",
+      "name": "Gift of the Gem Dragon",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-gift-of-the-metallic-dragon",
+      "type": "feat",
+      "name": "Gift of the Metallic Dragon",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-greater-aberrant-mark",
+      "type": "feat",
+      "name": "Greater Aberrant Mark",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-guile-of-the-cloud-giant",
+      "type": "feat",
+      "name": "Guile of the Cloud Giant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-gunner",
+      "type": "feat",
+      "name": "Gunner",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-harper-agent",
+      "type": "feat",
+      "name": "Harper Agent",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-harper-teamwork",
+      "type": "feat",
+      "name": "Harper Teamwork",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-heavily-armored",
+      "type": "feat",
+      "name": "Heavily Armored",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-heavy-armor-master",
+      "type": "feat",
+      "name": "Heavy Armor Master",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-infernal-constitution",
+      "type": "feat",
+      "name": "Infernal Constitution",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-initiate-of-high-sorcery",
+      "type": "feat",
+      "name": "Initiate of High Sorcery",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-inspiring-leader",
+      "type": "feat",
+      "name": "Inspiring Leader",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-interception",
+      "type": "feat",
+      "name": "Interception",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-keenness-of-the-stone-giant",
+      "type": "feat",
+      "name": "Keenness of the Stone Giant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-knight-of-the-crown",
+      "type": "feat",
+      "name": "Knight of the Crown",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-knight-of-the-rose",
+      "type": "feat",
+      "name": "Knight of the Rose",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-knight-of-the-sword",
+      "type": "feat",
+      "name": "Knight of the Sword",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-light-bringer",
+      "type": "feat",
+      "name": "Light Bringer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-lightly-armored",
+      "type": "feat",
+      "name": "Lightly Armored",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-linguist",
+      "type": "feat",
+      "name": "Linguist",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-lordly-resolve",
+      "type": "feat",
+      "name": "Lordly Resolve",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-lords-alliance-agent",
+      "type": "feat",
+      "name": "Lords\u2019 Alliance Agent",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-love-bites",
+      "type": "feat",
+      "name": "Love Bites",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-mage-slayer",
+      "type": "feat",
+      "name": "Mage Slayer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-mark-of-detection",
+      "type": "feat",
+      "name": "Mark of Detection",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-martial-adept",
+      "type": "feat",
+      "name": "Martial Adept",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-martial-weapon-training",
+      "type": "feat",
+      "name": "Martial Weapon Training",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-medium-armor-master",
+      "type": "feat",
+      "name": "Medium Armor Master",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-metamagic-adept",
+      "type": "feat",
+      "name": "Metamagic Adept",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-mobile",
+      "type": "feat",
+      "name": "Mobile",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-moderately-armored",
+      "type": "feat",
+      "name": "Moderately Armored",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-mounted-combatant",
+      "type": "feat",
+      "name": "Mounted Combatant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-mythal-touched",
+      "type": "feat",
+      "name": "Mythal Touched",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-orcish-fury",
+      "type": "feat",
+      "name": "Orcish Fury",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-order-s-resilience",
+      "type": "feat",
+      "name": "Order's Resilience",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-outlands-envoy",
+      "type": "feat",
+      "name": "Outlands Envoy",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-piercer",
+      "type": "feat",
+      "name": "Piercer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-planar-wanderer",
+      "type": "feat",
+      "name": "Planar Wanderer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-poisoner",
+      "type": "feat",
+      "name": "Poisoner",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-prodigy",
+      "type": "feat",
+      "name": "Prodigy",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-protection",
+      "type": "feat",
+      "name": "Protection",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-purple-dragon-commandant",
+      "type": "feat",
+      "name": "Purple Dragon Commandant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-purple-dragon-rook",
+      "type": "feat",
+      "name": "Purple Dragon Rook",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-putrefy",
+      "type": "feat",
+      "name": "Putrefy",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-rebuke",
+      "type": "feat",
+      "name": "Rebuke",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-revenant-blade",
+      "type": "feat",
+      "name": "Revenant Blade",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-righteous-heritor",
+      "type": "feat",
+      "name": "Righteous Heritor",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-ritual-caster",
+      "type": "feat",
+      "name": "Ritual Caster",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-rune-shaper",
+      "type": "feat",
+      "name": "Rune Shaper",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-scion-of-the-outer-planes",
+      "type": "feat",
+      "name": "Scion of the Outer Planes",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-second-chance",
+      "type": "feat",
+      "name": "Second Chance",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-shadowmoor-hexer",
+      "type": "feat",
+      "name": "Shadowmoor Hexer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-shield-master",
+      "type": "feat",
+      "name": "Shield Master",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-skill-expert",
+      "type": "feat",
+      "name": "Skill Expert",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-skulker",
+      "type": "feat",
+      "name": "Skulker",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-slasher",
+      "type": "feat",
+      "name": "Slasher",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-soul-of-the-storm-giant",
+      "type": "feat",
+      "name": "Soul of the Storm Giant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-speedy",
+      "type": "feat",
+      "name": "Speedy",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-spell-sniper",
+      "type": "feat",
+      "name": "Spell Sniper",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-spellfire-adept",
+      "type": "feat",
+      "name": "Spellfire Adept",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-spellfire-spark",
+      "type": "feat",
+      "name": "Spellfire Spark",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-squat-nimbleness",
+      "type": "feat",
+      "name": "Squat Nimbleness",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-squire-of-solamnia",
+      "type": "feat",
+      "name": "Squire of Solamnia",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-street-justice",
+      "type": "feat",
+      "name": "Street Justice",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-strike-of-the-giants",
+      "type": "feat",
+      "name": "Strike of the Giants",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-strixhaven-initiate-lorehold",
+      "type": "feat",
+      "name": "Strixhaven Initiate (Lorehold)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-strixhaven-initiate-prismari",
+      "type": "feat",
+      "name": "Strixhaven Initiate (Prismari)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-strixhaven-initiate-quandrix",
+      "type": "feat",
+      "name": "Strixhaven Initiate (Quandrix)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-strixhaven-initiate-silverquill",
+      "type": "feat",
+      "name": "Strixhaven Initiate (Silverquill)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-strixhaven-initiate-witherbloom",
+      "type": "feat",
+      "name": "Strixhaven Initiate (Witherbloom)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-svirfneblin-magic",
+      "type": "feat",
+      "name": "Svirfneblin Magic",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-tavern-brawler",
+      "type": "feat",
+      "name": "Tavern Brawler",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-tavern-brawler-2024",
+      "type": "feat",
+      "name": "Tavern Brawler",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-telepathic",
+      "type": "feat",
+      "name": "Telepathic",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-thrown-weapon-fighting",
+      "type": "feat",
+      "name": "Thrown Weapon Fighting",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-tireless-reveler",
+      "type": "feat",
+      "name": "Tireless Reveler",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-treacherous-allure",
+      "type": "feat",
+      "name": "Treacherous Allure",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-tyro-of-the-gauntlet",
+      "type": "feat",
+      "name": "Tyro of the Gauntlet",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-unarmed-fighting",
+      "type": "feat",
+      "name": "Unarmed Fighting",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-vampire-hunter",
+      "type": "feat",
+      "name": "Vampire Hunter",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-vampire-s-plaything",
+      "type": "feat",
+      "name": "Vampire's Plaything",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-vampire-touched",
+      "type": "feat",
+      "name": "Vampire Touched",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-vigor-of-the-hill-giant",
+      "type": "feat",
+      "name": "Vigor of the Hill Giant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-weapon-master",
+      "type": "feat",
+      "name": "Weapon Master",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-wood-elf-magic",
+      "type": "feat",
+      "name": "Wood Elf Magic",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-zhentarim-ruffian",
+      "type": "feat",
+      "name": "Zhentarim Ruffian",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "feat-zhentarim-tactics",
+      "type": "feat",
+      "name": "Zhentarim Tactics",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-belt-of-giant-strength",
+      "type": "item",
+      "name": "Belt of Giant Strength (Hill Giant)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-bloodwell-vial-1",
+      "type": "item",
+      "name": "+1 Bloodwell Vial",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-eldritch-claw-tattoo",
+      "type": "item",
+      "name": "Eldritch Claw Tattoo",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-potion-of-greater-healing",
+      "type": "item",
+      "name": "Potion of Greater Healing",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-potion-of-superior-healing",
+      "type": "item",
+      "name": "Potion of Superior Healing",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-scroll-of-fireball",
+      "type": "item",
+      "name": "Spell Scroll (Fireball)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-scroll-of-revivify",
+      "type": "item",
+      "name": "Spell Scroll (Revivify)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-spellbook",
+      "type": "item",
+      "name": "Spellbook",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "item-sword-plus-one",
+      "type": "item",
+      "name": "+1 Longsword",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-aarakocra-1-0",
+      "type": "race",
+      "name": "Aarakocra",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-aasimar-1-2",
+      "type": "race",
+      "name": "Aasimar",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-accursed",
+      "type": "race",
+      "name": "Accursed",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-arisen",
+      "type": "race",
+      "name": "Arisen",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-ashborn",
+      "type": "race",
+      "name": "Ashborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-astral-elf-65",
+      "type": "race",
+      "name": "Astral Elf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-autognome",
+      "type": "race",
+      "name": "Autognome",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-azureborn",
+      "type": "race",
+      "name": "Azureborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-bearfolk-63",
+      "type": "race",
+      "name": "Bearfolk",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-bogborn",
+      "type": "race",
+      "name": "Bogborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-boggart-56",
+      "type": "race",
+      "name": "Boggart",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-bugbear-2-5",
+      "type": "race",
+      "name": "Bugbear",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-canisar-53",
+      "type": "race",
+      "name": "Canisar",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-centaur-6",
+      "type": "race",
+      "name": "Centaur",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-cervan",
+      "type": "race",
+      "name": "Cervan",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-changeling-8",
+      "type": "race",
+      "name": "Changeling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-cnidaran",
+      "type": "race",
+      "name": "Cnidaran",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-curseborn",
+      "type": "race",
+      "name": "Curseborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-cyclopian",
+      "type": "race",
+      "name": "Cyclopian",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-dara",
+      "type": "race",
+      "name": "Dara",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-darakhul",
+      "type": "race",
+      "name": "Darakhul",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-deep-gnome",
+      "type": "race",
+      "name": "Deep Gnome (Svirfneblin)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-deepborn",
+      "type": "race",
+      "name": "Deepborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-dhampir-43",
+      "type": "race",
+      "name": "Dhampir",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-disembodied",
+      "type": "race",
+      "name": "Disembodied",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-downcast",
+      "type": "race",
+      "name": "Downcast",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-dreamer",
+      "type": "race",
+      "name": "Dreamer",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-drow",
+      "type": "race",
+      "name": "Drow (Dark Elf)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-duergar",
+      "type": "race",
+      "name": "Duergar (Gray Dwarf)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-eladrin",
+      "type": "race",
+      "name": "Eladrin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-erina",
+      "type": "race",
+      "name": "Erina",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-etherean",
+      "type": "race",
+      "name": "Etherean",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-fairy",
+      "type": "race",
+      "name": "Fairy",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-firbolg-2",
+      "type": "race",
+      "name": "Firbolg",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-flamekin-58",
+      "type": "race",
+      "name": "Flamekin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-forest-gnome",
+      "type": "race",
+      "name": "Forest Gnome",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-gallus",
+      "type": "race",
+      "name": "Gallus",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-geleton",
+      "type": "race",
+      "name": "Geleton",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-genasi-air-15",
+      "type": "race",
+      "name": "Genasi (Air)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-genasi-earth-16",
+      "type": "race",
+      "name": "Genasi (Earth)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-genasi-fire-17",
+      "type": "race",
+      "name": "Genasi (Fire)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-genasi-water-18",
+      "type": "race",
+      "name": "Genasi (Water)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-geppettin",
+      "type": "race",
+      "name": "Geppettin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-ghostwise-halfling",
+      "type": "race",
+      "name": "Ghostwise Halfling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-giff",
+      "type": "race",
+      "name": "Giff",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-githyanki-67",
+      "type": "race",
+      "name": "Githyanki",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-githzerai-68",
+      "type": "race",
+      "name": "Githzerai",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-gnarlborn",
+      "type": "race",
+      "name": "Gnarlborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-gobboc",
+      "type": "race",
+      "name": "Gobboc",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-goblin-20",
+      "type": "race",
+      "name": "Goblin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-golynn",
+      "type": "race",
+      "name": "Golynn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-graveborn",
+      "type": "race",
+      "name": "Graveborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-grudgel",
+      "type": "race",
+      "name": "Grudgel",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-grung",
+      "type": "race",
+      "name": "Grung",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-hadozee",
+      "type": "race",
+      "name": "Hadozee",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-half-elf-24",
+      "type": "race",
+      "name": "Half-Elf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-half-elf-high-variant",
+      "type": "race",
+      "name": "Half-Elf (High Elf Descent)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-half-orc-25",
+      "type": "race",
+      "name": "Half-Orc",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-harengon",
+      "type": "race",
+      "name": "Harengon",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-harvestborn",
+      "type": "race",
+      "name": "Harvestborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-hederan-54",
+      "type": "race",
+      "name": "Hederan",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-hedge",
+      "type": "race",
+      "name": "Hedge",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-hexblood-45",
+      "type": "race",
+      "name": "Hexblood",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-high-elf",
+      "type": "race",
+      "name": "High Elf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-hill-dwarf",
+      "type": "race",
+      "name": "Hill Dwarf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-hobgoblin-27",
+      "type": "race",
+      "name": "Hobgoblin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-jerbeen",
+      "type": "race",
+      "name": "Jerbeen",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-kalashtar",
+      "type": "race",
+      "name": "Kalashtar",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-kender",
+      "type": "race",
+      "name": "Kender",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-kenku-30",
+      "type": "race",
+      "name": "Kenku",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-kithkin-59",
+      "type": "race",
+      "name": "Kithkin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-kobold-66",
+      "type": "race",
+      "name": "Kobold",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-laneshi",
+      "type": "race",
+      "name": "Laneshi",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-leonin-47",
+      "type": "race",
+      "name": "Leonin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-lizardfolk-32",
+      "type": "race",
+      "name": "Lizardfolk",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-locathah",
+      "type": "race",
+      "name": "Locathah",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-lorwyn-changeling-60",
+      "type": "race",
+      "name": "Changeling (Lorwyn)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-lorwyn-elf-42",
+      "type": "race",
+      "name": "Lorwyn-Shadowmoor Elf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-lorwyn-faerie-57",
+      "type": "race",
+      "name": "Faerie (Lorwyn)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-loxodon-49",
+      "type": "race",
+      "name": "Loxodon",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-luma",
+      "type": "race",
+      "name": "Luma",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-mandrake",
+      "type": "race",
+      "name": "Mandrake",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-mapach",
+      "type": "race",
+      "name": "Mapach",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-merrow-lorwyn-62",
+      "type": "race",
+      "name": "Merrow (Lorwyn)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-minotaur",
+      "type": "race",
+      "name": "Minotaur",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-mountain-dwarf",
+      "type": "race",
+      "name": "Mountain Dwarf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-nakudama",
+      "type": "race",
+      "name": "Nakudama",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-ogresh",
+      "type": "race",
+      "name": "Ogresh",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-owlin",
+      "type": "race",
+      "name": "Owlin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-plagueborn",
+      "type": "race",
+      "name": "Plagueborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-plasmoid-64",
+      "type": "race",
+      "name": "Plasmoid",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-quickstep",
+      "type": "race",
+      "name": "Quickstep",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-rakin",
+      "type": "race",
+      "name": "Rakin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-ratatosk",
+      "type": "race",
+      "name": "Ratatosk",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-reborn-44",
+      "type": "race",
+      "name": "Reborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-relicborn",
+      "type": "race",
+      "name": "Relicborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-rimekin-61",
+      "type": "race",
+      "name": "Rimekin",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-rock-gnome",
+      "type": "race",
+      "name": "Rock Gnome",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-satarre",
+      "type": "race",
+      "name": "Satarre",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-satyr-48",
+      "type": "race",
+      "name": "Satyr",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-sea-elf",
+      "type": "race",
+      "name": "Sea Elf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-shadar-kai",
+      "type": "race",
+      "name": "Shadar-kai",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-shade",
+      "type": "race",
+      "name": "Shade",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-shifter-beasthide",
+      "type": "race",
+      "name": "Shifter (Beasthide)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-shifter-longtooth",
+      "type": "race",
+      "name": "Shifter (Longtooth)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-shifter-swiftstride",
+      "type": "race",
+      "name": "Shifter (Swiftstride)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-shifter-wildhunt",
+      "type": "race",
+      "name": "Shifter (Wildhunt)",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-silkborn",
+      "type": "race",
+      "name": "Silkborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-simic-hybrid",
+      "type": "race",
+      "name": "Simic Hybrid",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-snowborn-55",
+      "type": "race",
+      "name": "Snowborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-stoneborn",
+      "type": "race",
+      "name": "Stoneborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-stout-halfling",
+      "type": "race",
+      "name": "Stout Halfling",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-tabaxi-35",
+      "type": "race",
+      "name": "Tabaxi",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-tarandus-52",
+      "type": "race",
+      "name": "Tarandus",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-threadborn",
+      "type": "race",
+      "name": "Threadborn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-thri-kreen",
+      "type": "race",
+      "name": "Thri-kreen",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-tortle-51",
+      "type": "race",
+      "name": "Tortle",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-triton-39",
+      "type": "race",
+      "name": "Triton",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-vedalken",
+      "type": "race",
+      "name": "Vedalken",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-verdan",
+      "type": "race",
+      "name": "Verdan",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-warforged-46",
+      "type": "race",
+      "name": "Warforged",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-wechselkind",
+      "type": "race",
+      "name": "Wechselkind",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-wood-elf",
+      "type": "race",
+      "name": "Wood Elf",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-wulven",
+      "type": "race",
+      "name": "Wulven",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-yuan-ti-pureblood",
+      "type": "race",
+      "name": "Yuan-ti Pureblood",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "race-yuan-ti-pureblood-41",
+      "type": "race",
+      "name": "Yuan-ti",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-a-distant-cry",
+      "type": "spell",
+      "name": "A Distant Cry",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-abberate",
+      "type": "spell",
+      "name": "Abberate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-abduct",
+      "type": "spell",
+      "name": "Abduct",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aberrate",
+      "type": "spell",
+      "name": "Aberrate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-abeyed-discharge",
+      "type": "spell",
+      "name": "Abeyed Discharge",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-abhorrence",
+      "type": "spell",
+      "name": "Abhorrence",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-abhorrent-apparition",
+      "type": "spell",
+      "name": "Abhorrent Apparition",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-abi-dalzims-horrid-wilting",
+      "type": "spell",
+      "name": "Abi-Dalzim's Horrid Wilting",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-abrupt-hug",
+      "type": "spell",
+      "name": "Abrupt Hug",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-absolute-command",
+      "type": "spell",
+      "name": "Absolute Command",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-absorb-elements",
+      "type": "spell",
+      "name": "Absorb Elements",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-absorb-light",
+      "type": "spell",
+      "name": "Absorb Light",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-absorb-material",
+      "type": "spell",
+      "name": "Absorb Material",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-absorbing-field",
+      "type": "spell",
+      "name": "Absorbing Field",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-absorption",
+      "type": "spell",
+      "name": "Absorption",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-accelerate",
+      "type": "spell",
+      "name": "Accelerate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-accelerate-decelerate",
+      "type": "spell",
+      "name": "Accelerate Decelerate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acceptance-in-the-world",
+      "type": "spell",
+      "name": "Acceptance in the World",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-accursed-act",
+      "type": "spell",
+      "name": "Accursed Act",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acid-barb",
+      "type": "spell",
+      "name": "Acid Barb",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acid-burn",
+      "type": "spell",
+      "name": "Acid Burn",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acid-gate",
+      "type": "spell",
+      "name": "Acid Gate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acid-rain",
+      "type": "spell",
+      "name": "Acid Rain",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acid-spray",
+      "type": "spell",
+      "name": "Acid Spray",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acrid-orb",
+      "type": "spell",
+      "name": "Acrid Orb",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-action",
+      "type": "spell",
+      "name": "Action",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-acumen",
+      "type": "spell",
+      "name": "Acumen",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-adjust-position",
+      "type": "spell",
+      "name": "Adjust Position",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-adjust-positioning",
+      "type": "spell",
+      "name": "Adjust Positioning",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aegis",
+      "type": "spell",
+      "name": "Aegis",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aegis-of-honor",
+      "type": "spell",
+      "name": "Aegis of Honor",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aerial-alacrity",
+      "type": "spell",
+      "name": "Aerial Alacrity",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aether-shroud",
+      "type": "spell",
+      "name": "Aether Shroud",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aether-soul-link",
+      "type": "spell",
+      "name": "Aether Soul-Link",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aetherial-rift",
+      "type": "spell",
+      "name": "Aetherial Rift",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aetheric-adaptation",
+      "type": "spell",
+      "name": "Aetheric Adaptation",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aetheric-bedlam",
+      "type": "spell",
+      "name": "Aetheric Bedlam",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aetheric-communion",
+      "type": "spell",
+      "name": "Aetheric Communion",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-afflict-line",
+      "type": "spell",
+      "name": "Afflict Line",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-after-image",
+      "type": "spell",
+      "name": "After Image",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-aganazzars-scorcher",
+      "type": "spell",
+      "name": "Aganazzar's Scorcher",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-agglutination",
+      "type": "spell",
+      "name": "Agglutination",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-agility",
+      "type": "spell",
+      "name": "Agility",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-agonizing-eternity",
+      "type": "spell",
+      "name": "Agonizing Eternity",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-agonizing-mark",
+      "type": "spell",
+      "name": "Agonizing Mark",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-air-bubble",
+      "type": "spell",
+      "name": "Air Bubble",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-alabasters-adaptation-for-the-world-below",
+      "type": "spell",
+      "name": "Alabaster's Adaptation for the World Below",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-alabasters-adjacent-acquisition",
+      "type": "spell",
+      "name": "Alabaster's Adjacent Acquisition",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-alchemical-form",
+      "type": "spell",
+      "name": "Alchemical Form",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ale-dritch-blast",
+      "type": "spell",
+      "name": "Ale-Dritch Blast",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-allure",
+      "type": "spell",
+      "name": "Allure",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ally-aegis",
+      "type": "spell",
+      "name": "Ally Aegis",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-alone",
+      "type": "spell",
+      "name": "Alone",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-alter-arrows-fortune",
+      "type": "spell",
+      "name": "Alter Arrow's Fortune",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-alter-form",
+      "type": "spell",
+      "name": "Alter Form",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-alter-time-flow",
+      "type": "spell",
+      "name": "Alter Time Flow",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-altheas-travel-tent",
+      "type": "spell",
+      "name": "Althea's Travel Tent",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-altruistic-sacrifice",
+      "type": "spell",
+      "name": "Altruistic Sacrifice",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-amanuensis",
+      "type": "spell",
+      "name": "Amanuensis",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ambush",
+      "type": "spell",
+      "name": "Ambush",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ambush-chute",
+      "type": "spell",
+      "name": "Ambush Chute",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ambush-prey",
+      "type": "spell",
+      "name": "Ambush Prey",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ambushers-regret",
+      "type": "spell",
+      "name": "Ambusher's Regret",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ameliorate",
+      "type": "spell",
+      "name": "Ameliorate",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ammunition-retrieval",
+      "type": "spell",
+      "name": "Ammunition Retrieval",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-amplify-ability",
+      "type": "spell",
+      "name": "Amplify Ability",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-amplify-gravity",
+      "type": "spell",
+      "name": "Amplify Gravity",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-armor-of-agathys",
+      "type": "spell",
+      "name": "Armor of Agathys",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-arms-of-hadar",
+      "type": "spell",
+      "name": "Arms of Hadar",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-beast-bond",
+      "type": "spell",
+      "name": "Beast Bond",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-beast-sense",
+      "type": "spell",
+      "name": "Beast Sense",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-blade-ward",
+      "type": "spell",
+      "name": "Blade Ward",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-booming-blade",
+      "type": "spell",
+      "name": "Booming Blade",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-branding-smite",
+      "type": "spell",
+      "name": "Branding Smite",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-catapult",
+      "type": "spell",
+      "name": "Catapult",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-catnap",
+      "type": "spell",
+      "name": "Catnap",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-cause-fear",
+      "type": "spell",
+      "name": "Cause Fear",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-ceremony",
+      "type": "spell",
+      "name": "Ceremony",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-chaos-bolt",
+      "type": "spell",
+      "name": "Chaos Bolt",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-cloud-of-daggers",
+      "type": "spell",
+      "name": "Cloud of Daggers",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-compelled-duel",
+      "type": "spell",
+      "name": "Compelled Duel",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-conjure-barrage",
+      "type": "spell",
+      "name": "Conjure Barrage",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-control-flames",
+      "type": "spell",
+      "name": "Control Flames",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-cordon-of-arrows",
+      "type": "spell",
+      "name": "Cordon of Arrows",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-create-bonfire",
+      "type": "spell",
+      "name": "Create Bonfire",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-crown-of-madness",
+      "type": "spell",
+      "name": "Crown of Madness",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-dust-devil",
+      "type": "spell",
+      "name": "Dust Devil",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-earth-tremor",
+      "type": "spell",
+      "name": "Earth Tremor",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-earthbind",
+      "type": "spell",
+      "name": "Earthbind",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-elemental-weapon",
+      "type": "spell",
+      "name": "Elemental Weapon",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-feign-death",
+      "type": "spell",
+      "name": "Feign Death",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-flame-arrows",
+      "type": "spell",
+      "name": "Flame Arrows",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-friends",
+      "type": "spell",
+      "name": "Friends",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-frostbite",
+      "type": "spell",
+      "name": "Frostbite",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-green-flame-blade",
+      "type": "spell",
+      "name": "Green-Flame Blade",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-gust",
+      "type": "spell",
+      "name": "Gust",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-hail-of-thorns",
+      "type": "spell",
+      "name": "Hail of Thorns",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-healing-spirit",
+      "type": "spell",
+      "name": "Healing Spirit",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-infestation",
+      "type": "spell",
+      "name": "Infestation",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-intellect-fortress",
+      "type": "spell",
+      "name": "Intellect Fortress",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-lightning-arrow",
+      "type": "spell",
+      "name": "Lightning Arrow",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-lightning-lure",
+      "type": "spell",
+      "name": "Lightning Lure",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-magic-stone",
+      "type": "spell",
+      "name": "Magic Stone",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-maximilians-earthen-grasp",
+      "type": "spell",
+      "name": "Maximilian's Earthen Grasp",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-melfs-acid-arrow",
+      "type": "spell",
+      "name": "Melf's Acid Arrow",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-mind-sliver",
+      "type": "spell",
+      "name": "Mind Sliver",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-mold-earth",
+      "type": "spell",
+      "name": "Mold Earth",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-nystuls-magic-aura",
+      "type": "spell",
+      "name": "Nystul's Magic Aura",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-primal-savagery",
+      "type": "spell",
+      "name": "Primal Savagery",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-pyrotechnics",
+      "type": "spell",
+      "name": "Pyrotechnics",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-shadow-blade",
+      "type": "spell",
+      "name": "Shadow Blade",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-shape-water",
+      "type": "spell",
+      "name": "Shape Water",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-shining-smite",
+      "type": "spell",
+      "name": "Shining Smite",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-skywrite",
+      "type": "spell",
+      "name": "Skywrite",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-snare",
+      "type": "spell",
+      "name": "Snare",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-snillocs-snowball-swarm",
+      "type": "spell",
+      "name": "Snilloc's Snowball Swarm",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-summon-beast",
+      "type": "spell",
+      "name": "Summon Beast",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-sword-burst",
+      "type": "spell",
+      "name": "Sword Burst",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-tashas-caustic-brew",
+      "type": "spell",
+      "name": "Tasha's Caustic Brew",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-tashas-mind-whip",
+      "type": "spell",
+      "name": "Tasha's Mind Whip",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-thorn-whip",
+      "type": "spell",
+      "name": "Thorn Whip",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-thunderclap",
+      "type": "spell",
+      "name": "Thunderclap",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-thunderous-smite",
+      "type": "spell",
+      "name": "Thunderous Smite",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-tiny-servant",
+      "type": "spell",
+      "name": "Tiny Servant",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-toll-the-dead",
+      "type": "spell",
+      "name": "Toll the Dead",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-warding-wind",
+      "type": "spell",
+      "name": "Warding Wind",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-witch-bolt",
+      "type": "spell",
+      "name": "Witch Bolt",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-wither-and-bloom",
+      "type": "spell",
+      "name": "Wither and Bloom",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-word-of-radiance",
+      "type": "spell",
+      "name": "Word of Radiance",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-wrathful-smite",
+      "type": "spell",
+      "name": "Wrathful Smite",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    },
+    {
+      "id": "spell-zephyr-strike",
+      "type": "spell",
+      "name": "Zephyr Strike",
+      "status": "Existing populated description retained; no verified replacement in researched SRDs"
+    }
+  ],
+  "unresolvedBackgroundFeats": [
+    {
+      "background": "House Cannith Heir",
+      "feat": "Mark of Making",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Deneith Heir",
+      "feat": "Mark of Sentinel",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Ghallanda Heir",
+      "feat": "Mark of Hospitality",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Jorasco Heir",
+      "feat": "Mark of Healing",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Kundarak Heir",
+      "feat": "Mark of Warding",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Orien Heir",
+      "feat": "Mark of Passage",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Phiarlan Heir",
+      "feat": "Mark of Shadow",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Sivis Heir",
+      "feat": "Mark of Scribing",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Tharashk Heir",
+      "feat": "Mark of Finding",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Thuranni Heir",
+      "feat": "Mark of Shadow",
+      "reason": "Missing feat; verified source needed"
+    },
+    {
+      "background": "House Vadalis Heir",
+      "feat": "Mark of Handling",
+      "reason": "Missing feat; verified source needed"
+    }
+  ]
+}

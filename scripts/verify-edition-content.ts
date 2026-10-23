@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { createClient } from '@sanity/client';
+import { editionQuery } from '../src/lib/ruleset-query';
+const client = createClient({projectId:'ylk0tk34',dataset:'production',apiVersion:'2024-01-01',useCdn:false});
+const query = '*[_type == "spell" && sameForBoth == false]{_id,name,description,level,classes,castingTime,components}';
+const [old, modern] = await Promise.all(['2014','2024'].map(edition => client.fetch(editionQuery(query,edition),{edition,rulesetKey:`srd-${edition}`})));
+assert.equal(old.length,318); assert.equal(modern.length,318);
+assert.ok(old.every((d:any)=>d.description && Array.isArray(d.classes)));
+assert.ok(modern.every((d:any)=>d.description && Array.isArray(d.classes)));
+const healing2014 = old.find((d:any)=>d.name === 'Cure Wounds');
+const healing2024 = modern.find((d:any)=>d.name === 'Cure Wounds');
+assert.match(healing2014.description,/1d8/); assert.match(healing2024.description,/2d8/);
+console.log('Live verification passed: 318 spells resolve in both editions; Cure Wounds healing changes from 1d8 to 2d8.');

@@ -6,6 +6,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import { PDFDocument } from './pdf/PDFDocument';
 
 interface CharacterData {
+  ruleset?: "2014" | "2024";
   name: string;
   race?: Race;
   subrace?: Subrace;
@@ -48,7 +49,7 @@ export function CharacterSheet({
   onEdit: () => void;
 }) {
   const contentRef = React.useRef<HTMLDivElement>(null);
-  const { data: allSanitySpells } = useSpells();
+  const { data: allSanitySpells } = useSpells(character.ruleset);
 
   const getModifier = (score: number): string => {
     const mod = Math.floor((score - 10) / 2);

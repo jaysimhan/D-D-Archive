@@ -21,6 +21,7 @@ export function SpellSelectionStep({
     subrace, // Added subrace
     background,
     magicInitiateClass,
+    originFeatSpellList,
     onMagicInitiateClassChange
     ,metamagicChoices = []
     ,onMetamagicChange
@@ -38,6 +39,7 @@ export function SpellSelectionStep({
     subrace?: Subrace;
     background?: Background;
     magicInitiateClass?: string;
+    originFeatSpellList?: string;
     onMagicInitiateClassChange?: (cls: string) => void;
     metamagicChoices?: string[];
     onMetamagicChange?: (choices: string[]) => void;
@@ -252,7 +254,7 @@ export function SpellSelectionStep({
     // Data-driven feat choices, including compound restrictions such as Fey
     // Touched (Divination OR Enchantment) and choices spanning several class
     // spell lists. Legacy hard-coded feats above continue to work unchanged.
-    const featChoices = feats.flatMap((feat) =>
+    const featChoices = feats.filter(feat => !feat.name.includes("Magic Initiate") && !feat.name.includes("Aberrant Dragonmark")).flatMap((feat) =>
         (feat.grants || [])
             .filter((grant) => grant.grantType === "Spell Slot")
             .map((grant) => ({
@@ -359,16 +361,17 @@ export function SpellSelectionStep({
                     <h3 className="text-lg font-bold text-gray-200">{title}</h3>
                     {showClassSelector && onMagicInitiateClassChange && (
                         <select
-                            value={magicInitiateClass || ""}
+                            value={originFeatSpellList || magicInitiateClass || ""}
+                            disabled={!!originFeatSpellList}
                             onChange={(e) => onMagicInitiateClassChange(e.target.value)}
                             className="px-3 py-1 text-sm bg-zinc-800 border-2 border-zinc-700 rounded-lg focus:outline-none focus:border-brand-500 text-gray-200"
                         >
                             <option value="" disabled>Select Class...</option>
-                            <option value="bard">Bard</option>
+                            {ruleset === "2014" && <option value="bard">Bard</option>}
                             <option value="cleric">Cleric</option>
                             <option value="druid">Druid</option>
-                            <option value="sorcerer">Sorcerer</option>
-                            <option value="warlock">Warlock</option>
+                            {ruleset === "2014" && <option value="sorcerer">Sorcerer</option>}
+                            {ruleset === "2014" && <option value="warlock">Warlock</option>}
                             <option value="wizard">Wizard</option>
                         </select>
                     )}

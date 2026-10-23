@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Minus, Plus } from "lucide-react";
-import { AbilityScores, Race, Feat, Subrace } from "../../types/dnd-types";
+import { AbilityScores, Race, Feat, Subrace, Background, CharacterRuleset } from "../../types/dnd-types";
 import { POINT_BUY_BUDGET, pointBuyCost } from "../../utils/ability-scores";
 import {
     featAbilityBonuses,
@@ -35,6 +35,8 @@ interface RacialBonusAllocation {
 // Ability Score Step with redesigned layout
 export function AbilityScoreStep({
     scores,
+    ruleset,
+    background,
     race,
     subrace,
     feats,
@@ -45,6 +47,8 @@ export function AbilityScoreStep({
     onFeatAbilityChoicesChange,
 }: {
     scores: AbilityScores;
+    ruleset?: CharacterRuleset;
+    background?: Background;
     race?: Race;
     subrace?: Subrace;
     feats?: Feat[];
@@ -59,7 +63,8 @@ export function AbilityScoreStep({
     // Check if race uses flexible ability scores
     // Exception: Human (Standard) should be fixed +1 all, so we disable flexibility for them
     const isHuman = race?.name === "Human";
-    const isFlexible = race?.flexibleAbilityScores === true && !isHuman;
+    const isFlexible = ruleset === "2024" || (race?.flexibleAbilityScores === true && !isHuman);
+    const allowedAbilities = ruleset === "2024" && background?.abilityScoreOptions?.length ? background.abilityScoreOptions : abilities;
 
     // --- Matrix Logic State ---
     // We track which ability is assigned to which column (0, 1, 2)
@@ -153,7 +158,7 @@ export function AbilityScoreStep({
 
     // Handle Matrix Toggle
     const handleToggle = (ability: AbilityKey, colIndex: number) => {
-        if (!isFlexible) return;
+        if (!isFlexible || !allowedAbilities.includes(ability)) return;
 
         const currentOwner = assignments[colIndex];
         const newAssignments = [...assignments];
@@ -220,7 +225,7 @@ export function AbilityScoreStep({
             <div className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center mb-2 px-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
                 <div></div>
                 <div className="text-center">Base Score</div>
-                <div className="text-center">Racial Bonus</div>
+                <div className="text-center">{ruleset === "2024" ? "Background Bonus" : "Racial Bonus"}</div>
                 <div className="text-center">Feat Bonus</div>
                 <div className="text-center">Final Score</div>
             </div>
@@ -269,7 +274,7 @@ export function AbilityScoreStep({
                                 {[0, 1, 2].map((colIndex) => {
                                     // Status for this cell
                                     const assignedToSelf = assignments[colIndex] === ability;
-                                    const isClickable = isFlexible;
+                                    const isClickable = isFlexible && allowedAbilities.includes(ability);
 
                                     // Row Cap Check: If we select this, do we exceed 2?
                                     // Only relevant if we are toggling ON (currently not self)

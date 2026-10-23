@@ -6,6 +6,7 @@ import {
 import { SheetSession } from "../../lib/sheet-session";
 
 export const SheetSessionContext = createContext<SheetSession | null>(null);
+export const SheetRulesetContext = createContext<"2014" | "2024">("2024");
 const ScopeContext = createContext("");
 
 export function SheetScope({ name, children }: { name: string; children: ReactNode }) {

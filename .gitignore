@@ -4,3 +4,6 @@ dist
 ndjson-export/*.tar.gz
 .vercel
 .env*
+
+# Research downloads and plans from content migrations
+tmp/

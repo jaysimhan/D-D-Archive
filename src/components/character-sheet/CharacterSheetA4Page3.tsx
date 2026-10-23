@@ -1,4 +1,4 @@
-import { SheetScope } from "./sheet-state";
+import { SheetScope, SheetRulesetContext } from "./sheet-state";
 import {
     createContext,
     memo,
@@ -199,7 +199,7 @@ const NO_NAMES: string[] = [];
 const SpellIndexContext = createContext<SpellIndex>(EMPTY_INDEX);
 
 function useSpellIndex(): SpellIndex {
-    const spells = useSheetSpells();
+    const spells = useSheetSpells(useContext(SheetRulesetContext));
     return useMemo(() => {
         const namesByLevel = new Map<number, string[]>();
         const byName = new Map<string, SheetSpell>();
@@ -772,9 +772,9 @@ function SpellRow({
     useEffect(() => onFilledChange(index, filled), [onFilledChange, index, filled]);
 
     const key = name.trim().toLowerCase();
-    const resolved: SheetSpell | undefined =
-        byName.get(key) ??
-        (key && key === spell?.name.trim().toLowerCase() ? spell : undefined);
+    // Saved spell snapshots can belong to the other edition. Only the current
+    // ruleset's lookup supplies hover text and mechanical details.
+    const resolved: SheetSpell | undefined = byName.get(key);
 
     return (
         <SheetScope name={row}>

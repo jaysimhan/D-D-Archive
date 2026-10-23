@@ -1,5 +1,5 @@
-import { SheetInput, SheetTextArea, useSheetState } from "./sheet-state";
-import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { SheetInput, SheetTextArea, useSheetState, SheetRulesetContext } from "./sheet-state";
+import { memo, useCallback, useEffect, useMemo, useState, useContext, type ReactNode } from "react";
 import { useSheetSuggestions, type SheetSuggestions } from "../../hooks/useSheetSuggestions";
 import type { CharacterData } from "../../types/character-creator";
 import { AutocompleteField } from "./AutocompleteField";
@@ -107,14 +107,17 @@ function speciesTraits({
         ...(character?.race?.traits ?? []),
         ...(character?.subrace?.traits ?? []),
     ];
-    if (species === undefined) return fromCharacter;
-
-    const named = splitList(species).flatMap((name) => {
+    const named = splitList(species ?? character?.race?.name ?? "").flatMap((name) => {
         const key = name.toLowerCase();
-        // The character's own entry is the fuller one: the Archive lists the
-        // race's traits, the character adds the subrace's on top.
+        const current = options.find((option) => option.name.toLowerCase() === key);
+        if (current) {
+            const subrace = key === character?.race?.name.trim().toLowerCase()
+                ? options.find((option) => option.name.toLowerCase() === character?.subrace?.name.trim().toLowerCase())?.traits ?? character?.subrace?.traits ?? []
+                : [];
+            return [...(current.traits ?? []), ...subrace];
+        }
         if (key === character?.race?.name.trim().toLowerCase()) return fromCharacter;
-        return options.find((option) => option.name.toLowerCase() === key)?.traits ?? [];
+        return [];
     });
 
     return named.length ? named : fromCharacter;
@@ -502,7 +505,9 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     /** Reports the magic items, and which are attuned, for page 1's arithmetic. */
     onMagicItemsChange?: (items: { name: string; attuned: boolean }[]) => void;
 } = {}) {
-    const suggestions = useSheetSuggestions();
+    const ruleset = useContext(SheetRulesetContext);
+    const suggestions = useSheetSuggestions(ruleset);
+    const matchingCharacter = initialCharacter?.ruleset === ruleset ? initialCharacter : undefined;
     const characterFeats = formatEntryNames(initialCharacter?.feats ?? []);
 
     // Held as well as reported: Observant raises passive Perception,
@@ -541,7 +546,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     const traitEntries = speciesTraits({
         species,
         options: suggestions.species,
-        character: initialCharacter,
+        character: matchingCharacter,
     });
     const traits = formatEntryNames(traitEntries);
     const traitNotes = noteMap(
@@ -549,8 +554,8 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
         ...suggestions.species.map((option) => option.traits),
     );
     const featNotes = useMemo(
-        () => noteMap(initialCharacter?.feats, suggestions.feats),
-        [initialCharacter?.feats, suggestions.feats],
+        () => noteMap(suggestions.feats, matchingCharacter?.feats),
+        [matchingCharacter?.feats, suggestions.feats],
     );
     const inventory = inventoryRows(initialCharacter).slice(0, INVENTORY_ROWS);
     const magicItems = (initialCharacter?.magicItems ?? [])

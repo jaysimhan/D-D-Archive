@@ -498,6 +498,8 @@ export function CharacterCreator() {
               )}
               {currentStep === "abilities" && (
                 <AbilityScoreStep
+                  ruleset={characterData.ruleset}
+                  background={characterData.background}
                   scores={characterData.abilityScores}
                   race={characterData.race}
                   feats={characterData.feats}
@@ -541,6 +543,8 @@ export function CharacterCreator() {
                       ...characterData,
                       background,
                       feats,
+                      racialBonusAllocation: characterData.ruleset === "2024" ? {} : characterData.racialBonusAllocation,
+                      magicInitiateClass: background.originFeatSpellList || undefined,
                       selectedSpells: withoutSpellSource(characterData.selectedSpells, "Feat", "Class"),
                       featSpellcastingAbilities: {
                         ...characterData.featSpellcastingAbilities,
@@ -554,6 +558,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "spells" && characterData.class && (
                 <SpellSelectionStep
+                  originFeatSpellList={characterData.background?.originFeatSpellList}
                   ruleset={characterData.ruleset!}
                   classData={characterData.class}
                   level={characterData.level}
@@ -583,6 +588,7 @@ export function CharacterCreator() {
               )}
               {currentStep === "hp" && (
                 <HitPointsStep
+                  finalConScore={finalAbilityScores(characterData).CON}
                   classData={characterData.class}
                   abilityScores={characterData.abilityScores}
                   level={characterData.level}

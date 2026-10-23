@@ -95,6 +95,7 @@ export function refreshCharacterSpellData(character: CharacterData, archive: Spe
     race: latest(character.race, archive.races),
     subclass: latest(character.subclass, archive.subclasses),
     background,
+    magicInitiateClass: background?.originFeatSpellList || character.magicInitiateClass,
     feats,
     selectedSpells: character.selectedSpells.map((saved) => {
       const current = archive.spells.find((spell) => spell.id === saved.id);

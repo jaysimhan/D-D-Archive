@@ -234,6 +234,8 @@ export interface Background {
     name: string;
     description: string;
   };
+  abilityScoreOptions?: AbilityScore[];
+  originFeatSpellList?: string;
   /** A background may grant a starting feat (Strixhaven backgrounds do). */
   feats?: Feat[];
   /** Spells added to this character's class list; these are choices, not free spells known. */
@@ -307,9 +309,9 @@ export interface FeatureGrant {
  * and the creator hands out a different number of slots per category; feats
  * carried over from 2014 have no category of their own and count as General.
  */
-export type FeatCategory = "Origin" | "General" | "Fighting Style" | "Epic Boon";
+export type FeatCategory = "Origin" | "General" | "Fighting Style" | "Epic Boon" | "Dragonmark";
 
-export const FEAT_CATEGORIES: FeatCategory[] = ["Origin", "General", "Fighting Style", "Epic Boon"];
+export const FEAT_CATEGORIES: FeatCategory[] = ["Origin", "General", "Fighting Style", "Epic Boon", "Dragonmark"];
 
 export interface Feat {
   id: string;

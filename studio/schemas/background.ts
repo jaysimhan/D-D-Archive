@@ -79,6 +79,16 @@ export default {
             validation: (Rule: any) => Rule.required(),
         },
         {
+            name: 'abilityScoreOptions', title: '2024 Ability Score Options', type: 'array',
+            of: [{ type: 'string' }], options: { list: ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] },
+            description: 'Choose +2/+1 among these scores, or +1 to all three. Not fixed bonuses.',
+        },
+        {
+            name: 'originFeatSpellList', title: 'Origin Feat Spell List', type: 'string',
+            options: { list: ['cleric', 'druid', 'wizard'] },
+            description: 'Restricts Magic Initiate when granted by this background.',
+        },
+        {
             name: 'abilityScoreIncrease',
             title: 'Ability Score Increase',
             type: 'array',

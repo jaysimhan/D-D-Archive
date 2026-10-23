@@ -22,7 +22,7 @@ interface LibraryEntryProps {
 
 type Entry = { id: string; name: string; description?: string };
 
-function findEntry(category: LibraryCategory, id: string, data: LibraryData): Entry | undefined {
+export function findEntry(category: LibraryCategory, id: string, data: LibraryData): Entry | undefined {
   const pool: Entry[] = {
     spells: data.spells,
     classes: data.classes,
@@ -37,7 +37,7 @@ function findEntry(category: LibraryCategory, id: string, data: LibraryData): En
   return pool.find((entry) => entry.id === id);
 }
 
-export function LibraryEntry({ category, id, data }: LibraryEntryProps) {
+export function LibraryEntry({ category, id, data, editionControl }: LibraryEntryProps & { editionControl?: React.ReactNode }) {
   const entry = findEntry(category, id, data);
   const spellIndex = useMemo(() => new Map(data.spells.map((spell) => [spell.id, spell])), [data.spells]);
   const listPath = `/library/${category.id}`;
@@ -75,6 +75,7 @@ export function LibraryEntry({ category, id, data }: LibraryEntryProps) {
       icon={category.icon}
       crumbs={[{ label: "Library", to: "/library" }, { label: category.label, to: listPath }, { label: entry.name }]}
     >
+      {editionControl}
       {category.id === "spells" && <SpellEntry spell={entry as Spell} data={data} />}
       {category.id === "classes" && <ClassEntry classData={entry as Class} data={data} spellIndex={spellIndex} />}
       {category.id === "subclasses" && <SubclassEntry subclass={entry as Subclass} data={data} spellIndex={spellIndex} />}

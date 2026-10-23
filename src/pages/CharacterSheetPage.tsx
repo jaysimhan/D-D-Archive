@@ -19,7 +19,7 @@ import {
 import { expandNotesForPrint } from "../components/character-sheet/entry-notes";
 import { useSheetSpells } from "../hooks/useSheetSuggestions";
 import { useSharedSheetSession } from "../hooks/useSharedSheetSession";
-import { SheetScope, SheetSessionContext } from "../components/character-sheet/sheet-state";
+import { SheetScope, SheetSessionContext, SheetRulesetContext } from "../components/character-sheet/sheet-state";
 import { SheetPinDialog } from "../components/character-sheet/SheetPinDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 
@@ -66,7 +66,9 @@ export function CharacterSheetPage() {
     // The spellbook rows carry a hover card in the HTML download, and this is
     // where their spells come from. Already fetched for pages 3 and 4, so
     // reading it here costs a cache hit rather than a request.
-    const spells = useSheetSpells();
+    const savedRuleset = session.fields["/page1/ruleset"] ?? initialCharacter?.ruleset;
+    const ruleset = savedRuleset === "2014" ? "2014" : "2024";
+    const spells = useSheetSpells(ruleset);
 
     // The spellbook pages head every page with where the character's magic
     // comes from, which pages 1 and 2 hold between them: Class, Sub-class and
@@ -273,6 +275,7 @@ export function CharacterSheetPage() {
 
     return (
         <SheetSessionContext.Provider key={session.id} value={session}>
+        <SheetRulesetContext.Provider value={ruleset}>
         <div className="character-sheet-page min-h-screen bg-zinc-950 px-0 py-4 sm:px-4 sm:py-8">
             {pinMode && <SheetPinDialog key={pinMode} mode={pinMode} busy={pinBusy} error={pinError}
                 onClose={closePin} onSubmit={submitPin} />}
@@ -451,6 +454,7 @@ export function CharacterSheetPage() {
             </div>
             </fieldset>
         </div>
+        </SheetRulesetContext.Provider>
         </SheetSessionContext.Provider>
     );
 }
