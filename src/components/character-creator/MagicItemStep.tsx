@@ -83,7 +83,7 @@ export function MagicItemStep({ ruleset, magicItem, onMagicItemChange, level }: 
                     <SearchBar
                         filters={filters}
                         onFiltersChange={setFilters}
-                        showMagicItemFilters={true}
+                        filterSet="magic-items"
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-h-[400px]">

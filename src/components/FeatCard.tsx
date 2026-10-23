@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, Book } from "lucide-react";
 import { useState } from "react";
 import { Feat } from "../types/dnd-types";
-import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { EditionBadge, SourceBadge } from "./library/CardBadges";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface FeatCardProps {
@@ -12,27 +12,26 @@ interface FeatCardProps {
 
 export function FeatCard({ feat, href }: FeatCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    // Some Archive feats (Mark of Storm) carry no benefits block at all.
+    const benefits: Feat["benefits"] = feat.benefits ?? {};
 
     return (
-        <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
-            <div className="flex justify-between items-start cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-                <div className="flex-1">
-                    <h3 className="text-gray-100 font-semibold text-lg flex items-center gap-2 font-serif">
-                        <Book className="w-5 h-5 text-amber-500" />
+        <div className="h-full flex flex-col border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
+            <div className="flex flex-col gap-2 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+                <div className="flex justify-between items-start gap-3">
+                    <h3 className="flex-1 min-w-0 text-gray-100 font-serif flex items-start gap-2 break-words">
+                        <Book className="w-5 h-5 mt-0.5 shrink-0 text-amber-500" />
                         <CardTitle href={href}>{feat.name}</CardTitle>
                     </h3>
-                    <div className="flex flex-col gap-2 mt-2">
-                        <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 w-fit">
-                            {feat.edition} Edition
-                        </span>
-                        <div className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(feat.source)}`}>
-                            {sourceLabel(feat)}
-                        </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <EditionBadge edition={feat.edition} />
+                        <button className="text-gray-500 hover:text-gray-300" aria-label={isExpanded ? "Collapse" : "Expand"}>
+                            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        </button>
                     </div>
                 </div>
-                <button className="text-gray-500 hover:text-gray-300">
-                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
+                <p className="text-sm text-gray-400">{feat.featCategory ?? "General"} Feat</p>
+                <SourceBadge entity={feat} />
             </div>
 
             <div className={`mt-4 space-y-4 ${isExpanded ? "block" : "hidden"}`}>
@@ -62,10 +61,10 @@ export function FeatCard({ feat, href }: FeatCardProps) {
                 <div className="space-y-3">
                     <h4 className="font-semibold text-sm text-gray-200 border-b border-zinc-700 pb-1">Benefits</h4>
 
-                    {feat.benefits.abilityScoreIncrease && (
+                    {benefits.abilityScoreIncrease && (
                         <div className="text-sm">
                             <span className="font-medium text-brand-400">Ability Score Increase: </span>
-                            {Object.entries(feat.benefits.abilityScoreIncrease).map(([ability, amount]) => (
+                            {Object.entries(benefits.abilityScoreIncrease).map(([ability, amount]) => (
                                 <span key={ability} className="ml-1 text-gray-300">
                                     {ability} +{amount}
                                 </span>
@@ -73,18 +72,18 @@ export function FeatCard({ feat, href }: FeatCardProps) {
                         </div>
                     )}
 
-                    {feat.benefits.features && feat.benefits.features.length > 0 && (
+                    {benefits.features && benefits.features.length > 0 && (
                         <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
-                            {feat.benefits.features.map((feature, idx) => (
+                            {benefits.features.map((feature, idx) => (
                                 <li key={idx}>{feature}</li>
                             ))}
                         </ul>
                     )}
 
-                    {feat.benefits.spells && feat.benefits.spells.length > 0 && (
+                    {benefits.spells && benefits.spells.length > 0 && (
                         <div className="text-sm">
                             <span className="font-medium text-brand-400">Spells: </span>
-                            <span className="text-gray-400">{feat.benefits.spells.join(", ")}</span>
+                            <span className="text-gray-400">{benefits.spells.join(", ")}</span>
                         </div>
                     )}
                 </div>
@@ -102,6 +101,7 @@ export function FeatCard({ feat, href }: FeatCardProps) {
                     </div>
                 </div>
             )}
+            <div className="flex-1" />
             <ViewEntryLink href={href} />
         </div>
     );

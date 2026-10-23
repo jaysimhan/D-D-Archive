@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, User } from "lucide-react";
 import { useState } from "react";
 import { Background } from "../types/dnd-types";
-import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { EditionBadge, SourceBadge } from "./library/CardBadges";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface BackgroundCardProps {
@@ -14,30 +14,24 @@ export function BackgroundCard({ background, href }: BackgroundCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-        <div className="border border-zinc-700 rounded-lg p-4 transition-all bg-zinc-900 hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-900/20">
-            <div className="flex justify-between items-start cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-                <div className="flex-1">
-                    <h3 className="text-white mb-1 font-medium font-serif flex items-center gap-2">
-                        <User className="w-5 h-5 text-brand-400" />
+        <div className="h-full flex flex-col border border-zinc-800 rounded-lg p-4 transition-all bg-zinc-900/60 hover:shadow-lg hover:shadow-brand-900/20">
+            <div className="flex flex-col gap-2 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+                <div className="flex justify-between items-start gap-3">
+                    <h3 className="flex-1 min-w-0 text-white font-medium font-serif flex items-start gap-2 break-words">
+                        <User className="w-5 h-5 mt-0.5 shrink-0 text-brand-400" />
                         <CardTitle href={href}>{background.name}</CardTitle>
                     </h3>
-                    <p className="text-sm text-gray-400">
-                        Skills: {background.skillProficiencies?.join(", ") || "None"}
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex gap-2">
-                        <span className="text-xs px-2 py-1 rounded-full bg-brand-500/20 text-brand-400">
-                            {sourceLabel(background)}
-                        </span>
-                        <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-400">
-                            {background.edition}
-                        </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <EditionBadge edition={background.edition} />
+                        <button className="text-gray-500 hover:text-gray-300" aria-label={isExpanded ? "Collapse" : "Expand"}>
+                            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        </button>
                     </div>
-                    <button className="text-gray-500 hover:text-gray-300 ml-2">
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                    </button>
                 </div>
+                <p className="text-sm text-gray-400">
+                    Skills: {background.skillProficiencies?.join(", ") || "None"}
+                </p>
+                <SourceBadge entity={background} />
             </div>
 
             {/* Expanded Details */}
@@ -113,6 +107,7 @@ export function BackgroundCard({ background, href }: BackgroundCardProps) {
                     </div>
                 </div>
             )}
+            <div className="flex-1" />
             <ViewEntryLink href={href} />
         </div>
     );

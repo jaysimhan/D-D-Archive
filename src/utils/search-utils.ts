@@ -1,4 +1,5 @@
 import { Spell, Class, Race, Item, Background, SearchFilters, Feat, Subclass } from "../types/dnd-types";
+import type { HasSource } from "./source-label";
 import { matchScore, prepareQuery } from "./text-match";
 import { goldValue } from "./item-cost";
 import type { RuleEntry } from "../data/srd-rules-reference";
@@ -36,128 +37,87 @@ function rank<T>(
   return matched.map((entry) => entry.item);
 }
 
+/**
+ * "2014" and "2024" keep entries written for that edition plus those that work
+ * with both; "Both" keeps only the universal ones.
+ */
+function matchesEdition(edition: string | undefined, filters: SearchFilters): boolean {
+  if (!filters.edition) return true;
+  if (filters.edition === "Both") return edition === "Both";
+  return edition === filters.edition || edition === "Both";
+}
+
+/** "Unofficial" takes in every third-party label that is neither Official nor Homebrew. */
+function matchesSource(entity: HasSource, filters: SearchFilters): boolean {
+  if (filters.sourceBook && entity.sourceBook !== filters.sourceBook) return false;
+  if (!filters.source) return true;
+  if (filters.source === "Unofficial") return entity.source !== "Official" && entity.source !== "Homebrew";
+  return entity.source === filters.source;
+}
+
+function matchesCommon(entity: HasSource & { edition?: string }, filters: SearchFilters): boolean {
+  return matchesEdition(entity.edition, filters) && matchesSource(entity, filters);
+}
+
+export type CasterType = "full" | "half" | "third" | "pact" | "special" | "martial";
+
+export const CASTER_TYPE_LABELS: Record<CasterType, string> = {
+  full: "Full Caster",
+  half: "Half Caster",
+  third: "Third Caster",
+  pact: "Pact Magic",
+  special: "Special Caster",
+  martial: "Martial",
+};
+
+/** The Archive stores martial classes as "none", "None" or nothing at all. */
+export function casterType(classItem: Pick<Class, "spellcaster">): CasterType {
+  const value = classItem.spellcaster?.toLowerCase();
+  if (!value || value === "none") return "martial";
+  if (value === "half-up") return "half";
+  return value in CASTER_TYPE_LABELS ? (value as CasterType) : "special";
+}
+
+/** "blood-hunter" → "Blood Hunter". */
+export function slugLabel(slug: string): string {
+  return slug.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+}
+
 export function searchSpells(spells: Spell[], filters: SearchFilters): Spell[] {
   return rank(spells, filters, (spell) => [spell.name, spell.description], (spell) => {
-    // Edition filter
-    if (filters.edition && filters.edition !== "Both") {
-      if (spell.edition !== filters.edition && spell.edition !== "Both") {
-        return false;
-      }
+    if (!matchesCommon(spell, filters)) return false;
+    if (filters.level !== undefined && spell.level !== filters.level) return false;
+    if (filters.school && spell.school !== filters.school) return false;
+    if (filters.class && !(spell.classes || []).includes(filters.class.toLowerCase())) return false;
+    if (filters.concentration !== undefined && spell.concentration !== filters.concentration) return false;
+    if (filters.ritual !== undefined && spell.ritual !== filters.ritual) return false;
+    // Checking V and S means the spell needs both, whatever else it needs.
+    for (const comp of filters.components || []) {
+      if (!spell.components?.[comp]) return false;
     }
-
-    // Source filter
-    if (filters.source && spell.source !== filters.source) {
-      return false;
-    }
-
-    // Level filter
-    if (filters.level !== undefined && spell.level !== filters.level) {
-      return false;
-    }
-
-    // School filter
-    if (filters.school && spell.school !== filters.school) {
-      return false;
-    }
-
-    // Class filter
-    if (filters.class && !spell.classes.includes(filters.class.toLowerCase())) {
-      return false;
-    }
-
-    // Concentration filter
-    if (filters.concentration !== undefined && spell.concentration !== filters.concentration) {
-      return false;
-    }
-
-    // Ritual filter
-    if (filters.ritual !== undefined && spell.ritual !== filters.ritual) {
-      return false;
-    }
-
-    // Components filter
-    if (filters.components && filters.components.length > 0) {
-      // Logic: Must contain ALL selected components? 
-      // User intent usually "I want spells with V" -> includes V, VS, VSM.
-      // If user checks V and S, usually means "Must have V AND S".
-      for (const comp of filters.components) {
-        if (!spell.components[comp]) return false;
-      }
-    }
-
     return true;
   });
 }
 
 export function searchClasses(classes: Class[], filters: SearchFilters): Class[] {
   return rank(classes, filters, (classItem) => [classItem.name, classItem.description], (classItem) => {
-    // Edition filter
-    if (filters.edition && filters.edition !== "Both") {
-      if (classItem.edition !== filters.edition && classItem.edition !== "Both") {
-        return false;
-      }
-    }
-
-    // Source filter
-    if (filters.source) {
-      if (filters.source === "Unofficial") {
-        // Unofficial matches anything that isn't Official or Homebrew
-        if (classItem.source === "Official" || classItem.source === "Homebrew") {
-          return false;
-        }
-      } else {
-        // Exact match for Official and Homebrew
-        if (classItem.source !== filters.source) {
-          return false;
-        }
-      }
-    }
-
-    // Spellcaster filter
-    if (filters.spellcaster !== undefined) {
-      if (filters.spellcaster && !classItem.spellcaster) {
-        return false;
-      }
-      if (!filters.spellcaster && classItem.spellcaster) {
-        return false;
-      }
-    }
-
+    if (!matchesCommon(classItem, filters)) return false;
+    if (filters.casterType && casterType(classItem) !== filters.casterType) return false;
     return true;
   });
 }
 
 export function searchRaces(races: Race[], filters: SearchFilters): Race[] {
   return rank(races, filters, (race) => [race.name, race.description], (race) => {
-    // Edition filter
-    if (filters.edition && filters.edition !== "Both") {
-      if (race.edition !== filters.edition && race.edition !== "Both") {
-        return false;
-      }
-    }
-
-    // Source filter
-    if (filters.source && race.source !== filters.source) {
-      return false;
-    }
-
+    if (!matchesCommon(race, filters)) return false;
+    if (filters.size && race.size !== filters.size) return false;
     return true;
   });
 }
 
 export function searchItems(items: Item[], filters: SearchFilters): Item[] {
   return rank(items, filters, (item) => [item.name, item.description], (item) => {
-    // Edition filter
-    if (filters.edition && filters.edition !== "Both") {
-      if (item.edition !== filters.edition && item.edition !== "Both") {
-        return false;
-      }
-    }
-
-    // Source filter
-    if (filters.source && item.source !== filters.source) {
-      return false;
-    }
+    if (!matchesCommon(item, filters)) return false;
 
     // Category Filter
     if (filters.itemCategory) {
@@ -166,52 +126,34 @@ export function searchItems(items: Item[], filters: SearchFilters): Item[] {
       // Equipment includes non-magical weapons, armor, tools, and gear
       const isEquipment = !item.magical && ["Weapon", "Armor", "Tool", "Adventuring Gear", "Mount & Vehicle"].includes(item.type);
 
-      if (filters.itemCategory === "Equipment") {
-        if (!isEquipment) return false;
-      } else if (filters.itemCategory === "Magic Items") {
-        if (!isMagicItem) return false;
-      }
+      if (filters.itemCategory === "Equipment" && !isEquipment) return false;
+      if (filters.itemCategory === "Magic Items" && !isMagicItem) return false;
     }
 
     if (filters.itemType && item.type !== filters.itemType) return false;
 
-    // Cost Filter
+    // Cost Filter: an unpriced item only survives a range that starts at nothing.
     const gold = goldValue(item.cost);
     if (gold !== undefined) {
       if (filters.minCost !== undefined && gold < filters.minCost) return false;
       if (filters.maxCost !== undefined && gold > filters.maxCost) return false;
-    } else {
-      if (filters.minCost !== undefined && filters.minCost > 0) return false;
+    } else if ((filters.minCost ?? 0) > 0 || filters.maxCost !== undefined) {
+      return false;
     }
 
     // Weight Filter
     if (item.weight !== undefined) {
       if (filters.minWeight !== undefined && item.weight < filters.minWeight) return false;
       if (filters.maxWeight !== undefined && item.weight > filters.maxWeight) return false;
-    } else {
-      if (filters.minWeight !== undefined && filters.minWeight > 0) return false;
+    } else if ((filters.minWeight ?? 0) > 0) {
+      return false;
     }
 
     // --- Magic Item Filters ---
-
-    // Rarity Filter
-    if (filters.rarity) {
-      if (!item.rarity || item.rarity !== filters.rarity) return false;
-    }
-
-    // Magic Bonus Filter
-    if (filters.magicBonus !== undefined) {
-      // If searching for +1, item must have magicBonus === 1
-      if (item.magicBonus !== filters.magicBonus) return false;
-    }
-
-    // Attunement Filter
-    if (filters.attunement !== undefined) {
-      // defined true means "requires attunement"
-      // defined false means "does NOT require attunement"
-      if (filters.attunement === true && !item.requiresAttunement) return false;
-      if (filters.attunement === false && item.requiresAttunement) return false;
-    }
+    if (filters.rarity && item.rarity !== filters.rarity) return false;
+    if (filters.magicBonus !== undefined && item.magicBonus !== filters.magicBonus) return false;
+    if (filters.attunement === true && !item.requiresAttunement) return false;
+    if (filters.attunement === false && item.requiresAttunement) return false;
 
     return true;
   });
@@ -221,22 +163,16 @@ export function searchBackgrounds(
   backgrounds: Background[],
   filters: SearchFilters
 ): Background[] {
-  return rank(backgrounds, filters, (background) => [background.name, background.description], (background) => {
-    // Edition filter
-    if (filters.edition && filters.edition !== "Both") {
-      if (
-        background.edition !== filters.edition &&
-        background.edition !== "Both"
-      ) {
-        return false;
-      }
-    }
+  return rank(backgrounds, filters, (background) => [background.name, background.description], (background) =>
+    matchesCommon(background, filters)
+  );
+}
 
-    // Source filter
-    if (filters.source && background.source !== filters.source) {
-      return false;
-    }
-
+export function searchFeats(feats: Feat[], filters: SearchFilters): Feat[] {
+  return rank(feats, filters, (feat) => [feat.name, feat.description], (feat) => {
+    if (!matchesCommon(feat, filters)) return false;
+    // 2014 feats carry no category and count as General.
+    if (filters.featCategory && (feat.featCategory ?? "General") !== filters.featCategory) return false;
     return true;
   });
 }
@@ -267,49 +203,10 @@ export function getAvailableSpells(
   });
 }
 
-export function searchFeats(feats: Feat[], filters: SearchFilters): Feat[] {
-  return rank(feats, filters, (feat) => [feat.name, feat.description], (feat) => {
-    // Edition filter
-    if (filters.edition && filters.edition !== "Both") {
-      if (feat.edition !== filters.edition && feat.edition !== "Both") {
-        return false;
-      }
-    }
-
-    // Source filter
-    // Search function for subclasses
-    if (filters.source && feat.source !== filters.source) {
-      return false;
-    }
-
-    return true;
-  });
-}
-
 export function searchSubclasses(subclasses: Subclass[], filters: SearchFilters): Subclass[] {
   return rank(subclasses, filters, (subclass) => [subclass.name, subclass.description, subclass.parentClassId?.replace(/-/g, ' ')], (subclass) => {
-    // Edition filter
-    if (filters.edition && filters.edition !== "Both") {
-      if (subclass.edition !== filters.edition && subclass.edition !== "Both") {
-        return false;
-      }
-    }
-
-    // Source filter
-    if (filters.source) {
-      if (filters.source === "Unofficial") {
-        // Unofficial matches anything that isn't Official or Homebrew
-        if (subclass.source === "Official" || subclass.source === "Homebrew") {
-          return false;
-        }
-      } else {
-        // Exact match for Official and Homebrew
-        if (subclass.source !== filters.source) {
-          return false;
-        }
-      }
-    }
-
+    if (!matchesCommon(subclass, filters)) return false;
+    if (filters.parentClass && subclass.parentClassId !== filters.parentClass) return false;
     return true;
   });
 }

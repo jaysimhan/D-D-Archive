@@ -1,7 +1,8 @@
 import { Class } from "../types/dnd-types";
 import { Sword, Sparkles, Heart, Shield } from "lucide-react";
 import { useState } from "react";
-import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { casterType, CASTER_TYPE_LABELS } from "../utils/search-utils";
+import { EditionBadge, SourceBadge } from "./library/CardBadges";
 import SanityImage from "./SanityImage";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
@@ -16,7 +17,7 @@ export function ClassCard({ classData, href }: ClassCardProps) {
 
 
   return (
-    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
+    <div className="h-full flex flex-col border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Image Section */}
       {classData.image && (
         <div className="w-full aspect-[3/2] rounded-lg mb-3 overflow-hidden bg-black/40 border border-zinc-800">
@@ -32,19 +33,16 @@ export function ClassCard({ classData, href }: ClassCardProps) {
 
       {/* Header */}
       <div className="flex flex-col gap-2 mb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{classData.name}</CardTitle></h3>
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-gray-100 mb-1 font-serif break-words"><CardTitle href={href}>{classData.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              {classData.spellcaster && (
+              {casterType(classData) !== "martial" ? (
                 <span className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-brand-400" />
-                  {classData.spellcaster.charAt(0).toUpperCase() +
-                    classData.spellcaster.slice(1)}{" "}
-                  Caster
+                  {CASTER_TYPE_LABELS[casterType(classData)]}
                 </span>
-              )}
-              {!classData.spellcaster && (
+              ) : (
                 <span className="flex items-center gap-1">
                   <Sword className="w-4 h-4 text-gray-500" />
                   Martial
@@ -52,20 +50,13 @@ export function ClassCard({ classData, href }: ClassCardProps) {
               )}
             </div>
           </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
-            {classData.edition}
-          </span>
+          <EditionBadge edition={classData.edition} />
         </div>
-        {/* Source badge - separate row to accommodate long text */}
-        <div
-          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(classData.source)} w-full`}
-        >
-          <span>{sourceLabel(classData)}</span>
-        </div>
+        <SourceBadge entity={classData} />
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 mb-3 text-sm">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-sm">
         <div className="flex items-center gap-1 text-gray-400">
           <Heart className="w-4 h-4 text-brand-500" />
           <span>d{classData.hitDie || 6}</span>
@@ -87,16 +78,11 @@ export function ClassCard({ classData, href }: ClassCardProps) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-300 mb-3">
-        {expanded
-          ? classData.description
-          : `${classData.description.substring(0, 120)}${classData.description.length > 120 ? "..." : ""
-          }`}
-      </p>
+      <p className={`text-sm text-gray-300 mb-3 ${expanded ? "" : "line-clamp-3"}`}>{classData.description}</p>
 
       <button
         onClick={() => setExpanded(!expanded)}
-        className="text-sm text-brand-400 hover:text-brand-300 mb-3 flex items-center gap-1"
+        className="self-start text-sm text-brand-400 hover:text-brand-300 mb-3 flex items-center gap-1"
       >
         {expanded ? "Show Less" : "Show Details"}
       </button>
@@ -115,6 +101,9 @@ export function ClassCard({ classData, href }: ClassCardProps) {
           </div>
         </div>
       )}
+
+      {/* Pushes the footer to the bottom so cards in a row line up */}
+      <div className="flex-1" />
 
       {/* Subclasses */}
       {classData.subclasses && classData.subclasses.length > 0 && (

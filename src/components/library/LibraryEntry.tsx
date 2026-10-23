@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import type { Race, Class, Spell, Item, Background, Subclass, Feat } from "../../types/dnd-types";
 import type { LibraryCategory } from "./categories";
 import type { LibraryData } from "./useLibraryData";
-import { LibraryShell, LibraryLoading } from "./LibraryShell";
+import { LibraryShell, LibraryEntrySkeleton } from "./LibraryShell";
 import { SpellEntry } from "./entries/SpellEntry";
 import { ClassEntry } from "./entries/ClassEntry";
 import { SubclassEntry } from "./entries/SubclassEntry";
@@ -47,23 +47,21 @@ export function LibraryEntry({ category, id, data, editionControl }: LibraryEntr
     window.scrollTo(0, 0);
   }, [category.id, id]);
 
+  if (!entry && data.loading) return <LibraryEntrySkeleton category={category} />;
+
   if (!entry) {
     return (
       <LibraryShell
-        title={data.loading ? "Loading…" : "Entry not found"}
+        title="Entry not found"
         icon={category.icon}
         crumbs={[{ label: "Library", to: "/library" }, { label: category.label, to: listPath }]}
       >
-        {data.loading ? (
-          <LibraryLoading />
-        ) : (
-          <div className="text-center py-12 text-gray-400">
-            <p>There is no {category.singular.toLowerCase()} called “{id}” in the archive.</p>
-            <Link to={listPath} className="text-brand-400 hover:text-brand-300 mt-4 inline-block">
-              Browse all {category.label.toLowerCase()}
-            </Link>
-          </div>
-        )}
+        <div className="text-center py-12 text-gray-400">
+          <p>There is no {category.singular.toLowerCase()} called “{id}” in the archive.</p>
+          <Link to={listPath} className="text-brand-400 hover:text-brand-300 mt-4 inline-block">
+            Browse all {category.label.toLowerCase()}
+          </Link>
+        </div>
       </LibraryShell>
     );
   }

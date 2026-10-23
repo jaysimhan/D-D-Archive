@@ -1,7 +1,7 @@
 import { Item } from "../types/dnd-types";
 import { Package, Coins, Weight, Star } from "lucide-react";
 import { useState } from "react";
-import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { EditionBadge, SourceBadge } from "./library/CardBadges";
 import { formatCost } from "../utils/item-cost";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
@@ -40,7 +40,7 @@ export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
   return (
     <div
       onClick={onClick}
-      className={`border rounded-lg p-5 transition-all ${isSelected
+      className={`h-full flex flex-col border rounded-lg p-5 transition-all ${isSelected
         ? "border-brand-500 bg-brand-900/20 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
         : "border-zinc-800 bg-zinc-900/60 hover:shadow-lg hover:shadow-brand-900/20 hover:border-zinc-600"
         } ${onClick ? "cursor-pointer" : ""}`}
@@ -66,20 +66,13 @@ export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
               )}
             </div>
           </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 whitespace-nowrap shrink-0">
-            {item.edition}
-          </span>
+          <EditionBadge edition={item.edition} />
         </div>
-        {/* Source badge - separate row to accommodate long text */}
-        <div
-          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(item.source)} w-full`}
-        >
-          <span>{sourceLabel(item)}</span>
-        </div>
+        <SourceBadge entity={item} />
       </div>
 
       {/* Item Stats */}
-      <div className="flex gap-4 mb-3 text-sm text-gray-400">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-sm text-gray-400">
         {item.cost && (
           <div className="flex items-center gap-1">
             <Coins className="w-4 h-4 text-yellow-500" />
@@ -100,12 +93,7 @@ export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-300 mb-3">
-        {expanded
-          ? item.description
-          : `${item.description.substring(0, 120)}${item.description.length > 120 ? "..." : ""
-          }`}
-      </p>
+      <p className={`text-sm text-gray-300 mb-3 ${expanded ? "" : "line-clamp-3"}`}>{item.description}</p>
 
       {item.description.length > 120 && (
         <button
@@ -113,7 +101,7 @@ export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
             e.stopPropagation();
             setExpanded(!expanded);
           }}
-          className="text-sm text-brand-400 hover:text-brand-300 mb-3"
+          className="self-start text-sm text-brand-400 hover:text-brand-300 mb-3"
         >
           {expanded ? "Show Less" : "Show More"}
         </button>
@@ -135,6 +123,9 @@ export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
           </div>
         </div>
       )}
+      {/* Pushes the footer to the bottom so cards in a row line up */}
+      <div className="flex-1" />
+
       <ViewEntryLink href={href} />
     </div>
   );

@@ -19,7 +19,7 @@ export function ViewEntryLink({ href }: { href?: string }) {
     <Link
       to={href}
       onClick={(event) => event.stopPropagation()}
-      className="mt-3 inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-brand-400 hover:text-brand-300 transition-colors"
+      className="mt-3 flex w-fit items-center gap-1 text-xs font-medium uppercase tracking-wide text-brand-400 hover:text-brand-300 transition-colors"
     >
       View full entry
       <ArrowRight className="w-3 h-3" />

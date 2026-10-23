@@ -1,7 +1,7 @@
 import { Race } from "../types/dnd-types";
 import { Users, Gauge, Languages } from "lucide-react";
 import { useState } from "react";
-import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { EditionBadge, SourceBadge } from "./library/CardBadges";
 import SanityImage from "./SanityImage";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
@@ -30,7 +30,7 @@ export function RaceCard({ race, href }: RaceCardProps) {
   };
 
   return (
-    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
+    <div className="h-full flex flex-col border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Image Section */}
       {race.image && (
         <div className="w-full aspect-[3/2] rounded-lg mb-3 overflow-hidden bg-black/40 border border-zinc-800">
@@ -46,9 +46,9 @@ export function RaceCard({ race, href }: RaceCardProps) {
 
       {/* Header */}
       <div className="flex flex-col gap-2 mb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{race.name}</CardTitle></h3>
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-gray-100 mb-1 font-serif break-words"><CardTitle href={href}>{race.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
@@ -61,16 +61,9 @@ export function RaceCard({ race, href }: RaceCardProps) {
               </span>
             </div>
           </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
-            {race.edition}
-          </span>
+          <EditionBadge edition={race.edition} />
         </div>
-        {/* Source badge - separate row to accommodate long text */}
-        <div
-          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(race.source)} w-full`}
-        >
-          <span>{sourceLabel(race)}</span>
-        </div>
+        <SourceBadge entity={race} />
       </div>
 
       {/* Ability Score Increases */}
@@ -82,16 +75,11 @@ export function RaceCard({ race, href }: RaceCardProps) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-300 mb-3">
-        {expanded
-          ? race.description
-          : `${race.description.substring(0, 120)}${race.description.length > 120 ? "..." : ""
-          }`}
-      </p>
+      <p className={`text-sm text-gray-300 mb-3 ${expanded ? "" : "line-clamp-3"}`}>{race.description}</p>
 
       <button
         onClick={() => setExpanded(!expanded)}
-        className="text-sm text-brand-400 hover:text-brand-300 mb-3 flex items-center gap-1"
+        className="self-start text-sm text-brand-400 hover:text-brand-300 mb-3 flex items-center gap-1"
       >
         {expanded ? "Show Less" : "Show Details"}
       </button>
@@ -110,6 +98,9 @@ export function RaceCard({ race, href }: RaceCardProps) {
           </div>
         </div>
       )}
+
+      {/* Pushes the footer to the bottom so cards in a row line up */}
+      <div className="flex-1" />
 
       {/* Languages */}
       <div className="mt-3 pt-3 border-t border-zinc-800">

@@ -2,7 +2,7 @@ import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { Library, filterCategory } from "../components/Library";
 import { LIBRARY_CATEGORIES, categoryById } from "../components/library/categories";
-import { LibraryShell } from "../components/library/LibraryShell";
+import { LibraryShell, LibraryEntrySkeleton } from "../components/library/LibraryShell";
 import { LibraryEntry, findEntry } from "../components/library/LibraryEntry";
 import { editionsDiffer } from "../components/library/edition-content";
 import { useLibraryData } from "../components/library/useLibraryData";
@@ -96,6 +96,6 @@ export function LibraryEntryPage() {
             ))}
         </div>
     ) : null;
-    if (!ready) return <LibraryShell title="Loading…" icon={category.icon}><p role="status">Loading rules versions…</p></LibraryShell>;
+    if (!ready) return <LibraryEntrySkeleton category={category} />;
     return <LibraryEntry category={category} id={id} data={data} editionControl={control} />;
 }

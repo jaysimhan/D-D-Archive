@@ -16,12 +16,15 @@ interface RuleCardProps {
 
 export function RuleCard({ rule, href }: RuleCardProps) {
   return (
-    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
+    <div className="h-full flex flex-col border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       <div className="flex justify-between items-start gap-3 mb-2">
         <h3 className="text-gray-100 font-serif"><CardTitle href={href}>{rule.name}</CardTitle></h3>
         <span className={`text-[11px] px-2 py-0.5 rounded-full border shrink-0 ${KIND_STYLE[rule.kind]}`}>{rule.kind}</span>
       </div>
       <p className="text-sm text-gray-300">{rule.summary}</p>
+      {/* Pushes the footer to the bottom so cards in a row line up */}
+      <div className="flex-1" />
+
       <ViewEntryLink href={href} />
     </div>
   );

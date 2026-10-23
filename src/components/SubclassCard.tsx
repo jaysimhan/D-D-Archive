@@ -1,7 +1,8 @@
 import { Subclass } from "../types/dnd-types";
 import { Sparkles, BookOpen } from "lucide-react";
 import { useState } from "react";
-import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { EditionBadge, SourceBadge } from "./library/CardBadges";
+import { slugLabel } from "../utils/search-utils";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface SubclassCardProps {
@@ -15,44 +16,30 @@ export function SubclassCard({ subclass, href }: SubclassCardProps) {
 
 
   return (
-    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
+    <div className="h-full flex flex-col border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Header */}
       <div className="flex flex-col gap-2 mb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{subclass.name}</CardTitle></h3>
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-gray-100 mb-1 font-serif break-words"><CardTitle href={href}>{subclass.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span className="flex items-center gap-1">
                 <Sparkles className="w-4 h-4 text-brand-400" />
-                {subclass.parentClassId.charAt(0).toUpperCase() +
-                  subclass.parentClassId.slice(1)}{" "}
-                Subclass
+                {slugLabel(subclass.parentClassId)} Subclass
               </span>
             </div>
           </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
-            {subclass.edition}
-          </span>
+          <EditionBadge edition={subclass.edition} />
         </div>
-        {/* Source badge - separate row to accommodate long text */}
-        <div
-          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(subclass.source)} w-full`}
-        >
-          <span>{sourceLabel(subclass)}</span>
-        </div>
+        <SourceBadge entity={subclass} />
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-300 mb-3">
-        {expanded
-          ? subclass.description
-          : `${subclass.description.substring(0, 120)}${subclass.description.length > 120 ? "..." : ""
-          }`}
-      </p>
+      <p className={`text-sm text-gray-300 mb-3 ${expanded ? "" : "line-clamp-3"}`}>{subclass.description}</p>
 
       <button
         onClick={() => setExpanded(!expanded)}
-        className="text-sm text-brand-400 hover:text-brand-300 mb-3 flex items-center gap-1"
+        className="self-start text-sm text-brand-400 hover:text-brand-300 mb-3 flex items-center gap-1"
       >
         {expanded ? "Show Less" : "Show Details"}
       </button>
@@ -77,6 +64,9 @@ export function SubclassCard({ subclass, href }: SubclassCardProps) {
           </div>
         </div>
       )}
+
+      {/* Pushes the footer to the bottom so cards in a row line up */}
+      <div className="flex-1" />
 
       {/* Feature Count */}
       {!expanded && (

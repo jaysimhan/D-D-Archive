@@ -518,7 +518,13 @@ export interface SearchFilters {
   level?: number;
   school?: SpellSchool;
   class?: string;
-  spellcaster?: boolean;
+  /** A class's spellcasting progression; "martial" for classes with none. */
+  casterType?: string;
+  /** A subclass's parent class id. */
+  parentClass?: string;
+  /** A race's size. */
+  size?: string;
+  featCategory?: FeatCategory;
   concentration?: boolean;
   ritual?: boolean;
   components?: ("verbal" | "somatic" | "material")[];

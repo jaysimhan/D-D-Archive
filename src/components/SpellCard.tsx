@@ -1,7 +1,8 @@
 import { Spell } from "../types/dnd-types";
 import { Sparkles, Clock, Target, Zap } from "lucide-react";
 import { useState } from "react";
-import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { EditionBadge, SourceBadge } from "./library/CardBadges";
+import { slugLabel } from "../utils/search-utils";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface SpellCardProps {
@@ -17,32 +18,25 @@ export function SpellCard({ spell, href }: SpellCardProps) {
 
 
   return (
-    <div className="border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
+    <div className="h-full flex flex-col border border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:shadow-brand-900/20 transition-shadow bg-zinc-900/60">
       {/* Header */}
       <div className="flex flex-col gap-2 mb-2">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{spell.name}</CardTitle></h3>
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-gray-100 mb-1 font-serif break-words"><CardTitle href={href}>{spell.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span>{levelText}</span>
               <span>•</span>
               <span>{spell.school}</span>
             </div>
           </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 shrink-0">
-            {spell.edition}
-          </span>
+          <EditionBadge edition={spell.edition} />
         </div>
-        {/* Source badge - separate row to accommodate long text */}
-        <div
-          className={`text-xs px-3 py-2 rounded-lg ${sourceBadgeColor(spell.source)} w-full`}
-        >
-          <span>{sourceLabel(spell)}</span>
-        </div>
+        <SourceBadge entity={spell} />
       </div>
 
       {/* Quick Info Icons */}
-      <div className="flex gap-4 mb-3 text-sm text-gray-400">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-sm text-gray-400">
         <div className="flex items-center gap-1">
           <Clock className="w-4 h-4" />
           <span>{spell.castingTime}</span>
@@ -77,21 +71,16 @@ export function SpellCard({ spell, href }: SpellCardProps) {
               ` (${spell.components.materialDescription})`}
           </span>
         )}
-        {!spell.components && <span className="text-gray-500 italic">None</span>}
+        {!spell.components?.verbal && !spell.components?.somatic && !spell.components?.material && <span className="text-gray-500 italic">None</span>}
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-300 mb-3">
-        {expanded
-          ? spell.description
-          : `${spell.description.substring(0, 150)}${spell.description.length > 150 ? "..." : ""
-          }`}
-      </p>
+      <p className={`text-sm text-gray-300 mb-3 ${expanded ? "" : "line-clamp-3"}`}>{spell.description}</p>
 
       {spell.description.length > 150 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-sm text-brand-400 hover:text-brand-300 mb-3"
+          className="self-start text-sm text-brand-400 hover:text-brand-300 mb-3"
         >
           {expanded ? "Show Less" : "Show More"}
         </button>
@@ -107,13 +96,16 @@ export function SpellCard({ spell, href }: SpellCardProps) {
         </div>
       )}
 
+      {/* Pushes the footer to the bottom so cards in a row line up */}
+      <div className="flex-1" />
+
       {/* Classes that can cast this spell */}
       <div className="mt-3 pt-3 border-t border-zinc-800">
         <p className="text-xs text-gray-500">
           <span>Available to: </span>
           {(spell.classes || []).map((c, i) => (
             <span key={c} className="text-gray-400">
-              {c.charAt(0).toUpperCase() + c.slice(1)}
+              {slugLabel(c)}
               {i < (spell.classes || []).length - 1 ? ", " : ""}
             </span>
           ))}

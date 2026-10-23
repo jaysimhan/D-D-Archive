@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, ChevronRight, Loader2, type LucideIcon } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronRight, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import type { LibraryCategory } from "./categories";
 
 export interface Crumb {
   label: string;
@@ -8,7 +9,7 @@ export interface Crumb {
 }
 
 interface LibraryShellProps {
-  title: string;
+  title: ReactNode;
   subtitle?: ReactNode;
   icon?: LucideIcon;
   /** Where the back arrow goes; the last crumb with a link by default. */
@@ -90,11 +91,75 @@ export function LibraryShell({ title, subtitle, icon: Icon = BookOpen, backTo, c
   );
 }
 
-export function LibraryLoading() {
+function Bone({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-md bg-zinc-800/80 ${className}`} />;
+}
+
+/** Placeholder cards in the shape of the real ones while a section loads. */
+export function LibraryCardsSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="min-h-[40vh] flex flex-col items-center justify-center text-gray-500 gap-4">
-      <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
-      <p>Opening the archive...</p>
+    <div role="status" aria-label="Loading entries">
+      <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-zinc-800">
+        <Bone className="h-4 w-40" />
+        <div className="flex gap-3">
+          <Bone className="h-9 w-40" />
+          <Bone className="h-9 w-40" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: count }, (_, i) => (
+          <div key={i} className="border border-zinc-800 rounded-lg p-4 bg-zinc-900/60 space-y-3">
+            <div className="flex justify-between gap-3">
+              <Bone className="h-5 w-2/3" />
+              <Bone className="h-5 w-16 rounded-full" />
+            </div>
+            <Bone className="h-4 w-1/3" />
+            <Bone className="h-4 w-28 rounded-full" />
+            <div className="space-y-2 pt-1">
+              <Bone className="h-3.5 w-full" />
+              <Bone className="h-3.5 w-full" />
+              <Bone className="h-3.5 w-4/5" />
+            </div>
+            <Bone className="h-3.5 w-28" />
+          </div>
+        ))}
+      </div>
     </div>
+  );
+}
+
+/** One entry's page, skeleton only, while the archive loads. */
+export function LibraryEntrySkeleton({ category }: { category: LibraryCategory }) {
+  return (
+    <LibraryShell
+      title={<Bone className="h-8 w-64 max-w-full mt-1" />}
+      subtitle={<Bone className="h-4 w-24 mt-2" />}
+      icon={category.icon}
+      crumbs={[{ label: "Library", to: "/library" }, { label: category.label, to: `/library/${category.id}` }]}
+    >
+      <div role="status" aria-label="Loading entry" className="space-y-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 space-y-2">
+              <Bone className="h-3 w-16" />
+              <Bone className="h-5 w-24" />
+            </div>
+          ))}
+        </div>
+        <div className="space-y-3 max-w-3xl">
+          <Bone className="h-4 w-full" />
+          <Bone className="h-4 w-full" />
+          <Bone className="h-4 w-11/12" />
+          <Bone className="h-4 w-3/5" />
+        </div>
+        {Array.from({ length: 2 }, (_, i) => (
+          <div key={i} className="space-y-3 max-w-3xl">
+            <Bone className="h-6 w-48" />
+            <Bone className="h-4 w-full" />
+            <Bone className="h-4 w-4/5" />
+          </div>
+        ))}
+      </div>
+    </LibraryShell>
   );
 }
