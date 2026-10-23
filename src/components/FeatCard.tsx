@@ -2,12 +2,15 @@ import { ChevronDown, ChevronUp, Book } from "lucide-react";
 import { useState } from "react";
 import { Feat } from "../types/dnd-types";
 import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface FeatCardProps {
     feat: Feat;
+    /** The feat's own page, when shown in the Library. */
+    href?: string;
 }
 
-export function FeatCard({ feat }: FeatCardProps) {
+export function FeatCard({ feat, href }: FeatCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
@@ -16,7 +19,7 @@ export function FeatCard({ feat }: FeatCardProps) {
                 <div className="flex-1">
                     <h3 className="text-gray-100 font-semibold text-lg flex items-center gap-2 font-serif">
                         <Book className="w-5 h-5 text-amber-500" />
-                        {feat.name}
+                        <CardTitle href={href}>{feat.name}</CardTitle>
                     </h3>
                     <div className="flex flex-col gap-2 mt-2">
                         <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-400 border border-zinc-700 w-fit">
@@ -99,6 +102,7 @@ export function FeatCard({ feat }: FeatCardProps) {
                     </div>
                 </div>
             )}
+            <ViewEntryLink href={href} />
         </div>
     );
 }

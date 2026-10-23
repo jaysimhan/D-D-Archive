@@ -19,19 +19,43 @@ function rulesetParams(ruleset?: CharacterRuleset): Record<string, string> {
         : {};
 }
 
+/**
+ * Results kept for the life of the tab, keyed by query and params. The Library
+ * moves between a hub, list pages and detail pages that all read the same
+ * collections, and refetching hundreds of documents on every click would make
+ * each page flash a spinner. Failed fetches are dropped so they can retry.
+ */
+const queryCache = new Map<string, Promise<unknown>>();
+const resolvedCache = new Map<string, unknown>();
+
+function cachedFetch<T>(key: string, query: string, params: Record<string, any>): Promise<T> {
+    let pending = queryCache.get(key) as Promise<T> | undefined;
+    if (!pending) {
+        pending = sanityClient.fetch<T>(query, params).then((result) => {
+            resolvedCache.set(key, result);
+            return result;
+        });
+        pending.catch(() => queryCache.delete(key));
+        queryCache.set(key, pending);
+    }
+    return pending;
+}
+
 // Helper hook for Sanity queries
 function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
-    const [data, setData] = useState<T[]>([]);
-    const [loading, setLoading] = useState(true);
+    const cacheKey = `${query}::${JSON.stringify(params)}`;
+    const cached = resolvedCache.get(cacheKey) as T[] | undefined;
+    const [data, setData] = useState<T[]>(cached ?? []);
+    const [loading, setLoading] = useState(!cached);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
         let isMounted = true;
 
         async function fetchData() {
-            setLoading(true);
+            if (!resolvedCache.has(cacheKey)) setLoading(true);
             try {
-                const result = await sanityClient.fetch<T[]>(query, params);
+                const result = await cachedFetch<T[]>(cacheKey, query, params);
                 if (isMounted) {
                     setData(result);
                     setError(null);
@@ -53,7 +77,7 @@ function useSanityQuery<T>(query: string, params: Record<string, any> = {}) {
         return () => {
             isMounted = false;
         };
-    }, [query, JSON.stringify(params)]);
+    }, [cacheKey]);
 
     return { data, loading, error, refetch: () => { /* Logic to trigger re-fetch could be added here */ } };
 }

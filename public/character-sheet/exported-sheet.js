@@ -319,6 +319,30 @@
             return typeof modifier === "number" ? modifier : null;
         }
 
+        /**
+         * "WIS+1 / CON" — the abilities a DC or bonus is worked out from, each
+         * with whatever a magic item adds to it. Entries whose ability has no
+         * score yet are left out.
+         */
+        function abilityTokens(list) {
+            var out = [];
+            String(list || "")
+                .split("/")
+                .forEach(function (part) {
+                    var match = /^\s*([A-Za-z]{3})\s*([+-]\d+)?\s*$/.exec(part);
+                    if (!match) return;
+                    var ability = match[1].toUpperCase();
+                    var modifier = modifierFor(ability);
+                    if (modifier === null) return;
+                    out.push({
+                        ability: ability,
+                        modifier: modifier,
+                        bonus: match[2] ? parseInt(match[2], 10) : 0,
+                    });
+                });
+            return out;
+        }
+
         // Skills: the ability's modifier, plus the proficiency bonus once for a
         // filled ring and twice for expertise.
         var perceptionLevel = 0;
@@ -341,15 +365,43 @@
             );
         });
 
-        // Armor Class and Initiative, both off Dexterity.
+        // Armor Class: the best of every way the sheet could work it out — the
+        // armor worn, Unarmored Defense, natural armor — each a base, abilities
+        // up to a cap, and a bonus for the shield and items.
+        var armorBox = document.querySelector('[data-cs="armor-class"]');
         var dexterity = modifierFor("DEX");
+        if (armorBox) {
+            var candidates = null;
+            try {
+                candidates = JSON.parse(armorBox.getAttribute("data-cs-ac") || "null");
+            } catch (error) {
+                candidates = null;
+            }
+            if (!Array.isArray(candidates)) {
+                candidates = [{ base: 10, abilities: [{ ability: "DEX" }], bonus: 0 }];
+            }
+            var best = null;
+            candidates.forEach(function (candidate) {
+                var total = candidate.base + candidate.bonus;
+                for (var i = 0; i < candidate.abilities.length; i += 1) {
+                    var part = candidate.abilities[i];
+                    var modifier = modifierFor(part.ability);
+                    if (modifier === null) return;
+                    total += typeof part.cap === "number" ? Math.min(modifier, part.cap) : modifier;
+                }
+                if (best === null || total > best) best = total;
+            });
+            applyDerived(armorBox, best === null ? "" : String(best));
+        }
+
+        // Initiative, off Dexterity and whatever Alert adds.
+        var initiativeBox = document.querySelector('[data-cs="initiative"]');
+        var initiativeBonus = initiativeBox
+            ? parseInt(initiativeBox.getAttribute("data-cs-bonus") || "0", 10) || 0
+            : 0;
         applyDerived(
-            document.querySelector('[data-cs="armor-class"]'),
-            dexterity === null ? "" : String(10 + dexterity),
-        );
-        applyDerived(
-            document.querySelector('[data-cs="initiative"]'),
-            dexterity === null ? "" : formatModifier(dexterity),
+            initiativeBox,
+            dexterity === null ? "" : formatModifier(dexterity + initiativeBonus),
         );
 
         // Passive Perception: ten plus the Perception modifier, and whatever the
@@ -369,15 +421,24 @@
                 : String(10 + wisdom + (profBonus || 0) * perceptionLevel + featBonus),
         );
 
-        // The class-feature save DC, off whichever ability the sheet named.
+        // The class-feature save DCs, one per ability the sheet named. One
+        // reads as a bare number; several are labelled, "14 WIS / 13 CON".
         var skillSaveBox = document.querySelector('[data-cs="skill-save-dc"]');
         if (skillSaveBox) {
-            var saveModifier = modifierFor(skillSaveBox.getAttribute("data-cs-abilities"));
+            var saves = profBonus === null
+                ? []
+                : abilityTokens(skillSaveBox.getAttribute("data-cs-abilities")).map(function (entry) {
+                      return { ability: entry.ability, dc: 8 + profBonus + entry.modifier + entry.bonus };
+                  });
             applyDerived(
                 skillSaveBox,
-                profBonus !== null && saveModifier !== null
-                    ? String(8 + profBonus + saveModifier)
-                    : "",
+                saves.length === 1
+                    ? String(saves[0].dc)
+                    : saves
+                          .map(function (entry) {
+                              return entry.dc + " " + entry.ability;
+                          })
+                          .join(" / "),
             );
         }
 
@@ -385,21 +446,16 @@
         // multiclassed caster keeps both.
         all('[data-cs="spell-save-dc"], [data-cs="spell-attack-bonus"]').forEach(function (tile) {
             var attack = tile.getAttribute("data-cs") === "spell-attack-bonus";
-            var castingModifiers = String(tile.getAttribute("data-cs-abilities") || "")
-                .split("/")
-                .map(modifierFor)
-                .filter(function (modifier) {
-                    return modifier !== null;
-                });
+            var entries = abilityTokens(tile.getAttribute("data-cs-abilities"));
             applyDerived(
                 tile,
                 profBonus === null
                     ? ""
                     : appendList(
-                          castingModifiers.map(function (modifier) {
+                          entries.map(function (entry) {
                               return attack
-                                  ? formatModifier(profBonus + modifier)
-                                  : String(8 + profBonus + modifier);
+                                  ? formatModifier(profBonus + entry.modifier + entry.bonus)
+                                  : String(8 + profBonus + entry.modifier + entry.bonus);
                           }),
                       ),
             );

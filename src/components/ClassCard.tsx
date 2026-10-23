@@ -3,12 +3,15 @@ import { Sword, Sparkles, Heart, Shield } from "lucide-react";
 import { useState } from "react";
 import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 import SanityImage from "./SanityImage";
+import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface ClassCardProps {
   classData: Class;
+  /** The class's own page, when shown in the Library. */
+  href?: string;
 }
 
-export function ClassCard({ classData }: ClassCardProps) {
+export function ClassCard({ classData, href }: ClassCardProps) {
   const [expanded, setExpanded] = useState(false);
 
 
@@ -31,7 +34,7 @@ export function ClassCard({ classData }: ClassCardProps) {
       <div className="flex flex-col gap-2 mb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif">{classData.name}</h3>
+            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{classData.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               {classData.spellcaster && (
                 <span className="flex items-center gap-1">
@@ -122,6 +125,7 @@ export function ClassCard({ classData }: ClassCardProps) {
           </p>
         </div>
       )}
+      <ViewEntryLink href={href} />
     </div>
   );
 }

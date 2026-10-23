@@ -1,4 +1,4 @@
-import { SheetInput, SheetTextArea } from "./sheet-state";
+import { SheetInput, SheetTextArea, useSheetState } from "./sheet-state";
 import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSheetSuggestions, type SheetSuggestions } from "../../hooks/useSheetSuggestions";
 import type { CharacterData } from "../../types/character-creator";
@@ -436,6 +436,43 @@ function InventoryDivider({ height = 44.197 }: { height?: number }) {
     );
 }
 
+/**
+ * A row of the Magic Items panel: the item, searched from the Archive, and
+ * whether it is attuned.
+ *
+ * Page 1 adds up what the items do — a Ring of Protection's AC, a Rod of the
+ * Pact Keeper's spell DC — so the row reports both. It reads them back under
+ * the keys the field and the marker save to, rather than holding copies.
+ */
+function MagicItemRow({
+    index,
+    defaultName,
+    options,
+    onChange,
+}: {
+    index: number;
+    defaultName: string;
+    options: string[];
+    onChange: (index: number, name: string, attuned: boolean) => void;
+}) {
+    const label = `Magic item ${index + 1}`;
+    const [name] = useSheetState(`autocomplete:${label}`, defaultName);
+    const [attuned] = useSheetState(`attuned:${label}`, false);
+    useEffect(() => onChange(index, name, attuned), [index, name, attuned, onChange]);
+
+    return (
+        <div className="relative flex h-[97.82px] w-full shrink-0 items-center justify-end gap-[24.568px] rounded-[26.782px] bg-white px-[24.568px] py-[26.782px]">
+            <AutocompleteField
+                ariaLabel={label}
+                suggestions={options}
+                defaultValue={defaultName}
+                className="w-full text-[32px] font-medium not-italic leading-[normal] text-black"
+            />
+            <AttunementMarker label={label} />
+        </div>
+    );
+}
+
 /* ------------------------------------------------------------------ */
 /* Sheet                                                               */
 /* ------------------------------------------------------------------ */
@@ -446,6 +483,8 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     species,
     perceptionModifier,
     onFeatsChange,
+    onFeatNamesChange,
+    onMagicItemsChange,
 }: {
     initialCharacter?: CharacterData;
     /**
@@ -458,6 +497,10 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     perceptionModifier?: number | null;
     /** Reports the feats, appended, for the spellbook pages' header row. */
     onFeatsChange?: (feats: string) => void;
+    /** Reports the Character Feats panel as written, for page 1's arithmetic. */
+    onFeatNamesChange?: (feats: string) => void;
+    /** Reports the magic items, and which are attuned, for page 1's arithmetic. */
+    onMagicItemsChange?: (items: { name: string; attuned: boolean }[]) => void;
 } = {}) {
     const suggestions = useSheetSuggestions();
     const characterFeats = formatEntryNames(initialCharacter?.feats ?? []);
@@ -469,6 +512,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     const reportFeats = useCallback(
         (text: string) => {
             setFeats(text);
+            onFeatNamesChange?.(text);
             // Only the feats granting spells — Magic Initiate and its like —
             // belong in the spellbook header; the rest are named on this page.
             onFeatsChange?.(
@@ -477,7 +521,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                 ),
             );
         },
-        [onFeatsChange, featOptions],
+        [onFeatsChange, onFeatNamesChange, featOptions],
     );
 
     // Page 1 reports as it is edited; until it has, and wherever this page is
@@ -512,6 +556,27 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     const magicItems = (initialCharacter?.magicItems ?? [])
         .map((item) => item.name)
         .slice(0, MAGIC_ITEM_ROWS);
+
+    const [magicItemRows, setMagicItemRows] = useState(() =>
+        Array.from({ length: MAGIC_ITEM_ROWS }, (_, index) => ({
+            name: magicItems[index] ?? "",
+            attuned: false,
+        })),
+    );
+    const reportMagicItem = useCallback((index: number, name: string, attuned: boolean) => {
+        setMagicItemRows((rows) =>
+            rows[index]?.name === name && rows[index]?.attuned === attuned
+                ? rows
+                : rows.map((row, rowIndex) => (rowIndex === index ? { name, attuned } : row)),
+        );
+    }, []);
+    useEffect(() => onMagicItemsChange?.(magicItemRows), [onMagicItemsChange, magicItemRows]);
+
+    // Gems, art objects and every item the sheet knows, magic or otherwise.
+    const treasureOptions = useMemo(
+        () => suggestions.treasure.map((name) => ({ name })),
+        [suggestions.treasure],
+    );
 
     return (
         <div
@@ -653,18 +718,13 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                     icon={<Icon src={asset("magic-items")} w={54.463} h={51.014} />}
                                 />
                                 {Array.from({ length: MAGIC_ITEM_ROWS }, (_, index) => (
-                                    <div
+                                    <MagicItemRow
                                         key={index}
-                                        className="relative flex h-[97.82px] w-full shrink-0 items-center justify-end gap-[24.568px] rounded-[26.782px] bg-white px-[24.568px] py-[26.782px]"
-                                    >
-                                        <AutocompleteField
-                                            ariaLabel={`Magic item ${index + 1}`}
-                                            suggestions={suggestions.magicItems}
-                                            defaultValue={magicItems[index] ?? ""}
-                                            className="w-full text-[32px] font-medium not-italic leading-[normal] text-black"
-                                        />
-                                        <AttunementMarker label={`Magic item ${index + 1}`} />
-                                    </div>
+                                        index={index}
+                                        defaultName={magicItems[index] ?? ""}
+                                        options={suggestions.magicItems}
+                                        onChange={reportMagicItem}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -674,6 +734,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         borderColor={GREEN}
                         height={825}
                         label="Treasure"
+                        search={{ options: treasureOptions, placeholder: "Search treasure, gems & items…" }}
                         headerClassName="w-full px-[8.333px] py-[19.58px]"
                         icon={<Icon src={asset("treasure")} w={61.314} h={49.377} />}
                     />

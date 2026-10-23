@@ -2,14 +2,18 @@ import { Item } from "../types/dnd-types";
 import { Package, Coins, Weight, Star } from "lucide-react";
 import { useState } from "react";
 import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { formatCost } from "../utils/item-cost";
+import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface ItemCardProps {
   item: Item;
   isSelected?: boolean;
   onClick?: () => void;
+  /** The item's own page, when shown in the Library. */
+  href?: string;
 }
 
-export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
+export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
   const [expanded, setExpanded] = useState(false);
 
 
@@ -45,7 +49,7 @@ export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
       <div className="flex flex-col gap-2 mb-3">
         <div className="flex justify-between items-start gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="text-gray-100 mb-1 font-serif text-[18px] line-clamp-2 pr-2 leading-tight">{item.name}</h3>
+            <h3 className="text-gray-100 mb-1 font-serif text-[18px] line-clamp-2 pr-2 leading-tight"><CardTitle href={href}>{item.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400 whitespace-nowrap overflow-hidden">
               <span className="flex items-center gap-1 min-w-0 flex-shrink">
                 <Package className="w-4 h-4 flex-shrink-0" />
@@ -79,9 +83,7 @@ export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
         {item.cost && (
           <div className="flex items-center gap-1">
             <Coins className="w-4 h-4 text-yellow-500" />
-            <span>
-              {item.cost.amount} {item.cost.currency}
-            </span>
+            <span>{formatCost(item.cost)}</span>
           </div>
         )}
         {item.weight !== undefined && (
@@ -133,6 +135,7 @@ export function ItemCard({ item, isSelected, onClick }: ItemCardProps) {
           </div>
         </div>
       )}
+      <ViewEntryLink href={href} />
     </div>
   );
 }

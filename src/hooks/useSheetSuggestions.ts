@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
 import { sanityClient } from '../lib/sanity';
+import {
+    ADVENTURING_GEAR,
+    ARMOR,
+    MAGIC_ITEMS,
+    TOOLS,
+    TREASURE,
+    WEAPONS,
+} from '../data/srd-equipment';
+import type { ArchiveItemStats } from '../utils/sheet-combat';
 
 /**
  * Autocomplete options for the character sheet's free-text fields.
@@ -18,6 +27,10 @@ export interface SheetSuggestions {
         spellcaster?: string;
         spellcastingAbility?: string;
         features?: { level: number; name: string; description?: string }[];
+        /** Weapons the class always trains with; null where the Archive doesn't say. */
+        weaponProficiencies?: string[] | null;
+        /** The class table's Martial Arts or Fisticuffs die, by level. */
+        unarmedDice?: { level: number; die?: string }[];
     }[];
     /** Carries the text page 2 writes into the Species Traits panel. */
     species: {
@@ -37,6 +50,10 @@ export interface SheetSuggestions {
         spellcastingAbility?: string;
         features?: { level: number; name: string; description?: string }[];
     }[];
+    /**
+     * The lists below are the Archive's items merged with the SRD catalogue in
+     * src/data/srd-equipment.ts — the Archive holds only a sample of them.
+     */
     armor: string[];
     weapons: string[];
     tools: string[];
@@ -45,6 +62,10 @@ export interface SheetSuggestions {
     /** Every item, for the page 2 inventory. */
     items: string[];
     magicItems: string[];
+    /** Everything the Treasure panel can look up: gems, art, magic items, gear. */
+    treasure: string[];
+    /** Weapon and armor documents, for homebrew the catalogue doesn't know. */
+    itemStats: ArchiveItemStats[];
     /** Carries the text page 2 writes into the Character Feats panel. */
     feats: {
         name: string;
@@ -72,7 +93,16 @@ const QUERY = `{
             "name": coalesce(name, @->name),
             "description": coalesce(description, @->description)
         },
-        "pointLabel": grants[grantType == "Resource Pool" && defined(resourceName)][0].resourceName
+        "pointLabel": grants[grantType == "Resource Pool" && defined(resourceName)][0].resourceName,
+        // Only the fixed rule: a choice of weapons says nothing about which.
+        "weaponProficiencies": select(
+            defined(proficiencies) => proficiencies[type == "weapon" && mode == "fixed"].weaponOptions[],
+            null
+        ),
+        "unarmedDice": progression[]{
+            level,
+            "die": resources[name in ["Martial Arts", "Fisticuffs"]][0].value
+        }
     },
     "species": *[_type in ["species", "race"] && defined(name)] | order(name asc) {
         name,
@@ -113,6 +143,13 @@ const QUERY = `{
     "tools": *[_type == "item" && type == "Tool" && defined(name)] | order(name asc).name,
     "items": *[_type == "item" && defined(name)] | order(name asc).name,
     "magicItems": *[_type == "item" && magical == true && defined(name)] | order(name asc).name,
+    "itemStats": *[_type == "item" && type in ["Weapon", "Armor"] && defined(name)] {
+        name,
+        type,
+        properties,
+        magicBonus,
+        armorClass
+    },
     "feats": *[_type == "feat" && defined(name)] | order(name asc) {
         name,
         description,
@@ -120,17 +157,51 @@ const QUERY = `{
     }
 }`;
 
+/**
+ * Every list, in one alphabetical order, repeats dropped however they are
+ * capitalised. The Archive's own spelling wins where both have an entry.
+ */
+function mergeNames(...lists: string[][]): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const name of lists.flat()) {
+        const key = name.trim().toLowerCase();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push(name.trim());
+    }
+    return out.sort((a, b) => a.localeCompare(b));
+}
+
+const CATALOGUE_ARMOR = ARMOR.map((item) => item.name);
+const CATALOGUE_WEAPONS = WEAPONS.map((item) => item.name);
+const CATALOGUE_MAGIC_ITEMS = MAGIC_ITEMS.map((item) => item.name);
+
+/** The equipment lists with the Archive's entries merged into the catalogue's. */
+function equipmentLists(archive: {
+    armor?: string[];
+    weapons?: string[];
+    tools?: string[];
+    items?: string[];
+    magicItems?: string[];
+}) {
+    const armor = mergeNames(archive.armor ?? [], CATALOGUE_ARMOR);
+    const weapons = mergeNames(archive.weapons ?? [], CATALOGUE_WEAPONS);
+    const tools = mergeNames(archive.tools ?? [], TOOLS);
+    const magicItems = mergeNames(archive.magicItems ?? [], CATALOGUE_MAGIC_ITEMS);
+    const items = mergeNames(archive.items ?? [], weapons, armor, ADVENTURING_GEAR, tools, magicItems);
+    return { armor, weapons, tools, magicItems, items, treasure: mergeNames(TREASURE, items) };
+}
+
+// Offline, or before the Archive answers, the catalogue alone still searches.
 const EMPTY: SheetSuggestions = {
     classes: [],
     species: [],
     backgrounds: [],
     subclasses: [],
-    armor: [],
-    weapons: [],
-    tools: [],
+    ...equipmentLists({}),
     languages: [],
-    items: [],
-    magicItems: [],
+    itemStats: [],
     feats: [],
     loading: true,
 };
@@ -196,6 +267,8 @@ export interface SheetSpell {
     /** Carried for the hover card over a filled row, not for the row itself. */
     duration?: string;
     description?: string;
+    /** "This spell's damage increases by 1d10 when you reach 5th level…" */
+    higherLevels?: string;
 }
 
 // `school` is a magicSchool reference in the schema but a plain string in the
@@ -212,7 +285,8 @@ const SPELLS_QUERY = `*[_type == "spell" && defined(name)] | order(name asc) {
     concentration,
     ritual,
     duration,
-    description
+    description,
+    higherLevels
 }`;
 
 const NO_SPELLS: SheetSpell[] = [];
@@ -281,6 +355,7 @@ function normalizeSpells(values: unknown): SheetSpell[] {
             ritual: Boolean(value.ritual),
             duration: typeof value.duration === 'string' ? value.duration.trim() : undefined,
             description: plainText(value.description),
+            higherLevels: plainText(value.higherLevels),
         });
     }
     return out;
@@ -347,6 +422,8 @@ export function useSheetSuggestions(): SheetSuggestions {
                         spellcaster?: string;
                         spellcastingAbility?: string;
                         features?: { level: number; name: string; description?: string }[];
+                        weaponProficiencies?: string[] | null;
+                        unarmedDice?: { level: number; die?: string }[];
                     }>(result.classes),
                     species: uniqueDocs<{
                         name: string;
@@ -367,12 +444,17 @@ export function useSheetSuggestions(): SheetSuggestions {
                         spellcastingAbility?: string;
                         features?: { level: number; name: string; description?: string }[];
                     }>(result.subclasses),
-                    armor: uniqueNames(result.armor),
-                    weapons: uniqueNames(result.weapons),
-                    tools: uniqueNames(result.tools),
+                    ...equipmentLists({
+                        armor: uniqueNames(result.armor),
+                        weapons: uniqueNames(result.weapons),
+                        tools: uniqueNames(result.tools),
+                        items: uniqueNames(result.items),
+                        magicItems: uniqueNames(result.magicItems),
+                    }),
+                    itemStats: Array.isArray(result.itemStats)
+                        ? (result.itemStats as ArchiveItemStats[])
+                        : [],
                     languages: languageNames(result.languages),
-                    items: uniqueNames(result.items),
-                    magicItems: uniqueNames(result.magicItems),
                     feats: uniqueDocs<{
                         name: string;
                         description?: string;

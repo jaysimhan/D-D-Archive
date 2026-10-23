@@ -3,12 +3,15 @@ import { Users, Gauge, Languages } from "lucide-react";
 import { useState } from "react";
 import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
 import SanityImage from "./SanityImage";
+import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface RaceCardProps {
   race: Race;
+  /** The race's own page, when shown in the Library. */
+  href?: string;
 }
 
-export function RaceCard({ race }: RaceCardProps) {
+export function RaceCard({ race, href }: RaceCardProps) {
   const [expanded, setExpanded] = useState(false);
 
 
@@ -45,7 +48,7 @@ export function RaceCard({ race }: RaceCardProps) {
       <div className="flex flex-col gap-2 mb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif">{race.name}</h3>
+            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{race.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
@@ -125,6 +128,7 @@ export function RaceCard({ race }: RaceCardProps) {
           </p>
         </div>
       )}
+      <ViewEntryLink href={href} />
     </div>
   );
 }

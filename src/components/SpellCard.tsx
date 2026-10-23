@@ -2,12 +2,15 @@ import { Spell } from "../types/dnd-types";
 import { Sparkles, Clock, Target, Zap } from "lucide-react";
 import { useState } from "react";
 import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface SpellCardProps {
   spell: Spell;
+  /** The spell's own page, when shown in the Library. */
+  href?: string;
 }
 
-export function SpellCard({ spell }: SpellCardProps) {
+export function SpellCard({ spell, href }: SpellCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const levelText = spell.level === 0 ? "Cantrip" : `Level ${spell.level}`;
@@ -19,7 +22,7 @@ export function SpellCard({ spell }: SpellCardProps) {
       <div className="flex flex-col gap-2 mb-2">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif">{spell.name}</h3>
+            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{spell.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span>{levelText}</span>
               <span>•</span>
@@ -127,6 +130,7 @@ export function SpellCard({ spell }: SpellCardProps) {
           </p>
         )}
       </div>
+      <ViewEntryLink href={href} />
     </div>
   );
 }

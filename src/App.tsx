@@ -9,6 +9,8 @@ import NProgress from "nprogress";
 // Lazy load pages
 const HomePage = lazy(() => import("./pages/HomePage").then(module => ({ default: module.HomePage })));
 const LibraryPage = lazy(() => import("./pages/LibraryPage").then(module => ({ default: module.LibraryPage })));
+const LibraryCategoryPage = lazy(() => import("./pages/LibraryPage").then(module => ({ default: module.LibraryCategoryPage })));
+const LibraryEntryPage = lazy(() => import("./pages/LibraryPage").then(module => ({ default: module.LibraryEntryPage })));
 const CharacterCreatorPage = lazy(() => import("./pages/CharacterCreatorPage").then(module => ({ default: module.CharacterCreatorPage })));
 const CharacterCreatorEntry = lazy(() => import("./pages/CharacterCreatorPage").then(module => ({ default: module.CharacterCreatorEntry })));
 const CharacterSheetPage = lazy(() => import("./pages/CharacterSheetPage").then(module => ({ default: module.CharacterSheetPage })));
@@ -21,6 +23,7 @@ function Navigation() {
   // The creator spans a URL per step, so matching the exact path would leave
   // the link unlit on every step but the first.
   const isCreator = location.pathname.startsWith("/creator");
+  const isLibrary = location.pathname.startsWith("/library");
 
   if (isHome) return null;
 
@@ -43,7 +46,7 @@ function Navigation() {
           <div className="hidden md:flex items-center gap-4">
             <Link
               to="/library"
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${location.pathname === "/library"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isLibrary
                 ? "bg-brand-900/50 text-brand-400"
                 : "text-gray-400 hover:text-white hover:bg-zinc-800"
                 }`}
@@ -79,7 +82,7 @@ function Navigation() {
               <Link
                 to="/library"
                 onClick={closeMenu}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-lg transition-colors ${location.pathname === "/library"
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-lg transition-colors ${isLibrary
                   ? "bg-brand-900/50 text-brand-400"
                   : "bg-zinc-900 text-gray-300"
                   }`}
@@ -141,6 +144,8 @@ export default function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/library" element={<LibraryPage />} />
+              <Route path="/library/:category" element={<LibraryCategoryPage />} />
+              <Route path="/library/:category/:id" element={<LibraryEntryPage />} />
               {/* Each creation step has its own address, so a refresh keeps
                   the player where they were; /creator on its own resumes. */}
               <Route path="/creator" element={<CharacterCreatorEntry />} />

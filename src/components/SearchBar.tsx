@@ -1,5 +1,9 @@
 import { Search, Filter, Coins, Weight, Plus, Minus } from "lucide-react";
 import { SearchFilters, Edition, Source, SpellSchool } from "../types/dnd-types";
+import { RULE_KINDS } from "../data/srd-rules-reference";
+
+const EQUIPMENT_TYPES = ["Weapon", "Armor", "Adventuring Gear", "Tool", "Mount & Vehicle"];
+const MAGIC_ITEM_TYPES = ["Armor", "Weapon", "Potion", "Ring", "Rod", "Scroll", "Staff", "Wand", "Wondrous Item"];
 
 interface SearchBarProps {
   filters: SearchFilters;
@@ -8,6 +12,8 @@ interface SearchBarProps {
   showClassFilters?: boolean;
   showEquipmentFilters?: boolean;
   showMagicItemFilters?: boolean;
+  /** The Rules Reference: a kind filter in place of edition and source. */
+  showRuleFilters?: boolean;
 }
 
 export function SearchBar({
@@ -17,6 +23,7 @@ export function SearchBar({
   showClassFilters = false,
   showEquipmentFilters = false,
   showMagicItemFilters = false,
+  showRuleFilters = false,
 }: SearchBarProps) {
 
   // Helper for Counter Input UI
@@ -91,6 +98,25 @@ export function SearchBar({
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
+        {/* Rule kind, in place of edition and source */}
+        {showRuleFilters && (
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm mb-1 text-gray-400">Kind</label>
+            <select
+              value={filters.ruleKind || ""}
+              onChange={(e) => onFiltersChange({ ...filters, ruleKind: e.target.value || undefined })}
+              className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
+            >
+              <option value="">All Rules</option>
+              {RULE_KINDS.map((kind) => (
+                <option key={kind} value={kind}>{kind}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {!showRuleFilters && (
+          <>
         {/* Edition Filter */}
         <div className="flex-1 min-w-[150px]">
           <label className="block text-sm mb-1 text-gray-400">Edition</label>
@@ -130,6 +156,26 @@ export function SearchBar({
             <option value="Unofficial">Unofficial</option>
           </select>
         </div>
+
+          </>
+        )}
+
+        {/* Item type, for either item section */}
+        {(showEquipmentFilters || showMagicItemFilters) && (
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm mb-1 text-gray-400">Type</label>
+            <select
+              value={filters.itemType || ""}
+              onChange={(e) => onFiltersChange({ ...filters, itemType: e.target.value || undefined })}
+              className="w-full px-3 py-2 bg-zinc-900/50 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white"
+            >
+              <option value="">All Types</option>
+              {(showEquipmentFilters ? EQUIPMENT_TYPES : MAGIC_ITEM_TYPES).map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Equipment specific filters */}
         {showEquipmentFilters && (
@@ -455,6 +501,8 @@ export function SearchBar({
           filters.minWeight !== undefined ||
           filters.maxWeight !== undefined ||
           filters.rarity ||
+          filters.itemType ||
+          filters.ruleKind ||
           filters.attunement !== undefined ||
           filters.magicBonus !== undefined) && (
             <div className="flex items-end">
@@ -472,6 +520,8 @@ export function SearchBar({
                     minWeight: undefined,
                     maxWeight: undefined,
                     rarity: undefined,
+                    itemType: undefined,
+                    ruleKind: undefined,
                     attunement: undefined,
                     magicBonus: undefined,
                   })

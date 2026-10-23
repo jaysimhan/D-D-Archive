@@ -1,5 +1,7 @@
 import { Spell, Class, Race, Item, Background, SearchFilters, Feat, Subclass } from "../types/dnd-types";
 import { matchScore, prepareQuery } from "./text-match";
+import { goldValue } from "./item-cost";
+import type { RuleEntry } from "../data/srd-rules-reference";
 
 /**
  * Apply the non-text filters, then score and order what survives.
@@ -162,7 +164,7 @@ export function searchItems(items: Item[], filters: SearchFilters): Item[] {
       // Magic items include: inherently magical types OR any item with magical: true
       const isMagicItem = item.magical || ["Potion", "Scroll", "Wondrous Item", "Ring", "Rod", "Staff", "Wand"].includes(item.type);
       // Equipment includes non-magical weapons, armor, tools, and gear
-      const isEquipment = !item.magical && ["Weapon", "Armor", "Tool", "Adventuring Gear"].includes(item.type);
+      const isEquipment = !item.magical && ["Weapon", "Armor", "Tool", "Adventuring Gear", "Mount & Vehicle"].includes(item.type);
 
       if (filters.itemCategory === "Equipment") {
         if (!isEquipment) return false;
@@ -171,21 +173,13 @@ export function searchItems(items: Item[], filters: SearchFilters): Item[] {
       }
     }
 
-    // Cost Filter
-    if (item.cost) {
-      const itemCost = item.cost.amount;
-      const getGoldValue = (amt: number, currency: string) => {
-        if (currency === "gp") return amt;
-        if (currency === "pp") return amt * 10;
-        if (currency === "ep") return amt * 0.5;
-        if (currency === "sp") return amt * 0.1;
-        if (currency === "cp") return amt * 0.01;
-        return 0;
-      };
-      const goldValue = getGoldValue(item.cost.amount, item.cost.currency);
+    if (filters.itemType && item.type !== filters.itemType) return false;
 
-      if (filters.minCost !== undefined && goldValue < filters.minCost) return false;
-      if (filters.maxCost !== undefined && goldValue > filters.maxCost) return false;
+    // Cost Filter
+    const gold = goldValue(item.cost);
+    if (gold !== undefined) {
+      if (filters.minCost !== undefined && gold < filters.minCost) return false;
+      if (filters.maxCost !== undefined && gold > filters.maxCost) return false;
     } else {
       if (filters.minCost !== undefined && filters.minCost > 0) return false;
     }
@@ -316,6 +310,13 @@ export function searchSubclasses(subclasses: Subclass[], filters: SearchFilters)
       }
     }
 
+    return true;
+  });
+}
+
+export function searchRules(rules: RuleEntry[], filters: SearchFilters): RuleEntry[] {
+  return rank(rules, filters, (rule) => [rule.name, rule.summary, ...rule.rules], (rule) => {
+    if (filters.ruleKind && rule.kind !== filters.ruleKind) return false;
     return true;
   });
 }

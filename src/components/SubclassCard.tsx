@@ -2,12 +2,15 @@ import { Subclass } from "../types/dnd-types";
 import { Sparkles, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface SubclassCardProps {
   subclass: Subclass;
+  /** The subclass's own page, when shown in the Library. */
+  href?: string;
 }
 
-export function SubclassCard({ subclass }: SubclassCardProps) {
+export function SubclassCard({ subclass, href }: SubclassCardProps) {
   const [expanded, setExpanded] = useState(false);
 
 
@@ -17,7 +20,7 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
       <div className="flex flex-col gap-2 mb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h3 className="text-gray-100 mb-1 font-serif">{subclass.name}</h3>
+            <h3 className="text-gray-100 mb-1 font-serif"><CardTitle href={href}>{subclass.name}</CardTitle></h3>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span className="flex items-center gap-1">
                 <Sparkles className="w-4 h-4 text-brand-400" />
@@ -84,6 +87,7 @@ export function SubclassCard({ subclass }: SubclassCardProps) {
           </p>
         </div>
       )}
+      <ViewEntryLink href={href} />
     </div>
   );
 }

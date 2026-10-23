@@ -369,7 +369,8 @@ export type ItemType =
   | "Rod"
   | "Staff"
   | "Wand"
-  | "Adventuring Gear";
+  | "Adventuring Gear"
+  | "Mount & Vehicle";
 
 export interface Item {
   id: string;
@@ -381,6 +382,14 @@ export interface Item {
   magicBonus?: number;
   rarity?: ItemRarity;
   requiresAttunement: boolean;
+  /** Who can attune, when not anyone: "by a Wizard". */
+  attunementRequirement?: string;
+  /** The mundane item a magic weapon or armor is built on: "Longsword", "Any Sword". */
+  baseItem?: string;
+  /** Variants and naming asides, e.g. the rarity of each tier. */
+  notes?: string;
+  /** The SRD's fuller rules text, kept beside an Archive description that is shorter. */
+  rulesText?: string;
   cost?: {
     amount: number;
     currency: "cp" | "sp" | "ep" | "gp" | "pp";
@@ -517,6 +526,10 @@ export interface SearchFilters {
   minWeight?: number;
   maxWeight?: number;
   itemCategory?: "Equipment" | "Magic Items";
+  /** One item type, e.g. "Weapon" or "Wondrous Item". */
+  itemType?: string;
+  /** One kind of rules entry, e.g. "Condition". */
+  ruleKind?: string;
   // Magic Item specific
   magicBonus?: number; // 1, 2, 3
   rarity?: string;

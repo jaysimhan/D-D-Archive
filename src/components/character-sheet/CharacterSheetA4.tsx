@@ -9,7 +9,7 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import { useSheetSuggestions } from "../../hooks/useSheetSuggestions";
+import { useSheetSpells, useSheetSuggestions } from "../../hooks/useSheetSuggestions";
 import { useMenuPlacement } from "./useMenuPlacement";
 import type { CharacterData } from "../../types/character-creator";
 import {
@@ -19,13 +19,28 @@ import {
     type ProficiencyLevel,
 } from "./markers";
 import { useEditableAutoValue } from "./use-editable-auto-value";
-import { NotesTextArea, formatEntryNames, noteMap } from "./entry-notes";
+import { NotesTextArea, entryNames, formatEntryNames, noteMap } from "./entry-notes";
 import { spellSlotsByLevel, type SpellSlots } from "./spell-slots";
 import { finalAbilityScores } from "../../utils/ability-scores";
-import { calculateArmorClass } from "../../utils/armor-class";
-import { alertInitiativeBonus, classPointAmount, featSorceryPoints, walkingSpeed } from "../../utils/combat-progression";
+import { classPointAmount, featSorceryPoints, proficiencyBonusAtLevel, walkingSpeed } from "../../utils/combat-progression";
+import {
+    BACKGROUND_ORIGIN_FEATS,
+    armorClass as workOutArmorClass,
+    buildSheetRules,
+    isUnarmedStrike,
+    skillSaveDc as workOutSkillSaveDc,
+    spellAction,
+    spellBonusFor,
+    unarmedAction,
+    weaponAction,
+    type AcCandidate,
+    type ActionStats,
+    type RulesInput,
+} from "../../utils/sheet-combat";
+import { MAGIC_ITEMS } from "../../data/srd-equipment";
 import {
     classGrantsSpells,
+    featGrantsSpells,
     speciesGrantsSpells,
     spellGrantingSources,
     subclassGrantsSpells,
@@ -422,38 +437,6 @@ const CLASS_POINT_LABELS: Record<string, string> = {
     pugilist: "Moxie Points",
 };
 
-/** Class-feature save DC abilities when no explicit schema value is present. */
-const CLASS_SAVE_ABILITIES: Record<string, string> = {
-    barbarian: "STR",
-    bard: "CHA",
-    cleric: "WIS",
-    druid: "WIS",
-    fighter: "STR",
-    monk: "WIS",
-    paladin: "CHA",
-    ranger: "WIS",
-    rogue: "DEX",
-    sorcerer: "CHA",
-    warlock: "CHA",
-    wizard: "INT",
-    artificer: "INT",
-};
-
-const ABILITY_KEYS: Record<string, string> = {
-    strength: "STR",
-    dexterity: "DEX",
-    constitution: "CON",
-    intelligence: "INT",
-    wisdom: "WIS",
-    charisma: "CHA",
-};
-
-function normalizeAbilityKey(value?: string) {
-    if (!value) return undefined;
-    const normalized = value.trim().toLowerCase();
-    return ABILITY_KEYS[normalized] ?? normalized.slice(0, 3).toUpperCase();
-}
-
 /** ["Fighter", "Wizard"] from "Fighter / Wizard " — blanks dropped. */
 export function splitList(value: string): string[] {
     return value
@@ -493,6 +476,7 @@ export function SuggestInput({
     initialValue = "",
     suggestWhenTyped = false,
     renderOption,
+    matchText,
 }: {
     label: string;
     options: string[];
@@ -515,12 +499,19 @@ export function SuggestInput({
      * hangs each spell's school off it. The option is still what gets picked.
      */
     renderOption?: (option: string) => ReactNode;
+    /**
+     * What typing is matched against, when that is more than the option's own
+     * text — "wis" and "wisdom" both find WIS.
+     */
+    matchText?: (option: string) => string;
 }) {
     const [internal, setInternal] = useSheetState(`suggest:${label}`, initialValue);
     const current = value ?? internal;
     const [inputRef, fitStyle] = useFitText<HTMLInputElement>(current);
     const setCurrent = (next: string) => {
-        setInternal(next);
+        // A controlled field is saved by its owner; a second copy here would
+        // only be dead weight in every shared link.
+        if (value === undefined) setInternal(next);
         onValueChange?.(next);
     };
 
@@ -551,11 +542,12 @@ export function SuggestInput({
         for (const option of pool) {
             const lower = option.toLowerCase();
             if (lower === query) continue;
-            if (lower.startsWith(query)) starts.push(option);
-            else if (lower.includes(query)) contains.push(option);
+            const searched = matchText ? matchText(option).toLowerCase() : lower;
+            if (lower.startsWith(query) || searched.startsWith(query)) starts.push(option);
+            else if (searched.includes(query)) contains.push(option);
         }
         return [...starts, ...contains].slice(0, MAX_SUGGESTIONS);
-    }, [options, pending, current, multiple, suggestWhenTyped]);
+    }, [options, pending, current, multiple, suggestWhenTyped, matchText]);
 
     const visible = open && matches.length > 0;
     const menu = useMenuPlacement(wrapperRef, visible, MENU_HEIGHT);
@@ -970,26 +962,134 @@ function ExperienceField({
     );
 }
 
-/** XP or milestone leveling; on screen only, it decides whether XP is on the sheet. */
-function LevelingToggle({
+type Ruleset = "2014" | "2024";
+
+const LEVELING_OPTIONS: { value: Leveling; label: string }[] = [
+    { value: "xp", label: "XP" },
+    { value: "milestone", label: "Milestone" },
+];
+
+/** The rules edition, by the name players use for it. */
+const RULESET_OPTIONS: { value: Ruleset; label: string; detail: string }[] = [
+    { value: "2014", label: "5e", detail: "2014 rules" },
+    { value: "2024", label: "5.5e", detail: "2024 rules" },
+];
+
+/**
+ * The rules edition, as a badge beside the title that opens into a menu.
+ *
+ * The badge is part of the sheet and prints; the chevron and the menu are
+ * screen-only. The chevron slides out on hover, with a lighter
+ * fill, so the badge reads as something that switches rather than a label.
+ */
+function RulesetBadge({
     value,
     onChange,
 }: {
-    value: Leveling;
-    onChange: (value: Leveling) => void;
+    value: Ruleset;
+    onChange: (value: Ruleset) => void;
 }) {
-    const options: { value: Leveling; label: string }[] = [
-        { value: "xp", label: "XP" },
-        { value: "milestone", label: "Milestone" },
-    ];
+    const [open, setOpen] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const current = RULESET_OPTIONS.find((option) => option.value === value) ?? RULESET_OPTIONS[1];
+
+    useEffect(() => {
+        if (!open) return;
+        const close = (event: MouseEvent) => {
+            if (!wrapperRef.current?.contains(event.target as Node)) setOpen(false);
+        };
+        const escape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setOpen(false);
+        };
+        document.addEventListener("mousedown", close);
+        document.addEventListener("keydown", escape);
+        return () => {
+            document.removeEventListener("mousedown", close);
+            document.removeEventListener("keydown", escape);
+        };
+    }, [open]);
+
     return (
-        <div
-            data-screen-only
-            role="group"
-            aria-label="Leveling"
-            className="absolute right-[1066px] top-[3px] flex items-center gap-[16px]"
-        >
-            <span className="whitespace-nowrap text-[26px] font-medium text-black/55">Leveling</span>
+        <div ref={wrapperRef} className="relative shrink-0">
+            <button
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                aria-label={`Rules edition: ${current.label}`}
+                title="Switch rules edition"
+                onClick={() => setOpen((isOpen) => !isOpen)}
+                className="group flex cursor-pointer items-center rounded-[17px] border-[3px] border-solid border-black bg-white p-[3px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[4px] focus-visible:outline-black"
+            >
+                {/* One width for both editions, so the chevron slides into
+                    room the label makes rather than pushing the row along. */}
+                <span className="relative flex w-[112px] items-center justify-center rounded-[11px] bg-black py-[4px] text-[28px] font-medium not-italic leading-[normal] text-white transition-colors duration-150 group-hover:bg-[#3a3a3a] group-aria-expanded:bg-[#3a3a3a]">
+                    <span className="transition-transform duration-150 group-hover:-translate-x-[12px] group-aria-expanded:-translate-x-[12px]">
+                        {current.label}
+                    </span>
+                    <span
+                        data-screen-only
+                        aria-hidden
+                        className="absolute right-[9px] flex items-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-aria-expanded:opacity-100"
+                    >
+                        <svg viewBox="0 0 24 24" className="size-[20px]" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m6 9 6 6 6-6" />
+                        </svg>
+                    </span>
+                </span>
+            </button>
+            {open && (
+                <ul
+                    data-screen-only
+                    role="listbox"
+                    aria-label="Rules edition"
+                    className="absolute left-0 top-full z-50 mt-[12px] min-w-[280px] rounded-[18px] border-[3px] border-solid border-black bg-white py-[8px] shadow-[0_18px_48px_rgba(0,0,0,0.28)]"
+                >
+                    {RULESET_OPTIONS.map((option) => {
+                        const selected = option.value === value;
+                        return (
+                            <li key={option.value} role="option" aria-selected={selected}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setOpen(false);
+                                        onChange(option.value);
+                                    }}
+                                    className={`flex w-full items-baseline gap-[16px] px-[26px] py-[12px] text-left text-[28px] leading-[1.25] text-black transition-colors hover:bg-black/10 ${
+                                        selected ? "font-semibold" : "font-medium"
+                                    }`}
+                                >
+                                    <span className="w-[70px] shrink-0">{option.label}</span>
+                                    <span className="text-black/55">{option.detail}</span>
+                                    {selected && <span className="ml-auto pl-[16px]">✓</span>}
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </div>
+    );
+}
+
+/**
+ * A labelled pair of buttons for one of the sheet's settings, such as XP or
+ * milestone leveling. On screen only: it changes what the sheet works out,
+ * not what it prints.
+ */
+function SheetToggle<T extends string>({
+    label,
+    options,
+    value,
+    onChange,
+}: {
+    label: string;
+    options: { value: T; label: string }[];
+    value: T;
+    onChange: (value: T) => void;
+}) {
+    return (
+        <div role="group" aria-label={label} className="flex items-center gap-[16px]">
+            <span className="whitespace-nowrap text-[26px] font-medium text-black/55">{label}</span>
             <div className="flex gap-[8px] rounded-[18px] border-[3px] border-solid border-black p-[4px]">
                 {options.map((option) => (
                     <button
@@ -1447,11 +1547,16 @@ function EquipmentField({
     label,
     options,
     initialValue,
+    value,
+    onValueChange,
 }: {
     icon: ReactNode;
     label: string;
     options: string[];
     initialValue?: string;
+    /** Armor Class reads these two, so the page holds them. */
+    value?: string;
+    onValueChange?: (value: string) => void;
 }) {
     return (
         <div className="relative flex w-full shrink-0 items-center gap-[14.067px] rounded-[14.067px] border-2 border-solid border-black bg-white px-[28.135px] py-[14.067px]">
@@ -1463,6 +1568,8 @@ function EquipmentField({
                 label={label}
                 options={options}
                 initialValue={initialValue}
+                value={value}
+                onValueChange={onValueChange}
                 className="text-[29.933px] font-normal not-italic leading-[normal] text-black"
             />
         </div>
@@ -1534,13 +1641,45 @@ function formatFeatures(
 
 type ActionValue = { action?: string; attack?: string; damage?: string; range?: string };
 
-function ActionRow({ index, initial }: { index: number; initial?: ActionValue }) {
+const ACTION_TEXT = "whitespace-nowrap text-[29.71px] font-medium not-italic leading-[normal] text-black";
+
+/**
+ * One row of the Actions table. The action is searched from the weapons and
+ * spells the Archive holds; naming one fills in the rest of the row — attack
+ * bonus, damage and range — from the character's scores and rules.
+ *
+ * Those three stay blanks: an edit holds until the sheet works out something
+ * new, as every derived field here does. An action the sheet doesn't know
+ * leaves them exactly as typed.
+ */
+function ActionRow({
+    index,
+    initial,
+    options,
+    derive,
+}: {
+    index: number;
+    initial?: ActionValue;
+    options: string[];
+    derive: (action: string) => ActionStats | undefined;
+}) {
     const [values, setValues] = useSheetState(`action:${index}`, [
         initial?.action ?? "",
         initial?.attack ?? "",
         initial?.damage ?? "",
         initial?.range ?? "",
     ]);
+    const derived = derive(values[0]);
+    const setTyped = (column: number, next: string) =>
+        setValues((current) =>
+            current.map((value, valueIndex) => (valueIndex === column ? next : value)),
+        );
+    const columns = [
+        useEditableAutoValue(`action:${index}:attack`, derived ? derived.attack : values[1]),
+        useEditableAutoValue(`action:${index}:damage`, derived ? derived.damage : values[2]),
+        useEditableAutoValue(`action:${index}:range`, derived ? derived.range : values[3]),
+    ];
+
     return (
         <div className="relative flex w-full items-start gap-[23.768px] rounded-[23.768px] px-[47.535px] py-[23.768px]">
             {ACTION_COLUMNS.map((column, i) => (
@@ -1551,21 +1690,37 @@ function ActionRow({ index, initial }: { index: number; initial?: ActionValue })
                             edge={i === 3 ? "-1.24px" : "-2px"}
                         />
                     )}
-                    <Blank
-                        label={`${column.label}, row ${index + 1}`}
-                        sizer={column.label}
-                        align="left"
-                        value={values[i]}
-                        onChange={(next) =>
-                            setValues((current) =>
-                                current.map((value, valueIndex) =>
-                                    valueIndex === i ? next : value,
-                                ),
-                            )
-                        }
-                        wrapperStyle={{ flexGrow: column.width, flexBasis: 0, minWidth: 0 }}
-                        textClassName="whitespace-nowrap text-[29.71px] font-medium not-italic leading-[normal] text-black"
-                    />
+                    {i === 0 ? (
+                        <span
+                            className="relative block shrink-0"
+                            style={{ flexGrow: column.width, flexBasis: 0, minWidth: 0 }}
+                        >
+                            <span aria-hidden className={`block opacity-0 ${ACTION_TEXT}`}>
+                                {column.label}
+                            </span>
+                            <SuggestInput
+                                label={`${column.label}, row ${index + 1}`}
+                                options={options}
+                                value={values[0]}
+                                onValueChange={(next) => setTyped(0, next)}
+                                wrapperClassName="absolute inset-0"
+                                className={`h-full text-left ${ACTION_TEXT}`}
+                            />
+                        </span>
+                    ) : (
+                        <Blank
+                            label={`${column.label}, row ${index + 1}`}
+                            sizer={column.label}
+                            align="left"
+                            value={columns[i - 1][0]}
+                            onChange={(next) => {
+                                if (derived) columns[i - 1][1](next);
+                                else setTyped(i, next);
+                            }}
+                            wrapperStyle={{ flexGrow: column.width, flexBasis: 0, minWidth: 0 }}
+                            textClassName={ACTION_TEXT}
+                        />
+                    )}
                 </div>
             ))}
         </div>
@@ -1598,6 +1753,14 @@ export type SpellcastingSummary = {
      * are unknown — which leaves the spellbook blocks as they are drawn.
      */
     slots: SpellSlots | null;
+    /**
+     * What the save DC and attack bonus are worked out from, so the spellbook
+     * pages can work them out again for whatever ability is picked there.
+     */
+    modifiers: Partial<Record<string, number | null>>;
+    proficiencyBonus: number | null;
+    /** Magic item bonuses by casting ability; "*" applies to every one. */
+    bonuses: { dc: Record<string, number>; attack: Record<string, number> };
 };
 
 export const EMPTY_SPELLCASTING: SpellcastingSummary = {
@@ -1606,6 +1769,9 @@ export const EMPTY_SPELLCASTING: SpellcastingSummary = {
     saveDc: "",
     attackBonus: "",
     slots: null,
+    modifiers: {},
+    proficiencyBonus: null,
+    bonuses: { dc: {}, attack: {} },
 };
 
 /**
@@ -1630,12 +1796,23 @@ export function appendList(entries: (string | undefined)[]): string {
  */
 export const CharacterSheetA4 = memo(function CharacterSheetA4({
     initialCharacter,
+    featNames,
+    magicItems,
     onSpellcastingChange,
     onSpeciesChange,
     onPerceptionModifierChange,
     confirmMilestone,
+    confirmRulesetChange,
 }: {
     initialCharacter?: CharacterData;
+    /**
+     * Page 2's Character Feats panel, as written. Feats change attacks (Archery),
+     * Armor Class (Defense) and spellcasting (Magic Initiate). Undefined until
+     * page 2 reports, and the character's own feats stand in.
+     */
+    featNames?: string;
+    /** Page 2's magic items, and whether each is attuned. */
+    magicItems?: { name: string; attuned: boolean }[];
     /** Reports what pages 3 and 4 fill their Spell Casting header row with. */
     onSpellcastingChange?: (summary: SpellcastingSummary) => void;
     /** Reports the Species page 2 looks its Species Traits up from. */
@@ -1651,6 +1828,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
      * and is dropped on false. The page host asks for the PIN here.
      */
     confirmMilestone?: () => Promise<boolean>;
+    /** Asked before switching between 5e and 5.5e; as above, false drops it. */
+    confirmRulesetChange?: () => Promise<boolean>;
 }) {
     const suggestions = useSheetSuggestions();
     const [characterName, setCharacterName] = useSheetState("characterName", initialCharacter?.name ?? "");
@@ -1668,6 +1847,16 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         if (next === leveling) return;
         if (next === "milestone" && confirmMilestone && !(await confirmMilestone())) return;
         setLeveling(next);
+    };
+    // The rules edition the sheet's arithmetic follows: Martial Arts dice,
+    // Monk weapons, Alert, a background's origin feat. A character from the
+    // creator brings its own; a blank sheet starts on the current rules.
+    const [savedRuleset, setRuleset] = useSheetState<Ruleset>("ruleset", initialCharacter?.ruleset ?? "2024");
+    const ruleset: Ruleset = savedRuleset === "2014" ? "2014" : "2024";
+    const changeRuleset = async (next: Ruleset) => {
+        if (next === ruleset) return;
+        if (confirmRulesetChange && !(await confirmRulesetChange())) return;
+        setRuleset(next);
     };
     // A character arriving from the creator has at least its level's worth.
     const [experience, setExperience] = useSheetState("experience", () =>
@@ -1827,26 +2016,6 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
             ),
         )
         .filter((item) => item !== undefined);
-    const subclassSaveAbility = selectedSubclassDocs
-        .map((item) => item.spellcastingAbility ?? item.magicAbility)
-        .find(Boolean);
-    const classSaveAbility = selectedClasses
-        .map(
-            (item) =>
-                item.spellcastingAbility ??
-                CLASS_SAVE_ABILITIES[item.id] ??
-                item.primaryAbility?.[0],
-        )
-        .find(Boolean);
-    const skillSaveAbility = normalizeAbilityKey(subclassSaveAbility ?? classSaveAbility);
-    const skillSaveModifier = skillSaveAbility
-        ? abilityModifiers[skillSaveAbility]
-        : undefined;
-    const automaticSkillSaveDc =
-        parsedProficiencyBonus !== null && typeof skillSaveModifier === "number"
-            ? `${8 + parsedProficiencyBonus + skillSaveModifier}`
-            : "";
-    const [skillSaveDc, setSkillSaveDc] = useEditableAutoValue("skillSaveDc", automaticSkillSaveDc);
 
     const selectedSpecies = suggestions.species.find(
         (item) => item.name.toLowerCase() === species.trim().toLowerCase(),
@@ -1857,53 +2026,6 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         ? `${walkingSpeed(selectedSpecies.speed, monkLevel, initialCharacter?.equipment ?? [])}`
         : "";
     const [speed, setSpeed] = useEditableAutoValue("speed", automaticSpeed);
-
-    // The spellbook pages head every page with where the character's magic
-    // comes from and the numbers it sets, so report both upward as they are
-    // entered here. Classes and subclasses are the only sources the Archive
-    // records a casting ability for; a species or feat that grants spells is
-    // still listed, and its ability typed in on the spellbook page.
-    const castingAbilities: string[] = [];
-    for (const source of [
-        ...selectedClasses.map((item) => item.spellcastingAbility),
-        ...selectedSubclassDocs.map((item) => item.spellcastingAbility ?? item.magicAbility),
-    ]) {
-        const ability = normalizeAbilityKey(source);
-        if (ability && !castingAbilities.includes(ability)) castingAbilities.push(ability);
-    }
-    const castingModifiers = castingAbilities
-        .map((ability) => abilityModifiers[ability])
-        .filter((modifier): modifier is number => typeof modifier === "number");
-    const spellcastingSources = appendList([
-        ...spellGrantingSources(
-            splitList(characterClass),
-            suggestions.classes,
-            classGrantsSpells,
-        ),
-        ...spellGrantingSources(
-            splitList(characterSubclass),
-            suggestions.subclasses,
-            subclassGrantsSpells,
-        ),
-        ...spellGrantingSources(splitList(species), suggestions.species, speciesGrantsSpells),
-    ]);
-    const spellcastingAbility = appendList(castingAbilities);
-    const spellcastingSaveDc =
-        parsedProficiencyBonus === null
-            ? ""
-            : appendList(
-                  castingModifiers.map(
-                      (modifier) => `${8 + parsedProficiencyBonus + modifier}`,
-                  ),
-              );
-    const spellcastingAttackBonus =
-        parsedProficiencyBonus === null
-            ? ""
-            : appendList(
-                  castingModifiers.map((modifier) =>
-                      formatModifier(parsedProficiencyBonus + modifier),
-                  ),
-              );
 
     // Only a subclass casting off spell slots of its own adds to them —
     // Eldritch Knight and Arcane Trickster, not a monk's ki spells.
@@ -2012,37 +2134,6 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         onPerceptionModifierChange?.(perceptionModifier);
     }, [onPerceptionModifierChange, perceptionModifier]);
 
-    useEffect(() => {
-        onSpellcastingChange?.({
-            sources: spellcastingSources,
-            ability: spellcastingAbility,
-            saveDc: spellcastingSaveDc,
-            attackBonus: spellcastingAttackBonus,
-            slots: spellSlots,
-        });
-    }, [
-        onSpellcastingChange,
-        spellSlots,
-        spellcastingSources,
-        spellcastingAbility,
-        spellcastingSaveDc,
-        spellcastingAttackBonus,
-    ]);
-
-    const dexterityModifier = abilityModifiers.DEX;
-    const automaticArmorClass = typeof dexterityModifier === "number"
-        ? `${calculateArmorClass(initialCharacter?.equipment ?? [], dexterityModifier)}`
-        : "";
-    const automaticInitiative = typeof dexterityModifier === "number"
-        ? formatModifier(dexterityModifier + alertInitiativeBonus(
-            initialCharacter?.feats ?? [],
-            initialCharacter?.ruleset,
-            Number.isInteger(totalLevel) ? totalLevel : 1,
-        ))
-        : "";
-    const [armorClass, setArmorClass] = useEditableAutoValue("armorClass", automaticArmorClass);
-    const [initiative, setInitiative] = useEditableAutoValue("initiative", automaticInitiative);
-
     const constitutionModifier = abilityModifiers.CON ?? 0;
     const automaticMaximumHitPoints = useMemo(() => {
         if (
@@ -2138,14 +2229,265 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         ...selectedSubclassDocs.map((item) => item.features),
     );
 
-    const spellAttackBonus =
-        parsedProficiencyBonus !== null && typeof skillSaveModifier === "number"
-            ? formatModifier(parsedProficiencyBonus + skillSaveModifier)
-            : "";
+    const initialArmor = (initialCharacter?.equipment ?? [])
+        .filter((item) => item.type === "Armor" && !item.name.toLowerCase().includes("shield"))
+        .map((item) => item.name)
+        .join(" / ");
+    const initialShield =
+        (initialCharacter?.equipment ?? []).find((item) =>
+            item.name.toLowerCase().includes("shield"),
+        )?.name ?? "";
+    const initialWeapons = (initialCharacter?.equipment ?? [])
+        .filter((item) => item.type === "Weapon")
+        .map((item) => item.name)
+        .join("\n");
+    const initialTools = initialCharacter?.proficiencies?.tools.join("\n") ?? "";
+
+    // Held here under the keys their own fields save to, so Armor Class and the
+    // attack bonuses can read them.
+    const [armorField, setArmorField] = useSheetState("suggest:Armor Type", initialArmor);
+    const [shieldField, setShieldField] = useSheetState("suggest:Shield", initialShield);
+    const [weaponTraining] = useSheetState("suggest-text:Weapons", initialWeapons);
+
+    /* ---------------- Combat rules ---------------- */
+
+    const level =Number.isInteger(totalLevel) && totalLevel > 0 ? totalLevel : 1;
+
+    // The feats page 2 lists, and the origin feat a 2024 background brings
+    // with it unless the panel already names it.
+    const featInputs = useMemo((): RulesInput["feats"] => {
+        const named = featNames === undefined
+            ? (initialCharacter?.feats ?? []).map((feat) => feat.name)
+            : entryNames(featNames);
+        const originFeat = ruleset === "2014"
+            ? undefined
+            : BACKGROUND_ORIGIN_FEATS[background.trim().toLowerCase()];
+        const fromBackground =
+            originFeat && !named.some((name) => name.toLowerCase() === originFeat.toLowerCase())
+                ? originFeat
+                : undefined;
+
+        return [...named, ...(fromBackground ? [fromBackground] : [])].map((name) => {
+            const key = name.trim().toLowerCase();
+            const doc = suggestions.feats.find((feat) => feat.name.toLowerCase() === key) ??
+                // "Magic Initiate (Cleric)" is the one feat, whichever list.
+                suggestions.feats.find((feat) => key.startsWith(feat.name.toLowerCase()));
+            const own = initialCharacter?.feats?.find((feat) => feat.name.toLowerCase() === key);
+            return {
+                name,
+                description: doc?.description,
+                benefits: doc?.benefits,
+                grantsSpells: doc ? featGrantsSpells(doc) : /\binitiate\b|touched\b/i.test(name),
+                spellcastingAbility: own ? initialCharacter?.featSpellcastingAbilities?.[own.id] : undefined,
+                spellList: initialCharacter?.magicInitiateClass,
+                fromBackground: name === fromBackground ? background : undefined,
+            };
+        });
+    }, [featNames, initialCharacter, ruleset, background, suggestions.feats]);
+
+    const speciesInputs = splitList(species).map((name) => {
+        const key = name.toLowerCase();
+        // The character's own entry carries the subrace's traits as well.
+        if (key === initialCharacter?.race?.name.trim().toLowerCase()) {
+            return {
+                name,
+                traits: [
+                    ...(initialCharacter.race?.traits ?? []),
+                    ...(initialCharacter.subrace?.traits ?? []),
+                ],
+            };
+        }
+        return suggestions.species.find((item) => item.name.toLowerCase() === key) ?? { name };
+    });
+
+    const rules = buildSheetRules({
+        ruleset,
+        totalLevel: level,
+        modifiers: abilityModifiers,
+        classes: selectedClasses.map((item, index) => ({
+            id: item.id,
+            name: item.name,
+            level: hitDieClassLevels[index] ?? level,
+            spellcastingAbility: item.spellcastingAbility,
+            primaryAbility: item.primaryAbility,
+            weaponProficiencies: item.weaponProficiencies,
+            features: item.features?.length
+                ? item.features
+                : item.id === initialCharacter?.class?.id
+                  ? initialCharacter.class.features
+                  : undefined,
+            unarmedDice: item.unarmedDice,
+        })),
+        subclasses: selectedSubclassDocs.map((item) => {
+            const classIndex = selectedClasses.findIndex((classItem) => classItem.id === item.parentClassId);
+            return {
+                name: item.name,
+                parentClassId: item.parentClassId,
+                level: hitDieClassLevels[classIndex] ?? level,
+                spellcastingAbility: item.spellcastingAbility,
+                magicAbility: item.magicAbility,
+                grantsSpells: subclassGrantsSpells(item),
+                features: item.features,
+            };
+        }),
+        species: speciesInputs,
+        feats: featInputs,
+        featureText: [classFeatures, subclassFeatures, featNames ?? ""].join("\n"),
+        weaponTraining: weaponTraining.split("\n"),
+        magicItems:
+            magicItems ??
+            (initialCharacter?.magicItems ?? []).map((item) => ({ name: item.name, attuned: false })),
+        archiveItems: suggestions.itemStats,
+    });
+
+    const armorClassResult = workOutArmorClass(rules, armorField, shieldField);
+    const automaticArmorClass = armorClassResult.value;
+    const armorClassCandidates = JSON.stringify(armorClassResult.candidates satisfies AcCandidate[]);
+    const [armorClass, setArmorClass] = useEditableAutoValue("armorClass", automaticArmorClass);
+
+    // Alert adds the proficiency bonus under the 2024 rules and +5 under 2014.
+    const initiativeBonus = rules.feats.has("alert")
+        ? ruleset === "2014" ? 5 : proficiencyBonusAtLevel(level)
+        : 0;
+    const dexterityModifier = abilityModifiers.DEX;
+    const automaticInitiative = typeof dexterityModifier === "number"
+        ? formatModifier(dexterityModifier + initiativeBonus)
+        : "";
+    const [initiative, setInitiative] = useEditableAutoValue("initiative", automaticInitiative);
+
+    const skillSave = workOutSkillSaveDc(rules, parsedProficiencyBonus);
+    const automaticSkillSaveDc = skillSave.value;
+    const [skillSaveDc, setSkillSaveDc] = useEditableAutoValue("skillSaveDc", automaticSkillSaveDc);
+
+    // The spellbook pages head every page with where the character's magic
+    // comes from and the numbers it sets, so report both upward as they are
+    // entered here. The feats are page 2's, and CharacterSheetPage adds them;
+    // only an origin feat that came with the background is named from here.
+    const castingAbilities = [...new Set(rules.casting.map((entry) => entry.ability))];
+    const spellcastingSources = appendList([
+        ...spellGrantingSources(
+            splitList(characterClass),
+            suggestions.classes,
+            classGrantsSpells,
+        ),
+        ...spellGrantingSources(
+            splitList(characterSubclass),
+            suggestions.subclasses,
+            subclassGrantsSpells,
+        ),
+        ...spellGrantingSources(splitList(species), suggestions.species, speciesGrantsSpells),
+        ...featInputs
+            .filter((feat) => feat.fromBackground && feat.grantsSpells)
+            .map((feat) => feat.name),
+    ]);
+    const spellcastingAbility = appendList(castingAbilities);
+    // Keyed by its text: a fresh object every render would re-render both
+    // spellbook pages on every keystroke here.
+    const spellBonusesKey = JSON.stringify(rules.spellBonuses);
+    const spellBonuses = useMemo(
+        () => JSON.parse(spellBonusesKey) as SpellcastingSummary["bonuses"],
+        [spellBonusesKey],
+    );
+    const castingNumbers = castingAbilities.flatMap((ability) => {
+        const modifier = abilityModifiers[ability];
+        if (parsedProficiencyBonus === null || typeof modifier !== "number") return [];
+        return [{
+            dc: `${8 + parsedProficiencyBonus + modifier + spellBonusFor(spellBonuses.dc, ability)}`,
+            attack: formatModifier(parsedProficiencyBonus + modifier + spellBonusFor(spellBonuses.attack, ability)),
+        }];
+    });
+    const spellcastingSaveDc = appendList(castingNumbers.map((entry) => entry.dc));
+    const spellcastingAttackBonus = appendList(castingNumbers.map((entry) => entry.attack));
+
+    useEffect(() => {
+        onSpellcastingChange?.({
+            sources: spellcastingSources,
+            ability: spellcastingAbility,
+            saveDc: spellcastingSaveDc,
+            attackBonus: spellcastingAttackBonus,
+            slots: spellSlots,
+            modifiers: abilityModifiers,
+            proficiencyBonus: parsedProficiencyBonus,
+            bonuses: spellBonuses,
+        });
+    }, [
+        onSpellcastingChange,
+        spellSlots,
+        spellcastingSources,
+        spellcastingAbility,
+        spellcastingSaveDc,
+        spellcastingAttackBonus,
+        abilityModifiers,
+        parsedProficiencyBonus,
+        spellBonuses,
+    ]);
+
+    // Shields are their own field; magic armor is worn in the Armor field too.
+    const armorOptions = useMemo(
+        () => [
+            ...suggestions.armor.filter((name) => !/\bshield\b/i.test(name)),
+            ...MAGIC_ITEMS.filter((item) => item.effect?.armor).map((item) => item.name),
+        ],
+        [suggestions.armor],
+    );
+    const shieldOptions = useMemo(
+        () => [
+            ...suggestions.armor.filter((name) => /\bshield\b/i.test(name)),
+            ...MAGIC_ITEMS.filter((item) => item.effect?.shieldBonus !== undefined).map((item) => item.name),
+        ],
+        [suggestions.armor],
+    );
+    // The Weapons block is training, so the categories come first.
+    const weaponTrainingOptions = useMemo(
+        () => ["Simple Weapons", "Martial Weapons", ...suggestions.weapons],
+        [suggestions.weapons],
+    );
+
+    /* ---------------- Actions ---------------- */
+
+    const sheetSpells = useSheetSpells();
+    const spellsByName = useMemo(
+        () => new Map(sheetSpells.map((spell) => [spell.name.toLowerCase(), spell])),
+        [sheetSpells],
+    );
+    // Fists first, then weapons — the ones the character trains with ahead of
+    // the rest — then the magic weapons, then every spell.
+    const actionOptions = useMemo(() => {
+        const seen = new Set<string>();
+        return [
+            "Unarmed Strike",
+            ...weaponTraining.split("\n").map((line) => line.trim()),
+            ...suggestions.weapons,
+            ...MAGIC_ITEMS.filter((item) => item.effect?.weapon).map((item) => item.name),
+            ...sheetSpells.map((spell) => spell.name),
+        ].filter((option) => {
+            const key = option.toLowerCase();
+            if (!option || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }, [weaponTraining, suggestions.weapons, sheetSpells]);
+
+    const actionContext = { rules, proficiencyBonus: parsedProficiencyBonus };
+    const firstCasting = castingNumbers[0];
+    const deriveAction = (name: string): ActionStats | undefined => {
+        const trimmed = name.trim();
+        if (!trimmed) return undefined;
+        const spell = spellsByName.get(trimmed.toLowerCase());
+        if (spell) {
+            return spellAction(spell, actionContext, {
+                attack: firstCasting?.attack ?? "",
+                dc: firstCasting?.dc ?? "",
+            });
+        }
+        if (isUnarmedStrike(trimmed)) return unarmedAction(actionContext);
+        return weaponAction(trimmed, actionContext);
+    };
+
     const initialActions: ActionValue[] = [
         ...(initialCharacter?.selectedSpells ?? []).map((spell) => ({
             action: spell.name,
-            attack: spellAttackBonus,
+            attack: firstCasting?.attack ?? "",
             damage: spell.school,
             range: spell.range,
         })),
@@ -2185,18 +2527,6 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         initialCharacter?.abilityScores[
             ability.toUpperCase() as keyof CharacterData["abilityScores"]
         ];
-    const initialArmor = (initialCharacter?.equipment ?? [])
-        .filter((item) => item.type === "Armor" && !item.name.toLowerCase().includes("shield"))
-        .map((item) => item.name)
-        .join(" / ");
-    const initialShield = (initialCharacter?.equipment ?? []).find((item) =>
-        item.name.toLowerCase().includes("shield"),
-    )?.name;
-    const initialWeapons = (initialCharacter?.equipment ?? [])
-        .filter((item) => item.type === "Weapon")
-        .map((item) => item.name)
-        .join("\n");
-    const initialTools = initialCharacter?.proficiencies?.tools.join("\n") ?? "";
 
     return (
         <div
@@ -2211,11 +2541,19 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                         <Icon src={asset("die")} w={48.743} h={55.707} />
                     </div>
                     <p className="relative shrink-0 text-[46.422px] font-bold leading-[normal]">
-                        Character Sheet for D&amp;D
+                        Character Sheet D&amp;D
                     </p>
+                    <RulesetBadge value={ruleset} onChange={(next) => void changeRuleset(next)} />
                 </div>
 
-                <LevelingToggle value={leveling} onChange={(next) => void changeLeveling(next)} />
+                <div data-screen-only className="absolute right-[1066px] top-[3px]">
+                    <SheetToggle
+                        label="Leveling"
+                        options={LEVELING_OPTIONS}
+                        value={leveling}
+                        onChange={(next) => void changeLeveling(next)}
+                    />
+                </div>
                 {leveling === "xp" && (
                     <ExperienceField
                         total={experience}
@@ -2378,19 +2716,23 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                         </div>
                                         <EquipmentField
                                             label="Armor Type"
-                                            options={suggestions.armor}
+                                            options={armorOptions}
                                             initialValue={initialArmor}
+                                            value={armorField}
+                                            onValueChange={setArmorField}
                                             icon={<Icon src={asset("armor-type")} w={35.783} h={36} />}
                                         />
                                         <EquipmentField
                                             label="Shield"
-                                            options={suggestions.armor}
+                                            options={shieldOptions}
                                             initialValue={initialShield}
+                                            value={shieldField}
+                                            onValueChange={setShieldField}
                                             icon={<Icon src={asset("shield")} w={33.762} h={36} />}
                                         />
                                         <EquipmentBlock
                                             label="Weapons"
-                                            options={suggestions.weapons}
+                                            options={weaponTrainingOptions}
                                             height={236.473}
                                             initialValue={initialWeapons}
                                             icon={<Icon src={asset("weapons")} w={36.484} h={48.646} />}
@@ -2521,6 +2863,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             label: "Speed",
                                             exportField: undefined,
                                             automaticValue: undefined,
+                                            exportData: undefined,
                                             icon: <Icon src={asset("speed")} w={37.825} h={37.807} />,
                                             value: speed,
                                             setValue: setSpeed,
@@ -2531,6 +2874,9 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             label: "Armor class",
                                             exportField: "armor-class",
                                             automaticValue: automaticArmorClass,
+                                            // Every way the AC can be worked out,
+                                            // for the download to keep the best.
+                                            exportData: { "data-cs-ac": armorClassCandidates },
                                             icon: (
                                                 <Icon src={asset("armor-class")} w={35.347} h={37.649} />
                                             ),
@@ -2543,6 +2889,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             label: "Initiative",
                                             exportField: "initiative",
                                             automaticValue: automaticInitiative,
+                                            exportData: { "data-cs-bonus": `${initiativeBonus}` },
                                             icon: (
                                                 <Icon src={asset("initiative")} w={31.712} h={27.826} />
                                             ),
@@ -2556,6 +2903,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             key={stat.label}
                                             data-cs={stat.exportField}
                                             data-cs-auto={stat.automaticValue}
+                                            {...stat.exportData}
                                             className="relative flex w-full items-center gap-[23.409px] overflow-clip rounded-[15.698px] bg-[#f8f8f8] p-[11.773px]"
                                         >
                                             <div className="relative flex shrink-0 flex-col items-center rounded-[8.778px] border-[1.898px] border-solid border-black bg-white px-[14.63px] py-[11.704px]">
@@ -2641,7 +2989,9 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
 
                             {/* Actions & Spells casting */}
                             <div className="relative flex w-full shrink-0 items-start rounded-[22.795px] border-[4.144px] border-solid border-[#d40000] p-[12.488px]">
-                                <div className="relative flex w-full flex-col items-start justify-center overflow-clip rounded-[15.324px] bg-[#f8f8f8] p-[19.155px]">
+                                {/* No overflow clip: the Action column's search
+                                    menu has to open past the panel. */}
+                                <div className="relative flex w-full flex-col items-start justify-center rounded-[15.324px] bg-[#f8f8f8] p-[19.155px]">
                                     <div className="relative flex w-full flex-col items-start gap-[7.662px]">
                                         <div className="relative flex w-full shrink-0 items-center justify-between rounded-[19.477px] bg-[#f8f8f8] px-[38.955px] py-[19.477px]">
                                             <div className="relative h-[35px] w-[388.689px] shrink-0">
@@ -2658,7 +3008,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                             </div>
                                             <div
                                                 data-cs="skill-save-dc"
-                                                data-cs-abilities={skillSaveAbility}
+                                                data-cs-abilities={skillSave.tokens}
                                                 data-cs-auto={automaticSkillSaveDc}
                                                 className="relative flex h-[91px] w-[549px] shrink-0 items-center gap-[23.68px] overflow-clip rounded-[17px] border-[3.227px] border-solid border-black px-[23.68px]"
                                             >
@@ -2703,6 +3053,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                                                     key={index}
                                                     index={index}
                                                     initial={initialActions[index]}
+                                                    options={actionOptions}
+                                                    derive={deriveAction}
                                                 />
                                             ))}
                                         </div>

@@ -85,6 +85,12 @@ export function CharacterSheetPage() {
     const [species, setSpecies] = useState<string>();
     const [perceptionModifier, setPerceptionModifier] = useState<number | null>();
 
+    // Page 1 works its attacks, Armor Class and save DCs out from page 2's
+    // feats and magic items as well as its own fields. Undefined until page 2
+    // reports, and page 1 falls back on the character it was opened with.
+    const [featNames, setFeatNames] = useState<string>();
+    const [magicItems, setMagicItems] = useState<{ name: string; attuned: boolean }[]>();
+
     // A sheet saved on XP takes the PIN to move to milestones, even mid-edit,
     // so one stray click cannot drop the XP off a shared sheet. Asked once:
     // after that this sheet may go back and forth until it is reopened.
@@ -99,6 +105,19 @@ export function CharacterSheetPage() {
     };
     // Stable, so page 1 stays memoised across this page's re-renders.
     const confirmMilestone = useCallback(() => confirmMilestoneRef.current(), []);
+
+    // A sheet saved as 5e or 5.5e takes the PIN to change edition, since the
+    // switch reworks its attacks, AC and DCs. Asked once, as above.
+    const rulesetVerified = useRef<number>();
+    const confirmRulesetRef = useRef<() => Promise<boolean>>(async () => true);
+    confirmRulesetRef.current = async () => {
+        const saved = remote?.snapshot.fields["/page1/ruleset"] ?? remote?.snapshot.character?.ruleset;
+        if (!remote || !saved || rulesetVerified.current === session.id) return true;
+        const verified = await confirmWithPin();
+        if (verified) rulesetVerified.current = session.id;
+        return verified;
+    };
+    const confirmRulesetChange = useCallback(() => confirmRulesetRef.current(), []);
 
     const measure = useCallback(() => {
         const el = viewportRef.current;
@@ -148,7 +167,7 @@ export function CharacterSheetPage() {
                 spells,
                 title: initialCharacter?.name?.trim()
                     ? `${initialCharacter.name.trim()} — Character Sheet`
-                    : "Character Sheet for D&D",
+                    : "Character Sheet D&D",
             });
         } catch (cause) {
             console.error("Could not build the character sheet HTML", cause);
@@ -380,16 +399,21 @@ export function CharacterSheetPage() {
                 {[
                     <CharacterSheetA4
                         initialCharacter={initialCharacter}
+                        featNames={featNames}
+                        magicItems={magicItems}
                         onSpellcastingChange={setSpellcasting}
                         onSpeciesChange={setSpecies}
                         onPerceptionModifierChange={setPerceptionModifier}
                         confirmMilestone={confirmMilestone}
+                        confirmRulesetChange={confirmRulesetChange}
                     />,
                     <CharacterSheetA4Page2
                         initialCharacter={initialCharacter}
                         species={species}
                         perceptionModifier={perceptionModifier}
                         onFeatsChange={setFeats}
+                        onFeatNamesChange={setFeatNames}
+                        onMagicItemsChange={setMagicItems}
                     />,
                     <CharacterSheetA4Page3
                         spellcasting={spellcastingWithFeats}

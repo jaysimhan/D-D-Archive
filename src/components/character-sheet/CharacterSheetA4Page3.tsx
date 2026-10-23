@@ -22,8 +22,19 @@ import {
     SHEET_HEIGHT,
     SHEET_WIDTH,
     SuggestInput,
+    appendList,
+    splitList,
     type SpellcastingSummary,
 } from "./CharacterSheetA4";
+import {
+    ABILITIES,
+    ABILITY_NAMES,
+    abilityToken,
+    formatModifier,
+    normalizeAbilityKey,
+    spellBonusFor,
+    type Ability,
+} from "../../utils/sheet-combat";
 import { PreparedMarker, SpellMarker } from "./markers";
 import { useDismissOnNextPointer, useLongPress } from "./entry-notes";
 import { useEditableAutoValue } from "./use-editable-auto-value";
@@ -253,16 +264,24 @@ function LabelledTile({
     width,
     label,
     fieldClassName,
-    autoValue = "",
+    field,
     options,
+    suggestOnFocus = false,
+    renderOption,
+    matchText,
 }: {
     width: number;
     label: string;
     fieldClassName: string;
-    autoValue?: string;
+    /** The tile's value and setter, from useEditableAutoValue in the header row. */
+    field: readonly [string, (value: string) => void];
     options?: string[];
+    /** Open the menu as soon as the field is focused, as a dropdown does. */
+    suggestOnFocus?: boolean;
+    renderOption?: (option: string) => ReactNode;
+    matchText?: (option: string) => string;
 }) {
-    const [value, setValue] = useEditableAutoValue(label, autoValue);
+    const [value, setValue] = field;
     const fieldClass = `font-medium not-italic leading-[normal] text-black ${fieldClassName}`;
 
     return (
@@ -287,7 +306,9 @@ function LabelledTile({
                             value={value}
                             onValueChange={setValue}
                             multiple
-                            suggestWhenTyped
+                            suggestWhenTyped={!suggestOnFocus}
+                            renderOption={renderOption}
+                            matchText={matchText}
                             wrapperClassName="relative block h-full w-full"
                             className={`h-full ${fieldClass}`}
                         />
@@ -317,7 +338,7 @@ function NumericTile({
     autoValue?: string;
     /** Names the tile for the HTML download, which keeps deriving it. */
     exportField?: string;
-    /** The casting abilities behind it, "INT / WIS", appended as page 1 writes them. */
+    /** The casting abilities behind it, "INT+1 / WIS", each with its item bonus. */
     abilities?: string;
 }) {
     const [value, setValue] = useEditableAutoValue(label, autoValue);
@@ -347,10 +368,40 @@ function NumericTile({
     );
 }
 
+const ABILITY_OPTIONS: string[] = [...ABILITIES];
+
+/** "INT  Intelligence" in the menu; the abbreviation is what gets picked. */
+function renderAbilityOption(option: string) {
+    return (
+        <span className="flex items-baseline gap-[16px]">
+            <span className="font-semibold">{option}</span>
+            <span className="text-black/55">{ABILITY_NAMES[option as Ability]}</span>
+        </span>
+    );
+}
+
+/** Typing "wis" or "wisdom" both find WIS. */
+function abilityMatchText(option: string) {
+    return `${option} ${ABILITY_NAMES[option as Ability] ?? ""}`;
+}
+
+/** The six abilities a blank names, in its order: "INT / Wisdom" → INT, WIS. */
+function abilitiesNamed(value: string): Ability[] {
+    const out: Ability[] = [];
+    for (const entry of splitList(value)) {
+        const ability = normalizeAbilityKey(entry) as Ability | undefined;
+        if (ability && ABILITY_OPTIONS.includes(ability) && !out.includes(ability)) out.push(ability);
+    }
+    return out;
+}
+
 /**
  * The four blue tiles that top both spellbook pages, filled in from what pages
  * 1 and 2 hold: every source of the character's magic, appended, and the
  * ability and numbers those sources set.
+ *
+ * Save DC and attack bonus follow the Spell Casting Ability tile rather than
+ * page 1's answer alone, so picking another ability here reworks both.
  */
 function SpellHeaderRow({ spellcasting }: { spellcasting: SpellcastingSummary }) {
     const suggestions = useSheetSuggestions();
@@ -366,32 +417,53 @@ function SpellHeaderRow({ spellcasting }: { spellcasting: SpellcastingSummary })
         [suggestions],
     );
 
+    const sources = useEditableAutoValue("Spell Casting Class,Sub-class, Race, Feat", spellcasting.sources);
+    const ability = useEditableAutoValue("Spell Casting Ability", spellcasting.ability);
+
+    const { modifiers, proficiencyBonus, bonuses } = spellcasting;
+    const abilities = abilitiesNamed(ability[0]);
+    const numbers = abilities.flatMap((key) => {
+        const modifier = modifiers[key];
+        if (proficiencyBonus === null || typeof modifier !== "number") return [];
+        return [{
+            dc: `${8 + proficiencyBonus + modifier + spellBonusFor(bonuses.dc, key)}`,
+            attack: formatModifier(proficiencyBonus + modifier + spellBonusFor(bonuses.attack, key)),
+        }];
+    });
+    // How the download keeps working these out: "INT+2 / WIS", bonus and all.
+    const tokens = (kind: "dc" | "attack") =>
+        abilities.map((key) => abilityToken(key, spellBonusFor(bonuses[kind], key))).join(" / ");
+
     return (
         <div className="relative flex h-[217px] w-full shrink-0 items-start justify-center gap-[20.831px]">
             <LabelledTile
                 width={821}
                 label="Spell Casting Class,Sub-class, Race, Feat"
                 fieldClassName="text-[44px]"
-                autoValue={spellcasting.sources}
+                field={sources}
                 options={sourceOptions}
             />
             <LabelledTile
                 width={493}
                 label="Spell Casting Ability"
                 fieldClassName="text-[56px]"
-                autoValue={spellcasting.ability}
+                field={ability}
+                options={ABILITY_OPTIONS}
+                suggestOnFocus
+                renderOption={renderAbilityOption}
+                matchText={abilityMatchText}
             />
             <NumericTile
                 label="Spell Save DC"
-                autoValue={spellcasting.saveDc}
+                autoValue={appendList(numbers.map((entry) => entry.dc))}
                 exportField="spell-save-dc"
-                abilities={spellcasting.ability}
+                abilities={tokens("dc")}
             />
             <NumericTile
                 label="Spell Attack Bonus"
-                autoValue={spellcasting.attackBonus}
+                autoValue={appendList(numbers.map((entry) => entry.attack))}
                 exportField="spell-attack-bonus"
-                abilities={spellcasting.ability}
+                abilities={tokens("attack")}
             />
         </div>
     );

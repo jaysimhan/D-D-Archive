@@ -2,12 +2,15 @@ import { ChevronDown, ChevronUp, User } from "lucide-react";
 import { useState } from "react";
 import { Background } from "../types/dnd-types";
 import { sourceLabel, sourceBadgeColor } from "../utils/source-label";
+import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
 
 interface BackgroundCardProps {
     background: Background;
+    /** The background's own page, when shown in the Library. */
+    href?: string;
 }
 
-export function BackgroundCard({ background }: BackgroundCardProps) {
+export function BackgroundCard({ background, href }: BackgroundCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
@@ -16,7 +19,7 @@ export function BackgroundCard({ background }: BackgroundCardProps) {
                 <div className="flex-1">
                     <h3 className="text-white mb-1 font-medium font-serif flex items-center gap-2">
                         <User className="w-5 h-5 text-brand-400" />
-                        {background.name}
+                        <CardTitle href={href}>{background.name}</CardTitle>
                     </h3>
                     <p className="text-sm text-gray-400">
                         Skills: {background.skillProficiencies?.join(", ") || "None"}
@@ -110,6 +113,7 @@ export function BackgroundCard({ background }: BackgroundCardProps) {
                     </div>
                 </div>
             )}
+            <ViewEntryLink href={href} />
         </div>
     );
 }
