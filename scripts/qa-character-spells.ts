@@ -14,16 +14,18 @@ import {
 import type { CharacterData } from "../src/types/character-creator";
 import type { Background, Class, Feat, Item, Race, Spell, Subclass } from "../src/types/dnd-types";
 import { finalAbilityScores, pointBuyCost } from "../src/utils/ability-scores";
+import { editionQuery } from "../src/lib/ruleset-query";
 import {
-  ASI_LEVELS,
+  asiLevelsFor,
   blockingPrerequisites,
+  earnedFeats,
   featAbilityBonuses,
-  featBudget,
   flexibleAbilityOptions,
   hasUnspentAbilityPoints,
+  improvementSlots,
   pruneFeatAbilityChoices,
+  speciesGrantsOriginFeat,
   toggleFeatAbilityPoint,
-  trimFeatsToBudget,
   unmetPrerequisites,
 } from "../src/utils/feats";
 import { calculateArmorClass } from "../src/utils/armor-class";
@@ -95,6 +97,29 @@ const [spells2014, spells2024] = await Promise.all([
   rulesetCount("srd-2014"),
   rulesetCount("srd-2024"),
 ]);
+
+// Exercise the same edition resolver and eligibility conditions used by the
+// creator. Hex must survive availability filtering in both editions and match
+// Fey Touched's level and school restriction.
+const creatorFeyTouched = async (edition: "2014" | "2024") => client.fetch<{
+  spells: Spell[];
+  feats: Feat[];
+}>(editionQuery(`{
+  "spells": *[_type == "spell"]{..., "id":slug.current, "school":coalesce(school->name, legacySchoolName, "Unknown")},
+  "feats": *[_type == "feat" && name == "Fey Touched"]{...,
+    "id":slug.current,
+    grants[]{..., "schoolRestrictions":coalesce(schoolRestrictionNames, schoolRestrictions[]->name, [])}
+  }
+}`, edition), { edition, rulesetKey: `srd-${edition}` });
+for (const edition of ["2014", "2024"] as const) {
+  const resolved = await creatorFeyTouched(edition);
+  const hex = resolved.spells.find((spell) => spell.name === "Hex");
+  const choice = resolved.feats.flatMap((feat) => feat.grants ?? [])
+    .find((grant) => grant.grantType === "Spell Slot");
+  assert.ok(hex, `Hex is hidden from the ${edition} creator spell query`);
+  assert.equal(hex.level, choice?.slotLevel ?? 1, `Hex has the wrong level for ${edition} Fey Touched`);
+  assert.ok(choice?.schoolRestrictions?.includes(hex.school), `Hex's school is rejected by ${edition} Fey Touched`);
+}
 
 assert.equal(new Set(spells.map((spell) => spell.id)).size, spells.length, "duplicate spell slugs");
 assert.equal(new Set(spells.map((spell) => spell.name.toLowerCase())).size, spells.length, "duplicate spell names");
@@ -333,7 +358,6 @@ assert.equal(classPointAmount("monk", 1), 0, "level-1 Monk incorrectly has Focus
 assert.equal(classPointAmount("monk", 3), 3, "level-3 Monk point pool is wrong");
 
 assert.equal(metamagicAdept.source, "Official");
-assert.equal(metamagicAdept.edition, "2014");
 assert.equal(featResourceAmount([metamagicAdept], "Sorcery Points"), 2, "Metamagic Adept did not grant 2 Sorcery Points");
 assert.equal(classPointAmount("sorcerer", 3) + featResourceAmount([metamagicAdept], "Sorcery Points"), 5, "Sorcerer 3 + Metamagic Adept sheet pool is not 5");
 assert.ok(metamagicAdept.grants?.some((grant) => grant.resetCondition === "Long Rest"), "Metamagic Adept recovery missing");
@@ -356,17 +380,19 @@ assert.equal(metamagicChoiceLimit("sorcerer", 3, []), 2, "Sorcerer without the f
 
 // ===== Feats: slots, prerequisites and half-feat ability increases =====
 
-// One unified pool: a feat is a feat, so level 1 grants one and Humans two.
-// The creator stops at level 3, so no Ability Score Improvement feat is reachable.
+// Feat sources stay separate: backgrounds grant their listed feat, a 2024
+// Human gets a species Origin feat, and class improvements begin at level 4.
 const human = races.find((item) => item.name === "Human");
 assert.ok(human, "Human species missing");
-assert.equal(featBudget(1, undefined), 1, "a level-1 character should get one feat");
-assert.equal(featBudget(1, human), 2, "a level-1 Human should get two feats");
-assert.equal(featBudget(3, undefined), 1, "the creator's level cap should still grant one feat");
-assert.equal(featBudget(3, human), 2, "a level-3 Human should still get two feats");
-assert.equal(featBudget(4, undefined), 2, "level 4 should add an Ability Score Improvement feat");
-assert.equal(featBudget(20, human), 7, "a level-20 Human should reach seven feats");
-assert.deepEqual(ASI_LEVELS, [4, 8, 12, 16, 19]);
+assert.deepEqual(asiLevelsFor(undefined, 20), [4, 8, 12, 16, 19]);
+assert.deepEqual(asiLevelsFor("fighter", 20), [4, 6, 8, 12, 14, 16, 19]);
+assert.equal(speciesGrantsOriginFeat("2024", human), true);
+assert.equal(speciesGrantsOriginFeat("2014", human), false);
+const qaClass = { id: "wizard", name: "Wizard" } as Class;
+const qaSlots = (level: number) => improvementSlots({ class: qaClass, level, ruleset: "2024" } as CharacterData);
+assert.equal(qaSlots(3).length, 0, "a level-3 character received an improvement slot");
+assert.equal(qaSlots(4).length, 1, "level 4 did not grant an improvement slot");
+assert.equal(qaSlots(20).length, 5, "a level-20 standard class should have five improvement slots");
 
 // Half feats have to reach an ability score, which is what was broken: the pick
 // lived in the step's own state and never landed on the character.
@@ -444,30 +470,29 @@ assert.equal(
 
 // A feat is never taken twice.
 assert.ok(
-  blockingPrerequisites(feyTouchedFeat, { level: 4, feats: [{ ...feyTouchedFeat, id: "other-copy" }] })
+  blockingPrerequisites(feyTouchedFeat, {
+    level: 4,
+    takenAt: 4,
+    feats: [{ ...feyTouchedFeat, id: "other-copy", takenAt: "species" }],
+  })
     .some((reason) => reason.kind === "duplicate"),
   "the same feat could be taken twice",
 );
 
-// Levelling down, or moving off Human, hands the slots back rather than leaving
-// stale feats — and their ability points — on the character.
-const threeFeats = ["a", "b", "c"].map((suffix) => ({ ...feyTouchedFeat, id: `feat-${suffix}` }));
-assert.equal(trimFeatsToBudget(threeFeats, 20, human).length, 3, "a level-20 Human should keep three feats");
-assert.deepEqual(
-  trimFeatsToBudget(threeFeats, 1, undefined).map((item) => item.id),
-  ["feat-a"],
-  "levelling down to 1 should leave a single feat",
-);
-assert.deepEqual(
-  trimFeatsToBudget(threeFeats, 1, human).map((item) => item.id),
-  ["feat-a", "feat-b"],
-  "a level-1 Human should keep two feats",
-);
-assert.deepEqual(
-  trimFeatsToBudget(threeFeats, 3, human).map((item) => item.id),
-  ["feat-a", "feat-b"],
-  "the creator's level cap should keep a Human at two feats",
-);
+// Levelling down, or moving off Human, removes feats whose named source slot
+// no longer exists.
+const threeFeats = [
+  { ...feyTouchedFeat, id: "feat-a", takenAt: "species" as const },
+  { ...feyTouchedFeat, id: "feat-b", takenAt: 4 as const },
+  { ...feyTouchedFeat, id: "feat-c", takenAt: 8 as const },
+];
+const earned = (level: number, race: Race | undefined, ruleset: "2014" | "2024" = "2024") => earnedFeats({
+  class: qaClass, level, ruleset, race, feats: threeFeats,
+} as CharacterData);
+assert.deepEqual(earned(20, human).map((item) => item.id), ["feat-a", "feat-b", "feat-c"]);
+assert.deepEqual(earned(1, human).map((item) => item.id), ["feat-a"]);
+assert.deepEqual(earned(1, undefined).map((item) => item.id), []);
+assert.deepEqual(earned(20, human, "2014").map((item) => item.id), ["feat-b", "feat-c"]);
 
 // Exercise the actual persistence boundary used by /creator and
 // /character-sheet, including a malformed school value saved by the old query.
@@ -513,9 +538,9 @@ console.log(JSON.stringify({
   metamagicAdept: { featChoices: 2, sorcerer3Choices: 4, sorcerer3Points: 5, reset: "Long Rest" },
   metamagicInitiate: { featChoices: 2, sorcerer3Choices: 4, sorcerer3Points: 5, pointsFrom: "feat text" },
   featSlots: {
-    level1: featBudget(1, undefined),
-    level1Human: featBudget(1, human),
-    level3Human: featBudget(3, human),
+    level3Improvements: qaSlots(3).length,
+    level4Improvements: qaSlots(4).length,
+    humanSpeciesOriginFeat: speciesGrantsOriginFeat("2024", human),
   },
   halfFeats: {
     example: feyTouchedFeat.name,
