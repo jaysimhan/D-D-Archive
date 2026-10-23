@@ -15,7 +15,8 @@ export function HitPointsStep({
     racialBonusAllocation,
     hpRolls = [],
     onHpRollsChange,
-    onMaxHpChange
+    onMaxHpChange,
+    levelDice,
 }: {
     classData?: Class;
     finalConScore?: number;
@@ -28,6 +29,12 @@ export function HitPointsStep({
     hpRolls?: number[];
     onHpRollsChange: (rolls: number[]) => void;
     onMaxHpChange: (hp: number) => void;
+    /**
+     * Each character level's hit die and the class level it was, first class
+     * first. Passed only for a multiclassed character, who rolls each class's
+     * own die; left out, every level uses `classData`'s die.
+     */
+    levelDice?: { die: number; label: string }[];
 }) {
     // Helper: Calculate Final CON Score
     const getFinalCon = (): number => {
@@ -59,13 +66,16 @@ export function HitPointsStep({
 
     // Constants
     const hitDie = classData?.hitDie || 8;
-    const averageDie = Math.ceil((hitDie + 1) / 2);
+    const dieAt = (index: number) => levelDice?.[index]?.die ?? hitDie;
+    const averageAt = (index: number) => Math.ceil((dieAt(index) + 1) / 2);
+    const multiclassed = !!levelDice;
 
     // Calculate Bonuses
     // Hill Dwarf: Dwarven Toughness (+1 HP per level)
-    const isHillDwarf = race?.name?.toLowerCase().includes("dwarf") &&
+    // and the 2024 Dwarf, whose Dwarven Toughness works the same way.
+    const isHillDwarf = (race?.name?.toLowerCase().includes("dwarf") &&
         (subrace?.name?.toLowerCase()?.includes("hill") ||
-            race?.name?.toLowerCase().includes("hill dwarf"));
+            race?.name?.toLowerCase().includes("hill dwarf"))) || race?.id === "dwarf";
 
     // Tough Feat: +2 HP per level
     const hasToughFeat = feats?.some(f => f.name === "Tough");
@@ -78,11 +88,8 @@ export function HitPointsStep({
             const newRolls = [...(hpRolls || [])];
             // Fill missing levels
             for (let i = newRolls.length; i < level; i++) {
-                if (i === 0) {
-                    newRolls[i] = hitDie; // Level 1 is max
-                } else {
-                    newRolls[i] = averageDie; // Default to average for others
-                }
+                // The first level is taken at its maximum, the rest at the average.
+                newRolls[i] = i === 0 ? dieAt(0) : averageAt(i);
             }
             onHpRollsChange(newRolls);
         }
@@ -91,8 +98,10 @@ export function HitPointsStep({
     // Calculate Total
     const currentRolls = hpRolls && hpRolls.length >= level ? hpRolls.slice(0, level) : [];
     // If rolls not initialized yet, use temp placeholders for calculation to avoid flicker
-    const displayRolls = currentRolls.length === level ? currentRolls :
-        Array.from({ length: level }, (_, i) => i === 0 ? hitDie : averageDie);
+    // A roll saved for a bigger die (before the class order changed) is held to this level's.
+    const displayRolls = (currentRolls.length === level ? currentRolls :
+        Array.from({ length: level }, (_, i) => i === 0 ? dieAt(0) : averageAt(i)))
+        .map((roll, i) => i === 0 ? dieAt(0) : Math.min(roll, dieAt(i)));
 
     const totalHp = displayRolls.reduce((sum, roll) => sum + roll + conMod + otherBonusPerLevel, 0);
 
@@ -105,7 +114,7 @@ export function HitPointsStep({
         const newRolls = [...displayRolls];
         // Clamp value between 1 and hitDie (technically valid range, though could be house ruled)
         // I won't strict clamp, but good UX implies meaningful bounds.
-        newRolls[lvlIndex] = Math.max(1, Math.min(hitDie, newValue));
+        newRolls[lvlIndex] = Math.max(1, Math.min(dieAt(lvlIndex), newValue));
         onHpRollsChange(newRolls);
     };
 
@@ -123,7 +132,8 @@ export function HitPointsStep({
                         <thead>
                             <tr className="border-b border-zinc-700 text-gray-400 text-sm uppercase tracking-wide">
                                 <th className="pb-3 text-center w-16">Lvl</th>
-                                <th className="pb-3 text-center">Brut HP (d{hitDie})</th>
+                                {multiclassed && <th className="pb-3 text-center">Class</th>}
+                                <th className="pb-3 text-center">{multiclassed ? "Hit Die Roll" : `Brut HP (d${hitDie})`}</th>
                                 <th className="pb-3 text-center w-24">CON Bonus</th>
                                 {otherBonusPerLevel > 0 && <th className="pb-3 text-center w-24">Other</th>}
                                 <th className="pb-3 text-center w-24 font-bold text-gray-200">Final</th>
@@ -131,13 +141,19 @@ export function HitPointsStep({
                         </thead>
                         <tbody className="divide-y divide-zinc-800">
                             {Array.from({ length: level }).map((_, i) => {
-                                const roll = displayRolls[i] || (i === 0 ? hitDie : averageDie);
+                                const roll = displayRolls[i] || (i === 0 ? dieAt(0) : averageAt(i));
+                                const die = dieAt(i);
                                 const lvl = i + 1;
                                 const isFirstLevel = i === 0;
 
                                 return (
                                     <tr key={lvl} className="hover:bg-zinc-800/50">
                                         <td className="py-4 text-center font-medium text-gray-300">{lvl}</td>
+                                        {multiclassed && (
+                                            <td className="py-4 text-center text-sm text-gray-400">
+                                                {levelDice?.[i]?.label} <span className="text-gray-600">(d{die})</span>
+                                            </td>
+                                        )}
                                         <td className="py-4 text-center">
                                             {isFirstLevel ? (
                                                 <span className="font-bold text-gray-100 bg-zinc-800 px-3 py-1.5 rounded">{roll}</span>
@@ -154,7 +170,7 @@ export function HitPointsStep({
                                                     <button
                                                         onClick={() => handleRollChange(i, roll + 1)}
                                                         className="w-8 h-8 flex items-center justify-center bg-zinc-700 rounded hover:bg-zinc-600 text-gray-300 font-bold disabled:opacity-50"
-                                                        disabled={roll >= hitDie}
+                                                        disabled={roll >= die}
                                                     >
                                                         +
                                                     </button>
@@ -178,7 +194,7 @@ export function HitPointsStep({
                         </tbody>
                         <tfoot className="border-t-2 border-zinc-700 bg-zinc-800/50">
                             <tr>
-                                <td colSpan={otherBonusPerLevel > 0 ? 3 : 2} className="py-4 text-right pr-4 font-semibold text-gray-400 uppercase text-sm">
+                                <td colSpan={(otherBonusPerLevel > 0 ? 3 : 2) + (multiclassed ? 1 : 0)} className="py-4 text-right pr-4 font-semibold text-gray-400 uppercase text-sm">
                                     Total HP
                                 </td>
                                 <td className="py-4 text-center">
@@ -194,7 +210,7 @@ export function HitPointsStep({
 
                 <div className="bg-brand-900/30 p-4 rounded-lg text-sm text-brand-300 border border-brand-800/50">
                     <p>
-                        <strong>Note:</strong> Level 1 HP is maximized. For other levels, the average is selected by default, but you can adjust it if you rolled for HP.
+                        <strong>Note:</strong> Level 1 HP is maximized{multiclassed ? " (with your first class's hit die)" : ""}. For other levels, the average is selected by default, but you can adjust it if you rolled for HP.
                         The Constitution modifier and any racial/feat bonuses are automatically applied to every level.
                     </p>
                     <p className="mt-1">

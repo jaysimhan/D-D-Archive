@@ -1,4 +1,5 @@
 import { useSheetState } from "./sheet-state";
+import { classLevels } from "../../utils/multiclass";
 import {
     memo,
     useCallback,
@@ -1832,9 +1833,14 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     confirmRulesetChange?: () => Promise<boolean>;
 }) {
     const [characterName, setCharacterName] = useSheetState("characterName", initialCharacter?.name ?? "");
-    const [characterClass, setCharacterClass] = useSheetState("characterClass", initialCharacter?.class?.name ?? "");
-    const [characterSubclass, setCharacterSubclass] = useSheetState("characterSubclass", 
-        initialCharacter?.subclass?.name ?? "",
+    // A multiclassed character lists every class, first class first, the way
+    // the Class blank takes them by hand ("Fighter / Wizard").
+    const creatorClasses = initialCharacter ? classLevels(initialCharacter) : [];
+    const [characterClass, setCharacterClass] = useSheetState("characterClass",
+        creatorClasses.map((entry) => entry.class.name).join(` ${LIST_SEPARATOR} `),
+    );
+    const [characterSubclass, setCharacterSubclass] = useSheetState("characterSubclass",
+        creatorClasses.flatMap((entry) => entry.subclass ? [entry.subclass.name] : []).join(` ${LIST_SEPARATOR} `),
     );
     const [species, setSpecies] = useSheetState("species", initialCharacter?.race?.name ?? "");
     const [background, setBackground] = useSheetState("background", initialCharacter?.background?.name ?? "");
@@ -1888,10 +1894,19 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         );
         return perception?.expertise ? 2 : perception?.proficient ? 1 : 0;
     });
+    // The Hit Dice blank splits a multiclassed level evenly until told
+    // otherwise; a character from the creator tells it the real split.
     const [hitDieOverride, setHitDieOverride] = useSheetState<{
         source: string;
         value: string;
-    } | null>("hitDieOverride", null);
+    } | null>("hitDieOverride", () => {
+        if (creatorClasses.length < 2 || !initialCharacter) return null;
+        const even = splitLevels(initialCharacter.level, creatorClasses.length);
+        const dice = (levels: number[]) => creatorClasses
+            .map((entry, index) => `${levels[index]}d${entry.class.hitDie}`)
+            .join(" + ");
+        return { source: dice(even), value: dice(creatorClasses.map((entry) => entry.level)) };
+    });
     const [pointOverride, setPointOverride] = useSheetState<{
         source: string;
         value: string;
@@ -2523,10 +2538,14 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
             (skill.expertise ? 2 : skill.proficient ? 1 : 0) as ProficiencyLevel,
         ]),
     );
+    // The boxes start from the final scores — species, half feats and Ability
+    // Score Improvements included — matching the modifiers worked out above.
+    const startingScores = useMemo(
+        () => (initialCharacter ? finalAbilityScores(initialCharacter) : undefined),
+        [initialCharacter],
+    );
     const initialAbilityScore = (ability: string) =>
-        initialCharacter?.abilityScores[
-            ability.toUpperCase() as keyof CharacterData["abilityScores"]
-        ];
+        startingScores?.[ability.toUpperCase() as keyof CharacterData["abilityScores"]];
 
     return (
         <div

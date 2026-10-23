@@ -1,15 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
-import { Minus, Plus } from "lucide-react";
+import { Dices, Minus, Plus, RotateCcw } from "lucide-react";
 import { AbilityScores, Race, Feat, Subrace, Background, CharacterRuleset } from "../../types/dnd-types";
-import { POINT_BUY_BUDGET, pointBuyCost } from "../../utils/ability-scores";
 import {
-    featAbilityBonuses,
-    flexibleAbilityAmount,
-    flexibleAbilityOptions,
-    halfFeats,
-    toggleFeatAbilityPoint,
-    unspentAbilityPoints,
-} from "../../utils/feats";
+    ABILITY_SCORE_METHODS,
+    AbilityScoreMethod,
+    MANUAL_MAX,
+    MANUAL_MIN,
+    POINT_BUY_BUDGET,
+    pointBuyCost,
+    ScoreAssignment,
+    scoresFromAssignment,
+    STANDARD_ARRAY,
+} from "../../utils/ability-scores";
+import { onStatRollResult, requestStatRoll } from "../../lib/stat-roll-bridge";
+import { featAbilityBonuses } from "../../utils/feats";
 
 type AbilityKey = keyof AbilityScores;
 
@@ -32,6 +36,14 @@ interface RacialBonusAllocation {
     [key: string]: number; // e.g. { STR: 2, DEX: 1 } for +2/+1 distribution
 }
 
+/** Everything about how the base scores were generated, changed together. */
+export interface ScoreGeneration {
+    abilityScoreMethod?: AbilityScoreMethod;
+    rolledAbilityScores?: number[];
+    abilityScoreAssignment?: ScoreAssignment;
+    abilityScores?: AbilityScores;
+}
+
 // Ability Score Step with redesigned layout
 export function AbilityScoreStep({
     scores,
@@ -44,7 +56,10 @@ export function AbilityScoreStep({
     racialBonusAllocation,
     onRacialBonusChange,
     featAbilityChoices,
-    onFeatAbilityChoicesChange,
+    method = "pointBuy",
+    rolledScores,
+    assignment = {},
+    onGenerationChange,
 }: {
     scores: AbilityScores;
     ruleset?: CharacterRuleset;
@@ -55,10 +70,74 @@ export function AbilityScoreStep({
     onScoresChange: (scores: AbilityScores) => void;
     racialBonusAllocation?: RacialBonusAllocation;
     onRacialBonusChange?: (allocation: RacialBonusAllocation) => void;
+    /** Placed in the Feats step; only read here so the final score counts them. */
     featAbilityChoices?: Record<string, Partial<AbilityScores>>;
-    onFeatAbilityChoicesChange?: (choices: Record<string, Partial<AbilityScores>>) => void;
+    method?: AbilityScoreMethod;
+    rolledScores?: number[];
+    assignment?: ScoreAssignment;
+    onGenerationChange: (patch: ScoreGeneration) => void;
 }) {
     const abilities: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+
+    // --- Score generation ---
+    // Standard array and rolled scores both hand out a fixed pool of six
+    // numbers, one per ability; the pool is all that differs between them.
+    const pool = method === "standard" ? STANDARD_ARRAY : method === "rolled" ? rolledScores ?? [] : [];
+    const usesPool = method === "standard" || method === "rolled";
+
+    // Rolled totals arrive from the dice roller. Each ability keeps its slot in
+    // the array, so rerolling one line in the roller only changes that score.
+    useEffect(() => {
+        if (method !== "rolled") return;
+        return onStatRollResult((totals) => onGenerationChange({
+            rolledAbilityScores: totals,
+            abilityScores: scoresFromAssignment(totals, assignment),
+        }));
+    }, [method, assignment, onGenerationChange]);
+
+    const changeMethod = (next: AbilityScoreMethod) => {
+        if (next === method) return;
+        if (next === "pointBuy") {
+            onGenerationChange({
+                abilityScoreMethod: next,
+                abilityScoreAssignment: undefined,
+                abilityScores: { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 },
+            });
+        } else if (next === "manual") {
+            const clamped = { ...scores };
+            for (const ability of abilities) {
+                clamped[ability] = Math.max(MANUAL_MIN, Math.min(MANUAL_MAX, clamped[ability]));
+            }
+            onGenerationChange({ abilityScoreMethod: next, abilityScoreAssignment: undefined, abilityScores: clamped });
+        } else {
+            const nextPool = next === "standard" ? STANDARD_ARRAY : rolledScores ?? [];
+            onGenerationChange({
+                abilityScoreMethod: next,
+                abilityScoreAssignment: {},
+                abilityScores: scoresFromAssignment(nextPool, {}),
+            });
+            if (next === "rolled") requestStatRoll({ roll: false });
+        }
+    };
+
+    /** Gives an ability a pool entry; the ability holding it takes this one's old entry. */
+    const assignFromPool = (ability: AbilityKey, index: number | undefined) => {
+        const next: ScoreAssignment = { ...assignment };
+        const previous = next[ability];
+        const holder = abilities.find((other) => other !== ability && next[other] === index);
+        if (index === undefined) delete next[ability];
+        else next[ability] = index;
+        if (holder) {
+            if (previous === undefined) delete next[holder];
+            else next[holder] = previous;
+        }
+        onGenerationChange({ abilityScoreAssignment: next, abilityScores: scoresFromAssignment(pool, next) });
+    };
+
+    const setManualScore = (ability: AbilityKey, value: number) => {
+        if (Number.isNaN(value)) return;
+        onScoresChange({ ...scores, [ability]: Math.max(MANUAL_MIN, Math.min(MANUAL_MAX, Math.round(value))) });
+    };
 
     // Check if race uses flexible ability scores
     // Exception: Human (Standard) should be fixed +1 all, so we disable flexibility for them
@@ -124,15 +203,8 @@ export function AbilityScoreStep({
         onRacialBonusChange?.(alloc);
     };
 
-    // --- Feat Logic State ---
-    // Held on the character rather than in this step: the picks have to outlive
-    // navigating away, and the sheet reads the same field for its modifiers.
-    const flexibleFeats = useMemo(() => halfFeats(feats ?? []), [feats]);
+    // Feat increases are placed in the Feats step; they still count here.
     const featAllocations = featAbilityChoices ?? {};
-    const unplacedPoints = useMemo(
-        () => flexibleFeats.reduce((total, feat) => total + unspentAbilityPoints(feat, featAllocations), 0),
-        [flexibleFeats, featAllocations],
-    );
 
 
 
@@ -185,11 +257,6 @@ export function AbilityScoreStep({
         updateParent(newAssignments);
     };
 
-    // Handle Feat Toggle
-    const handleFeatToggle = (ability: AbilityKey, feat: Feat) => {
-        onFeatAbilityChoicesChange?.(toggleFeatAbilityPoint(feat, ability, featAllocations));
-    };
-
     // Handle score increment/decrement
     const adjustScore = (ability: AbilityKey, delta: number) => {
         const currentScore = scores[ability];
@@ -205,10 +272,62 @@ export function AbilityScoreStep({
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-6">
                 <h2 className="text-3xl font-bold text-white mb-1 font-serif">Ability Scores</h2>
-                <p className="text-gray-400">Assign scores with the standard 27-point buy (8–15 before bonuses).</p>
-                <p className="mt-2 text-sm font-semibold text-brand-300">
-                    {POINT_BUY_BUDGET - pointBuyCost(scores)} points remaining
-                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+                    <label htmlFor="ability-method" className="text-sm font-medium text-gray-300">Method</label>
+                    <select
+                        id="ability-method"
+                        value={method}
+                        onChange={(event) => changeMethod(event.target.value as AbilityScoreMethod)}
+                        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    >
+                        {ABILITY_SCORE_METHODS.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                    </select>
+                    <p className="text-sm text-gray-400">
+                        {ABILITY_SCORE_METHODS.find((option) => option.value === method)?.description}
+                    </p>
+                </div>
+                {method === "pointBuy" && (
+                    <p className="mt-2 text-sm font-semibold text-brand-300">
+                        {POINT_BUY_BUDGET - pointBuyCost(scores)} points remaining
+                    </p>
+                )}
+                {usesPool && (
+                    <p className="mt-2 text-sm font-semibold text-brand-300">
+                        {abilities.filter((ability) => pool[assignment[ability] ?? -1] !== undefined).length} of 6 assigned
+                    </p>
+                )}
+                {method === "rolled" && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                        {rolledScores?.length ? (
+                            <>
+                                <span className="text-gray-400">Rolled:</span>
+                                {rolledScores.map((total, index) => (
+                                    <span key={index} className="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-white font-semibold">{total}</span>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => requestStatRoll({ roll: true })}
+                                    className="ml-1 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-700 text-brand-300 hover:bg-brand-950 transition-colors"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5" /> Reroll
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <span className="text-gray-400">Roll the stat array in the dice roller, then assign the totals below.</span>
+                                <button
+                                    type="button"
+                                    onClick={() => requestStatRoll({ roll: false })}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-700 text-brand-300 hover:bg-brand-950 transition-colors"
+                                >
+                                    <Dices className="w-3.5 h-3.5" /> Open dice roller
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
                 {isFlexible && (
                     <div className="mt-2 text-sm text-brand-300 bg-brand-950/50 p-3 rounded-md border border-brand-800">
                         <p className="font-bold">🎲 Flexible Race Rules:</p>
@@ -222,11 +341,10 @@ export function AbilityScoreStep({
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center mb-2 px-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
+            <div className="grid grid-cols-[150px_1fr_140px_120px] gap-2 items-center mb-2 px-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
                 <div></div>
                 <div className="text-center">Base Score</div>
                 <div className="text-center">{ruleset === "2024" ? "Background Bonus" : "Racial Bonus"}</div>
-                <div className="text-center">Feat Bonus</div>
                 <div className="text-center">Final Score</div>
             </div>
 
@@ -241,14 +359,50 @@ export function AbilityScoreStep({
                     return (
                         <div
                             key={ability}
-                            className="grid grid-cols-[150px_1fr_140px_100px_120px] gap-2 items-center py-4 px-4 bg-zinc-900/60 border border-zinc-800 rounded-xl hover:border-brand-800 hover:shadow-sm transition-all"
+                            className="grid grid-cols-[150px_1fr_140px_120px] gap-2 items-center py-4 px-4 bg-zinc-900/60 border border-zinc-800 rounded-xl hover:border-brand-800 hover:shadow-sm transition-all"
                         >
                             {/* Ability Name */}
                             <div className="font-bold text-gray-200 text-lg font-serif">
                                 {ABILITY_NAMES[ability]}
                             </div>
 
-                            {/* Base Score with +/- buttons */}
+                            {/* Base Score: a pool dropdown, a typed number, or point-buy steppers */}
+                            {usesPool ? (
+                                <div className="flex items-center justify-center">
+                                    <select
+                                        aria-label={`${ABILITY_NAMES[ability]} score`}
+                                        value={assignment[ability] ?? ""}
+                                        disabled={pool.length === 0}
+                                        onChange={(event) => assignFromPool(
+                                            ability,
+                                            event.target.value === "" ? undefined : Number(event.target.value),
+                                        )}
+                                        className="w-28 bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-white text-lg font-bold text-center disabled:opacity-50"
+                                    >
+                                        <option value="">—</option>
+                                        {pool.map((value, index) => {
+                                            const holder = abilities.find((other) => other !== ability && assignment[other] === index);
+                                            return (
+                                                <option key={index} value={index}>
+                                                    {value}{holder ? ` (${holder})` : ""}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
+                                </div>
+                            ) : method === "manual" ? (
+                                <div className="flex items-center justify-center">
+                                    <input
+                                        type="number"
+                                        aria-label={`${ABILITY_NAMES[ability]} score`}
+                                        min={MANUAL_MIN}
+                                        max={MANUAL_MAX}
+                                        value={baseScore}
+                                        onChange={(event) => setManualScore(ability, event.target.valueAsNumber)}
+                                        className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-white text-lg font-bold text-center"
+                                    />
+                                </div>
+                            ) : (
                             <div className="flex items-center justify-center gap-3">
                                 <button
                                     onClick={() => adjustScore(ability, -1)}
@@ -268,6 +422,7 @@ export function AbilityScoreStep({
                                     <Plus className="w-4 h-4" />
                                 </button>
                             </div>
+                            )}
 
                             {/* Racial Bonus Matrix */}
                             <div className="flex items-center justify-center gap-2 w-full">
@@ -310,90 +465,26 @@ export function AbilityScoreStep({
                                 })}
                             </div>
 
-                            {/* Feat Bonus */}
-                            <div className="flex flex-col items-center justify-center gap-1">
-                                {featBonus > 0 && <span className="font-medium text-amber-400">+{featBonus}</span>}
-                                {featBonus === 0 && <span className="text-gray-600">-</span>}
-
-                                {/* Flexible Feat Bubbles */}
-                                <div className="flex gap-1 mt-1">
-                                    {flexibleFeats.map((feat) => {
-                                        const placed = featAllocations[feat.id]?.[ability] ?? 0;
-                                        const isSelected = placed > 0;
-
-                                        // Check if this ability is allowed options
-                                        const isAllowed = flexibleAbilityOptions(feat).includes(ability);
-                                        const remaining = unspentAbilityPoints(feat, featAllocations);
-                                        const total = flexibleAbilityAmount(feat);
-
-                                        return (
-                                            <button
-                                                key={feat.id}
-                                                onClick={() => isAllowed && handleFeatToggle(ability, feat)}
-                                                disabled={!isAllowed}
-                                                className={`
-                                                    w-5 h-5 rounded-full border text-[10px] font-bold flex items-center justify-center transition-all
-                                                    ${isSelected ? 'bg-amber-500 border-amber-500 text-zinc-950' : 'bg-transparent border-gray-600 text-transparent'}
-                                                    ${!isAllowed ? 'opacity-20 cursor-not-allowed border-gray-800 bg-gray-900' : 'cursor-pointer hover:border-amber-400'}
-                                                    ${!isSelected && isAllowed && remaining > 0 ? 'ring-1 ring-amber-500/40' : ''}
-                                                `}
-                                                title={
-                                                    isAllowed
-                                                        ? `${feat.name}: ${placed} of ${total} placed here${remaining ? ` — ${remaining} left to place` : ""}`
-                                                        : `${feat.name} cannot raise ${ABILITY_NAMES[ability]}`
-                                                }
-                                            >
-                                                {placed > 1 ? placed : ""}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Final Score with Modifier */}
-                            <div className="text-center">
-                                <span className="font-bold text-2xl text-white">
-                                    {finalScore}
-                                </span>
-                                <span className="text-xl text-gray-500 ml-1">
-                                    ({getModifier(finalScore)})
-                                </span>
+                            {/* Final Score with Modifier (feat increases included) */}
+                            <div className="text-center" title={featBonus ? `Includes +${featBonus} from feats` : undefined}>
+                                {usesPool && pool[assignment[ability] ?? -1] === undefined ? (
+                                    <span className="text-2xl text-gray-600">—</span>
+                                ) : (
+                                    <>
+                                        <span className="font-bold text-2xl text-white">
+                                            {finalScore}
+                                        </span>
+                                        <span className="text-xl text-gray-500 ml-1">
+                                            ({getModifier(finalScore)})
+                                        </span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            {/* Feat bonuses summary if any */}
-            {(flexibleFeats.length > 0) && (
-                <div className="mt-4 pt-4 border-t border-zinc-800 space-y-2">
-                    <p className="text-sm text-amber-400">
-                        ✨ Select circles in "Feat Bonus" to assign flexible increases from your feats.
-                    </p>
-                    <ul className="text-sm text-gray-400 space-y-1">
-                        {flexibleFeats.map((feat) => {
-                            const remaining = unspentAbilityPoints(feat, featAllocations);
-                            const total = flexibleAbilityAmount(feat);
-                            return (
-                                <li key={feat.id} className="flex items-center justify-between gap-3">
-                                    <span>
-                                        <span className="text-gray-200">{feat.name}</span>
-                                        <span className="text-gray-500"> — +{total} to {flexibleAbilityOptions(feat).map((option) => ABILITY_NAMES[option]).join(", ")}</span>
-                                    </span>
-                                    <span className={remaining ? "text-amber-400 font-semibold" : "text-emerald-400"}>
-                                        {remaining ? `${remaining} to place` : "placed"}
-                                    </span>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                    {unplacedPoints > 0 && (
-                        <p className="text-sm text-amber-300 bg-amber-950/30 border border-amber-800/50 rounded-md p-2">
-                            {unplacedPoints} feat ability point{unplacedPoints === 1 ? "" : "s"} still unplaced — they will not reach your sheet until assigned.
-                        </p>
-                    )}
-                </div>
-            )}
         </div>
     );
 }

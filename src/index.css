@@ -130,6 +130,22 @@ textarea:focus-visible {
     border-color: rgb(220 38 38) !important;
 }
 
+/* A number typed inside a stepper: the stepper's frame shows focus, so the
+   box itself draws no ring, and selected digits get a quiet highlight. */
+input.stepper-input:focus-visible {
+    box-shadow: none !important;
+    border-color: rgb(63 63 70 / 0.5) !important;
+}
+
+input.stepper-input {
+    caret-color: rgb(248 113 113);
+}
+
+input.stepper-input::selection {
+    background: rgb(255 255 255 / 0.18);
+    color: #fff;
+}
+
 /* Dark theme overrides for select dropdowns */
 select option {
     background-color: #18181b;

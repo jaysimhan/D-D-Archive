@@ -4,19 +4,16 @@ import type { CharacterRuleset } from "../../types/dnd-types";
 const OPTIONS: Array<{
     value: CharacterRuleset;
     title: string;
-    subtitle: string;
     description: string;
 }> = [
     {
         value: "2024",
         title: "2024 Rules",
-        subtitle: "SRD 5.2",
         description: "Build with the revised 2024 classes, species, backgrounds, feats, spells, and equipment.",
     },
     {
         value: "2014",
         title: "2014 Rules",
-        subtitle: "SRD 5.1",
         description: "Build with the original fifth-edition races, classes, backgrounds, feats, spells, and equipment.",
     },
 ];
@@ -54,7 +51,6 @@ export function RulesetStep({
                                     <Check className="w-4 h-4 text-white" />
                                 </span>
                             )}
-                            <div className="text-xs font-semibold uppercase tracking-widest text-brand-400 mb-2">{option.subtitle}</div>
                             <h3 className="text-2xl text-white font-bold font-serif mb-3">{option.title}</h3>
                             <p className="text-sm leading-relaxed text-gray-400 pr-4">{option.description}</p>
                         </button>

@@ -18,8 +18,10 @@ import {
     canonicalName,
     CHOICE_PLACEHOLDER,
     ChoiceKind,
-    CLASS_RULES,
-    FEAT_RULES,
+    FeatureChoice,
+    FeatureOption,
+    classRulesFor,
+    featRulesFor,
     GAMING_SETS,
     grantFromFeatText,
     MARTIAL_WEAPONS,
@@ -31,13 +33,15 @@ import {
     SECRET_LANGUAGES,
     SIMPLE_WEAPONS,
     SKILLS,
+    speciesRulesFor,
     STANDARD_LANGUAGES,
-    SUBCLASS_RULES,
+    subclassRulesFor,
     TOOL_CHOICE_PHRASES,
     WEAPON_CATEGORIES,
 } from "../data/proficiency-rules";
 import type { CharacterData } from "../types/character-creator";
-import type { ProficiencyRule } from "../types/dnd-types";
+import type { CharacterRuleset, ProficiencyRule } from "../types/dnd-types";
+import { classLevels, multiclassProficiencies, type MulticlassEntry } from "./multiclass";
 
 export type ProficiencyKind = "skill" | "tool" | "language" | "armor" | "weapon";
 
@@ -64,6 +68,11 @@ export interface PlanChoice {
     withExpertise?: boolean;
     /** An aside the step shows under the choice. */
     note?: string;
+    /**
+     * Set on the replacement for a proficiency two features both grant: it
+     * doesn't stack, so the second source's is spent on another of that kind.
+     */
+    duplicate?: { name: string; heldBy: string };
 }
 
 export interface ProficiencyPlan {
@@ -158,7 +167,7 @@ class PlanBuilder {
         });
     }
 
-    addChoice(id: string, sourceLabel: string, choice: RuleChoice): void {
+    addChoice(id: string, sourceLabel: string, choice: RuleChoice, duplicate?: PlanChoice["duplicate"]): void {
         if (!choice.count || choice.count < 1) return;
         const options = (choice.options?.length ? choice.options : defaultOptions(choice.kind))
             .map((option) => canonicalName(option))
@@ -173,6 +182,7 @@ class PlanBuilder {
             optionsLabel: choice.optionsLabel,
             withExpertise: choice.withExpertise,
             note: choice.note,
+            ...(duplicate ? { duplicate } : {}),
         });
     }
 
@@ -196,16 +206,18 @@ class PlanBuilder {
                     this.granted.push({ kind, name, source: sourceLabel, expertise: true });
                     return;
                 }
-                // "If you gain a proficiency you already have, you can choose a
-                // different one of the same kind." Worth offering for skills and
-                // tools, where the pool is wide; a second helping of light armour
-                // is just noise.
+                // "If a character would gain the same proficiency from two
+                // different sources, he or she can choose a different proficiency
+                // of the same kind (skill or tool) instead" — the 2014 Handbook.
+                // The 2024 book prints no such line, but proficiency still
+                // doesn't stack, and the swap is how it is played under both.
+                // Armour and weapons have nothing to swap into that matters.
                 if (kind === "skill" || kind === "tool") {
                     this.addChoice(`${sourceId}!dup${index}`, sourceLabel, {
                         kind,
                         count: 1,
-                        note: `${heldBy} already granted ${name}, so this one goes elsewhere.`,
-                    });
+                        note: `${heldBy} already grants ${name}. Choose a different ${kind} instead.`,
+                    }, { name, heldBy });
                 }
                 return;
             }
@@ -287,16 +299,33 @@ function ruleKind(rule: ProficiencyRule): ProficiencyKind | null {
 
 type PlanInput = Pick<
     CharacterData,
-    "race" | "subrace" | "class" | "subclass" | "background" | "feats" | "level"
+    "ruleset" | "race" | "subrace" | "class" | "subclass" | "background" | "feats" | "level" | "classFeatureChoices" | "multiclasses"
 >;
 
 export function buildProficiencyPlan(character: PlanInput): ProficiencyPlan {
     const builder = new PlanBuilder();
     const level = character.level || 1;
+    const ruleset = character.ruleset ?? "2024";
+
+    // --- Languages -------------------------------------------------------
+    // 2024 species carry no languages: every character knows Common plus two
+    // from the Standard Languages table. 2014 species list their own.
+    if (ruleset === "2024") {
+        builder.add("origin", "Character origin", {
+            languages: ["Common"],
+            choices: [{
+                kind: "language",
+                count: 2,
+                options: STANDARD_LANGUAGES.filter((language) => language !== "Common"),
+                optionsLabel: "the Standard Languages",
+            }],
+        });
+    }
 
     // --- Species ---------------------------------------------------------
     const race = character.race;
-    if (race) {
+    if (race && ruleset === "2014") {
+        // Shared species documents record the 2014 languages, so 2024 skips them.
         const languages: string[] = [];
         let languageChoices = 0;
         for (const entry of race.languages ?? []) {
@@ -310,13 +339,23 @@ export function buildProficiencyPlan(character: PlanInput): ProficiencyPlan {
             languages,
             ...(languageChoices ? { choices: [{ kind: "language", count: languageChoices }] } : {}),
         });
-
+    }
+    if (race) {
+        const speciesGrants = speciesRulesFor(race.id, ruleset);
         const fromRules = grantFromRules(race.proficiencies);
-        if (fromRules) builder.add(`race-rules:${race.id}`, race.name, fromRules);
+        if (speciesGrants) {
+            speciesGrants.forEach(({ feature, grant }) =>
+                builder.add(`species:${race.id}:${feature}`, `${race.name} — ${feature}`, grant));
+        } else if (fromRules) {
+            builder.add(`race-rules:${race.id}`, race.name, fromRules);
+        }
     }
 
     const subrace = character.subrace;
     if (subrace) {
+        for (const { feature, grant } of subrace.ruleGrants ?? []) {
+            builder.add(`subrace:${subrace.id}:${feature}`, `${subrace.name} — ${feature}`, grant);
+        }
         const fromRules = grantFromRules(subrace.proficiencies);
         if (fromRules) builder.add(`subrace:${subrace.id}`, subrace.name, fromRules);
     }
@@ -329,59 +368,22 @@ export function buildProficiencyPlan(character: PlanInput): ProficiencyPlan {
         if (fromRules) {
             builder.add(`bg-rules:${background.id}`, label, fromRules);
         } else {
-            builder.add(`bg:${background.id}`, label, backgroundGrant(background));
+            builder.add(`bg:${background.id}`, label, backgroundGrant(background, ruleset));
         }
     }
 
-    // --- Class -----------------------------------------------------------
-    const classData = character.class;
-    if (classData) {
-        const rules = CLASS_RULES[classData.id] ?? CLASS_RULES[classData.name.toLowerCase()];
-        const fromRules = grantFromRules(classData.proficiencies);
-
-        if (rules) {
-            builder.add(`class:${classData.id}`, classData.name, rules.base);
-            for (const leveled of rules.byLevel ?? []) {
-                if (level < leveled.level) continue;
-                builder.add(
-                    `class:${classData.id}:L${leveled.level}`,
-                    `${classData.name} — ${leveled.feature}`,
-                    leveled.grant,
-                );
-            }
-        } else if (fromRules) {
-            builder.add(`class-rules:${classData.id}`, classData.name, fromRules);
-        } else {
-            builder.silentSources.push(`${classData.name} (class)`);
-        }
-    }
-
-    // --- Subclass --------------------------------------------------------
-    const subclass = character.subclass;
-    if (subclass) {
-        const leveledGrants = SUBCLASS_RULES[subclass.id];
-        const fromRules = grantFromRules(subclass.proficiencies);
-
-        if (leveledGrants) {
-            for (const leveled of leveledGrants) {
-                if (level < leveled.level) continue;
-                builder.add(
-                    `subclass:${subclass.id}:L${leveled.level}`,
-                    `${subclass.name} — ${leveled.feature}`,
-                    leveled.grant,
-                );
-            }
-        } else if (fromRules) {
-            builder.add(`subclass-rules:${subclass.id}`, subclass.name, fromRules);
-        }
-    }
+    // --- Classes and subclasses ---------------------------------------------
+    // The first class gives its full kit; a later class only its multiclass
+    // proficiencies. Either way a class's leveled features follow its own level.
+    classLevels(character).forEach((entry, index) =>
+        addClass(builder, entry, index === 0, ruleset, character.classFeatureChoices));
 
     // --- Feats -----------------------------------------------------------
     for (const feat of character.feats ?? []) {
-        const grant =
-            FEAT_RULES[feat.name]
-            ?? grantFromRules(feat.proficiencies)
-            ?? grantFromFeatText(feat.benefits?.features ?? []);
+        const known = featRulesFor(feat.name, ruleset);
+        const grant = known !== undefined
+            ? known
+            : grantFromRules(feat.proficiencies) ?? grantFromFeatText(feat.benefits?.features ?? []);
         if (grant) builder.add(`feat:${feat.id || feat.name}`, `${feat.name} (feat)`, grant);
     }
 
@@ -392,15 +394,89 @@ export function buildProficiencyPlan(character: PlanInput): ProficiencyPlan {
     };
 }
 
+/** One class's grants, and its subclass's, at that class's own level. */
+function addClass(
+    builder: PlanBuilder,
+    { class: classData, subclass, level }: MulticlassEntry,
+    isFirstClass: boolean,
+    ruleset: CharacterRuleset,
+    featureChoices: Record<string, string> | undefined,
+): void {
+    const rules = classRulesFor(classData, ruleset);
+    const label = isFirstClass ? classData.name : `${classData.name} (multiclass)`;
+
+    if (!isFirstClass) {
+        const grant = multiclassProficiencies(classData, ruleset);
+        if (grant) builder.add(`multiclass:${classData.id}`, label, grant);
+        else if (!rules) builder.silentSources.push(`${classData.name} (multiclass)`);
+    } else if (rules) {
+        builder.add(`class:${classData.id}`, classData.name, rules.base);
+    } else {
+        const fromRules = grantFromRules(classData.proficiencies);
+        if (fromRules) builder.add(`class-rules:${classData.id}`, classData.name, fromRules);
+        else builder.silentSources.push(`${classData.name} (class)`);
+    }
+
+    if (rules) {
+        for (const leveled of rules.byLevel ?? []) {
+            if (level < leveled.level) continue;
+            builder.add(
+                `class:${classData.id}:L${leveled.level}:${leveled.feature}`,
+                `${classData.name} — ${leveled.feature}`,
+                leveled.grant,
+            );
+        }
+        const option = chosenFeatureOption(rules.featureChoice, featureChoices, level);
+        if (option?.grant) {
+            builder.add(
+                `class:${classData.id}:${rules.featureChoice!.feature}`,
+                `${classData.name} — ${rules.featureChoice!.feature} (${option.name})`,
+                option.grant,
+            );
+        }
+    }
+
+    if (subclass) {
+        const leveledGrants = subclassRulesFor(subclass.id, ruleset);
+        const fromRules = grantFromRules(subclass.proficiencies);
+        if (leveledGrants?.length) {
+            for (const leveled of leveledGrants) {
+                if (level < leveled.level) continue;
+                builder.add(
+                    `subclass:${subclass.id}:L${leveled.level}`,
+                    `${subclass.name} — ${leveled.feature}`,
+                    leveled.grant,
+                );
+            }
+        } else if (!leveledGrants && fromRules) {
+            builder.add(`subclass-rules:${subclass.id}`, subclass.name, fromRules);
+        }
+    }
+}
+
+/** The option a character took for a class's feature choice, once they have the feature. */
+export function chosenFeatureOption(
+    featureChoice: FeatureChoice | undefined,
+    picks: Record<string, string> | undefined,
+    level: number,
+): FeatureOption | undefined {
+    if (!featureChoice || level < featureChoice.level) return undefined;
+    const picked = picks?.[featureChoice.feature];
+    return featureChoice.options.find((option) => option.name === picked);
+}
+
 /**
  * The legacy background fields, read as rules.
  *
  * Skills are fixed. Tools are free text, and often a choice written out in
  * words ("One type of artisan's tools"). Languages are a count of extra
- * languages the background teaches; 2024 backgrounds don't record one, so the
- * two the 2024 Handbook gives every character are offered instead.
+ * languages the background teaches — 2014 only: a 2024 background teaches
+ * none, the character's origin does instead.
  */
-function backgroundGrant(background: NonNullable<CharacterData["background"]>): RuleGrant {
+function backgroundGrant(
+    background: NonNullable<CharacterData["background"]>,
+    ruleset: "2014" | "2024",
+): RuleGrant {
     const grant: RuleGrant = { skills: [], tools: [] };
     const choices: RuleChoice[] = [];
 
@@ -425,11 +501,9 @@ function backgroundGrant(background: NonNullable<CharacterData["background"]>): 
         }
     }
 
-    const languageCount = typeof background.languages === "number"
+    const languageCount = ruleset === "2014" && typeof background.languages === "number"
         ? background.languages
-        : background.edition === "2024"
-            ? 2
-            : 0;
+        : 0;
     if (languageCount > 0) choices.push({ kind: "language", count: languageCount });
 
     if (choices.length) grant.choices = choices;
@@ -715,7 +789,10 @@ export function buildSkillViews(
         }
     }
 
+    // Replacements for overlapping grants are picked in their own section, so
+    // a tap on the grid never quietly spends one in place of a class pick.
     const openSkillChoices = plan.choices
+        .filter((choice) => !choice.duplicate)
         .filter((choice) => choice.kind === "skill" || choice.kind === "skillOrTool")
         .filter((choice) => (selections[choice.id] ?? []).length < choice.count)
         .sort((a, b) => a.options.length - b.options.length);
@@ -796,4 +873,54 @@ export function describeChoice(choice: PlanChoice): string {
     }
     const noun = { skill: "skill", tool: "tool", language: "language", weapon: "weapon" }[choice.kind];
     return `Choose ${choice.count} ${choice.count === 1 ? noun : `${noun}s`}${from}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Reading a grant aloud                                               */
+/* ------------------------------------------------------------------ */
+
+const GRANT_ROW_LABELS: Record<ChoiceKind, string> = {
+    armor: "Armor",
+    weapon: "Weapons",
+    tool: "Tools",
+    skill: "Skills",
+    skillOrTool: "Skills or Tools",
+    expertise: "Expertise",
+    language: "Languages",
+};
+
+function choiceText(choice: RuleChoice): string {
+    const pool = choice.optionsLabel
+        ? ` from ${choice.optionsLabel}`
+        : choice.options?.length
+            ? `: ${choice.options.join(", ")}`
+            : "";
+    if (choice.kind === "expertise") {
+        return `${choice.count} ${choice.count === 1 ? "skill" : "skills"} you are proficient in${pool}`;
+    }
+    return pool ? `Choose ${choice.count}${pool}` : `Choose any ${choice.count}`;
+}
+
+/**
+ * A grant as labelled rows — "Skills: Choose 2: Arcana, History…" — in the
+ * order a class's proficiency block is printed: armour, weapons, tools, skills.
+ */
+export function grantRows(grant: RuleGrant): { label: string; value: string }[] {
+    const rows = new Map<ChoiceKind, string[]>(
+        (Object.keys(GRANT_ROW_LABELS) as ChoiceKind[]).map((kind) => [kind, []]),
+    );
+    const fixed = (kind: ChoiceKind, names: string[] | undefined) => {
+        if (names?.length) rows.get(kind)!.push(names.join(", "));
+    };
+    fixed("armor", grant.armor);
+    fixed("weapon", grant.weapons);
+    fixed("tool", grant.tools);
+    fixed("skill", grant.skills);
+    fixed("expertise", grant.expertise);
+    fixed("language", grant.languages);
+    for (const choice of grant.choices ?? []) rows.get(choice.kind)!.push(choiceText(choice));
+
+    return [...rows]
+        .filter(([, values]) => values.length)
+        .map(([kind, values]) => ({ label: GRANT_ROW_LABELS[kind], value: values.join("; ") }));
 }

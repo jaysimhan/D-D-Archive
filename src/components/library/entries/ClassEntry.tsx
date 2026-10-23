@@ -2,7 +2,8 @@ import type { Class, Spell, SpellGrant } from "../../../types/dnd-types";
 import { SPELL_SLOTS_BY_LEVEL } from "../../../types/dnd-types";
 import type { LibraryData } from "../useLibraryData";
 import { entryPath } from "../categories";
-import { CLASS_RULES, type RuleGrant } from "../../../data/proficiency-rules";
+import { classRulesFor, type RuleGrant } from "../../../data/proficiency-rules";
+import { grantRows } from "../../../utils/proficiency-plan";
 import { proficiencyBonusAtLevel } from "../../../utils/combat-progression";
 import { subclassLevelFor } from "../../../utils/class-progression";
 import { HeroImage, Section, Prose, StatGrid, SourceTags, LinkChips, FeaturesByLevel, ProficiencyRules, SpellGrants, featureAnchor, titleCase, ordinal } from "./parts";
@@ -20,24 +21,12 @@ const CASTER_LABEL: Record<string, string> = {
 const SLOT_TABLE: Record<string, keyof typeof SPELL_SLOTS_BY_LEVEL> = { full: "full", half: "half", "half-up": "half", third: "third" };
 
 function RuleGrantList({ grant }: { grant: RuleGrant }) {
-  const rows: [string, string | undefined][] = [
-    ["Armor", grant.armor?.join(", ")],
-    ["Weapons", grant.weapons?.join(", ")],
-    ["Tools", grant.tools?.join(", ")],
-    ["Skills", grant.skills?.join(", ")],
-    ["Languages", grant.languages?.join(", ")],
-  ];
-  for (const choice of grant.choices || []) {
-    const kind = choice.optionsLabel ?? (choice.kind === "skillOrTool" ? "skills or tools" : `${choice.kind}${choice.count > 1 ? "s" : ""}`);
-    const from = choice.options?.length && !choice.optionsLabel ? ` from ${choice.options.join(", ")}` : choice.options?.length ? "" : " of your choice";
-    rows.push([titleCase(choice.kind === "skillOrTool" ? "Skills/Tools" : choice.kind === "expertise" ? "Expertise" : `${choice.kind}s`), `Choose ${choice.count} ${kind}${from}`]);
-  }
-  const shown = rows.filter(([, value]) => value);
-  if (shown.length === 0) return null;
+  const rows = grantRows(grant);
+  if (rows.length === 0) return null;
   return (
     <ul className="space-y-1.5 text-sm text-gray-300">
-      {shown.map(([label, value], i) => (
-        <li key={i}><span className="text-brand-300">{label}: </span>{value}</li>
+      {rows.map(({ label, value }) => (
+        <li key={label}><span className="text-brand-300">{label}: </span>{value}</li>
       ))}
     </ul>
   );
@@ -126,10 +115,10 @@ function ClassSpellList({ spells }: { spells: Spell[] }) {
 export function ClassEntry({ classData, data, spellIndex }: { classData: Class; data: LibraryData; spellIndex: Map<string, Spell> }) {
   const subclasses = data.subclasses.filter((subclass) => subclass.parentClassId === classData.id);
   const classSpells = data.spells.filter((spell) => (spell.classes || []).includes(classData.id));
-  const rules = CLASS_RULES[classData.id];
+  const rules = classRulesFor(classData, data.ruleset);
   const hasSanityRules = (classData.proficiencies || []).length > 0;
   const caster = classData.spellcaster && !["none", "None"].includes(String(classData.spellcaster)) ? CASTER_LABEL[classData.spellcaster] ?? titleCase(String(classData.spellcaster)) : undefined;
-  const subclassLevel = subclassLevelFor(classData);
+  const subclassLevel = subclassLevelFor(classData, data.ruleset);
   const hitDie = classData.hitDie || 8;
   const grants = (classData as Class & { spells?: SpellGrant[] }).spells;
 

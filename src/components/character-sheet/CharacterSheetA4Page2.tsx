@@ -21,6 +21,8 @@ import {
 import { AttunementMarker } from "./markers";
 import { useEditableAutoValue } from "./use-editable-auto-value";
 import { featGrantsSpells, spellGrantingSources } from "./spellcasting-sources";
+import { finalAbilityScores } from "../../utils/ability-scores";
+import { isAbilityScoreImprovement } from "../../utils/feats";
 import "./character-sheet.css";
 
 /**
@@ -81,7 +83,7 @@ function characterPerceptionModifier(character: CharacterData) {
     const rank = perception?.expertise ? 2 : perception?.proficient ? 1 : 0;
 
     return (
-        abilityModifier(character.abilityScores.WIS) +
+        abilityModifier(finalAbilityScores(character).WIS) +
         proficiencyBonus(character.level) * rank
     );
 }
@@ -508,7 +510,11 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
     const ruleset = useContext(SheetRulesetContext);
     const suggestions = useSheetSuggestions(ruleset);
     const matchingCharacter = initialCharacter?.ruleset === ruleset ? initialCharacter : undefined;
-    const characterFeats = formatEntryNames(initialCharacter?.feats ?? []);
+    // A 2014 Ability Score Improvement is a class feature, not a feat; its
+    // points are already in the scores, so it stays off the feat list.
+    const characterFeats = formatEntryNames((initialCharacter?.feats ?? []).filter(
+        (feat) => initialCharacter?.ruleset !== "2014" || !isAbilityScoreImprovement(feat),
+    ));
 
     // Held as well as reported: Observant raises passive Perception,
     // and the panel is where this page learns the character has taken them.

@@ -1,9 +1,12 @@
+import type { AbilityScoreMethod, ScoreAssignment } from "../utils/ability-scores";
+import type { MulticlassEntry } from "../utils/multiclass";
 import { Race, Class, Subclass, Background, AbilityScores, Spell, Feat, Item, Subrace, CharacterRuleset } from "./dnd-types";
 
 export type CreationStep =
     | "ruleset"
     | "name"
     | "race"
+    | "subspecies"
     | "class"
     | "subclass"
     | "abilities"
@@ -25,6 +28,7 @@ export const CREATION_STEPS: CreationStep[] = [
     "ruleset",
     "name",
     "race",
+    "subspecies",
     "class",
     "subclass",
     "abilities",
@@ -50,7 +54,10 @@ export interface CharacterData {
     subrace?: Subrace;
     class?: Class;
     subclass?: Subclass;
+    /** The character's total level; the first class holds what `multiclasses` leaves. */
     level: number;
+    /** Classes taken after the first, each with its own level and subclass. */
+    multiclasses?: MulticlassEntry[];
     background?: Background;
     abilityScores: AbilityScores;
     selectedSpells: Spell[];
@@ -66,6 +73,11 @@ export interface CharacterData {
      * so dropping the feat drops its bonus with it.
      */
     featAbilityChoices?: Record<string, Partial<AbilityScores>>;
+    /**
+     * Picks for class features that offer a package, keyed by feature name:
+     * { "Divine Order": "Protector" }. Cleared whenever the class changes.
+     */
+    classFeatureChoices?: Record<string, string>;
     personality: {
         traits?: string;
         ideals?: string;
@@ -99,6 +111,12 @@ export interface CharacterData {
         armor: string[];
         weapons: string[];
     };
+    /** How the base scores were generated; drafts from before the choice existed used point buy. */
+    abilityScoreMethod?: AbilityScoreMethod;
+    /** The six 4d6-drop-lowest totals, for the rolled method. */
+    rolledAbilityScores?: number[];
+    /** Standard array and rolled: which entry of the pool each ability took. */
+    abilityScoreAssignment?: ScoreAssignment;
     racialBonusAllocation?: Record<string, number>;
     hpMax?: number;
     hpRolls?: number[];

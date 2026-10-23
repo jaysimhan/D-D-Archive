@@ -12,11 +12,12 @@
  * The Archive's own documents come first wherever they carry the data: a class
  * or species with a `proficiencies` rule array in Sanity is read straight from
  * there. These tables cover the official classes and subclasses, whose
- * documents record features but not their proficiency lines, and follow the
- * 2024 Player's Handbook — the edition nearly every official class document in
- * the Archive is tagged with. Where the 2024 and 2014 kits differ the comment
- * says so.
+ * documents record features but not their proficiency lines. Classes keep one
+ * kit per ruleset — the 2014 Handbook (SRD 5.1) and the 2024 one (SRD 5.2) —
+ * and subclasses note where the 2024 version changed what they grant.
  */
+
+import type { CharacterRuleset } from "../types/dnd-types";
 
 // ===== Skills =====
 
@@ -90,7 +91,7 @@ export const MARTIAL_WEAPONS = [
 ];
 
 /** Martial weapons with the Light property, which is what a monk trains with. */
-const LIGHT_MARTIAL_WEAPONS = ["Scimitar", "Shortsword"];
+const LIGHT_MARTIAL_WEAPONS = ["Hand Crossbow", "Scimitar", "Shortsword"];
 
 /** Martial weapons with Finesse or Light, which is what a rogue trains with. */
 const FINESSE_OR_LIGHT_MARTIAL_WEAPONS = ["Hand Crossbow", "Rapier", "Scimitar", "Shortsword", "Whip"];
@@ -214,21 +215,46 @@ export interface LeveledGrant {
     grant: RuleGrant;
 }
 
+/** One road a class feature offers, e.g. the cleric's Protector order. */
+export interface FeatureOption {
+    name: string;
+    /** What the option does, in a line, for the class step. */
+    summary: string;
+    grant?: RuleGrant;
+    /** The option teaches one extra cantrip from the class's list. */
+    bonusCantrip?: boolean;
+}
+
+/**
+ * A class feature that makes the player pick one of a few packages — the 2024
+ * cleric's Divine Order, the druid's Primal Order. The pick is stored on the
+ * character under the feature's name.
+ */
+export interface FeatureChoice {
+    feature: string;
+    level: number;
+    options: FeatureOption[];
+}
+
 export interface ClassRules {
     /** The kit every member of the class starts with. */
     base: RuleGrant;
     /** Features that only arrive at a later level. */
     byLevel?: LeveledGrant[];
+    featureChoice?: FeatureChoice;
 }
 
 // ===== Classes =====
 
+const DRUIDIC: LeveledGrant = { level: 1, feature: "Druidic", grant: { languages: ["Druidic"] } };
+
 /**
- * Keyed by the class document's slug. Only the official classes are listed:
- * every other class in the Archive is read from its own `proficiencies` rules,
- * and the step says plainly when a class records none.
+ * The 2024 Player's Handbook (SRD 5.2) kits, keyed by the class document's
+ * slug. Only the official classes are listed: every other class in the Archive
+ * is read from its own `proficiencies` rules, and the step says plainly when a
+ * class records none.
  */
-export const CLASS_RULES: Record<string, ClassRules> = {
+const CLASS_RULES_2024: Record<string, ClassRules> = {
     barbarian: {
         base: {
             armor: ["Light Armor", "Medium Armor", "Shields"],
@@ -241,7 +267,6 @@ export const CLASS_RULES: Record<string, ClassRules> = {
         },
     },
     bard: {
-        // 2014 also granted hand crossbows, longswords, rapiers and shortswords.
         base: {
             armor: ["Light Armor"],
             weapons: ["Simple Weapons"],
@@ -250,8 +275,10 @@ export const CLASS_RULES: Record<string, ClassRules> = {
                 { kind: "tool", count: 3, options: MUSICAL_INSTRUMENTS, optionsLabel: "musical instruments" },
             ],
         },
-        // 2014 held Expertise back to level 3.
-        byLevel: [{ level: 2, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } }],
+        byLevel: [
+            { level: 2, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+            { level: 9, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+        ],
     },
     cleric: {
         base: {
@@ -263,18 +290,28 @@ export const CLASS_RULES: Record<string, ClassRules> = {
                 options: ["History", "Insight", "Medicine", "Persuasion", "Religion"],
             }],
         },
+        featureChoice: {
+            feature: "Divine Order",
+            level: 1,
+            options: [
+                {
+                    name: "Protector",
+                    summary: "Trained for battle: Martial weapons and Heavy armor.",
+                    grant: { armor: ["Heavy Armor"], weapons: ["Martial Weapons"] },
+                },
+                {
+                    name: "Thaumaturge",
+                    summary: "One extra Cleric cantrip, and your Wisdom modifier added to Arcana and Religion checks.",
+                    bonusCantrip: true,
+                },
+            ],
+        },
     },
     druid: {
-        // 2024 trains druids in light armour and shields only; 2014 added
-        // medium armour, with the caveat that none of it be metal.
         base: {
             armor: ["Light Armor", "Shields"],
-            weapons: [
-                "Club", "Dagger", "Dart", "Javelin", "Mace", "Quarterstaff", "Scimitar",
-                "Sickle", "Sling", "Spear",
-            ],
+            weapons: ["Simple Weapons"],
             tools: ["Herbalism Kit"],
-            languages: ["Druidic"],
             choices: [{
                 kind: "skill",
                 count: 2,
@@ -283,6 +320,25 @@ export const CLASS_RULES: Record<string, ClassRules> = {
                     "Religion", "Survival",
                 ],
             }],
+        },
+        // A 1st-level feature rather than a starting proficiency, so a druid
+        // by multiclass learns it too.
+        byLevel: [DRUIDIC],
+        featureChoice: {
+            feature: "Primal Order",
+            level: 1,
+            options: [
+                {
+                    name: "Magician",
+                    summary: "One extra Druid cantrip, and your Wisdom modifier added to Arcana and Nature checks.",
+                    bonusCantrip: true,
+                },
+                {
+                    name: "Warden",
+                    summary: "Trained for battle: Martial weapons and Medium armor.",
+                    grant: { armor: ["Medium Armor"], weapons: ["Martial Weapons"] },
+                },
+            ],
         },
     },
     fighter: {
@@ -300,7 +356,7 @@ export const CLASS_RULES: Record<string, ClassRules> = {
         },
     },
     monk: {
-        // 2024: simple weapons plus martial weapons with the Light property.
+        // Simple weapons plus martial weapons with the Light property.
         base: {
             weapons: ["Simple Weapons", ...LIGHT_MARTIAL_WEAPONS],
             choices: [
@@ -351,31 +407,36 @@ export const CLASS_RULES: Record<string, ClassRules> = {
                     { kind: "language", count: 2 },
                 ],
             },
-        }],
+        }, { level: 9, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } }],
     },
     rogue: {
-        // 2024: simple weapons plus martial weapons with Finesse or Light.
+        // Simple weapons plus martial weapons with Finesse or Light.
         base: {
             armor: ["Light Armor"],
             weapons: ["Simple Weapons", ...FINESSE_OR_LIGHT_MARTIAL_WEAPONS],
             tools: ["Thieves' Tools"],
-            languages: ["Thieves' Cant"],
             choices: [{
                 kind: "skill",
                 count: 4,
                 options: [
                     "Acrobatics", "Athletics", "Deception", "Insight", "Intimidation",
-                    "Investigation", "Perception", "Performance", "Persuasion",
-                    "Sleight of Hand", "Stealth",
+                    "Investigation", "Perception", "Persuasion", "Sleight of Hand", "Stealth",
                 ],
             }],
         },
-        // A second pair of skills follows at level 6, past this creator's cap.
-        byLevel: [{ level: 1, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } }],
+        byLevel: [
+            { level: 1, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+            { level: 6, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+            {
+                level: 1,
+                feature: "Thieves' Cant",
+                grant: { languages: ["Thieves' Cant"], choices: [{ kind: "language", count: 1 }] },
+            },
+        ],
     },
     sorcerer: {
         base: {
-            weapons: ["Dagger", "Dart", "Sling", "Quarterstaff"],
+            weapons: ["Simple Weapons"],
             choices: [{
                 kind: "skill",
                 count: 2,
@@ -399,7 +460,7 @@ export const CLASS_RULES: Record<string, ClassRules> = {
     },
     wizard: {
         base: {
-            weapons: ["Dagger", "Dart", "Sling", "Quarterstaff"],
+            weapons: ["Simple Weapons"],
             choices: [{
                 kind: "skill",
                 count: 2,
@@ -420,7 +481,7 @@ export const CLASS_RULES: Record<string, ClassRules> = {
         }],
     },
     artificer: {
-        // Tasha's Cauldron of Everything; there is no 2024 artificer.
+        // Tasha's Cauldron of Everything; the kit is the same under either ruleset.
         base: {
             armor: ["Light Armor", "Medium Armor", "Shields"],
             weapons: ["Simple Weapons"],
@@ -440,14 +501,284 @@ export const CLASS_RULES: Record<string, ClassRules> = {
     },
 };
 
+/** The 2014 Player's Handbook (SRD 5.1) kits, where they differ from 2024. */
+const CLASS_RULES_2014: Record<string, ClassRules> = {
+    ...CLASS_RULES_2024,
+    bard: {
+        base: {
+            armor: ["Light Armor"],
+            weapons: ["Simple Weapons", "Hand Crossbow", "Longsword", "Rapier", "Shortsword"],
+            choices: CLASS_RULES_2024.bard.base.choices,
+        },
+        byLevel: [
+            { level: 3, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+            { level: 10, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+        ],
+    },
+    cleric: { base: CLASS_RULES_2024.cleric.base },
+    druid: {
+        byLevel: [DRUIDIC],
+        base: {
+            ...CLASS_RULES_2024.druid.base,
+            // Druids will not wear armour or use shields made of metal.
+            armor: ["Light Armor", "Medium Armor", "Shields"],
+            weapons: [
+                "Club", "Dagger", "Dart", "Javelin", "Mace", "Quarterstaff", "Scimitar",
+                "Sickle", "Sling", "Spear",
+            ],
+        },
+    },
+    fighter: {
+        base: {
+            ...CLASS_RULES_2024.fighter.base,
+            choices: [{
+                kind: "skill",
+                count: 2,
+                options: [
+                    "Acrobatics", "Animal Handling", "Athletics", "History", "Insight",
+                    "Intimidation", "Perception", "Survival",
+                ],
+            }],
+        },
+    },
+    monk: {
+        base: { ...CLASS_RULES_2024.monk.base, weapons: ["Simple Weapons", "Shortsword"] },
+    },
+    ranger: {
+        base: CLASS_RULES_2024.ranger.base,
+        byLevel: [{
+            level: 1,
+            feature: "Favored Enemy",
+            grant: {
+                choices: [{
+                    kind: "language",
+                    count: 1,
+                    note: "One spoken by your favored enemies, if they speak one at all.",
+                }],
+            },
+        }],
+    },
+    rogue: {
+        base: {
+            armor: ["Light Armor"],
+            weapons: ["Simple Weapons", "Hand Crossbow", "Longsword", "Rapier", "Shortsword"],
+            tools: ["Thieves' Tools"],
+            choices: [{
+                kind: "skill",
+                count: 4,
+                options: [
+                    "Acrobatics", "Athletics", "Deception", "Insight", "Intimidation",
+                    "Investigation", "Perception", "Performance", "Persuasion",
+                    "Sleight of Hand", "Stealth",
+                ],
+            }],
+        },
+        // The Handbook also allows one skill plus thieves' tools; the step only
+        // doubles skills, so that pairing is left to the sheet.
+        byLevel: [
+            { level: 1, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+            { level: 6, feature: "Expertise", grant: { choices: [{ kind: "expertise", count: 2 }] } },
+            { level: 1, feature: "Thieves' Cant", grant: { languages: ["Thieves' Cant"] } },
+        ],
+    },
+    sorcerer: {
+        base: {
+            ...CLASS_RULES_2024.sorcerer.base,
+            weapons: ["Dagger", "Dart", "Sling", "Quarterstaff", "Light Crossbow"],
+        },
+    },
+    wizard: {
+        base: {
+            weapons: ["Dagger", "Dart", "Sling", "Quarterstaff", "Light Crossbow"],
+            choices: [{
+                kind: "skill",
+                count: 2,
+                options: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Religion"],
+            }],
+        },
+    },
+};
+
+/** The official kit for a class under a ruleset, if the class is an official one. */
+export function classRulesFor(
+    classData: { id: string; name: string },
+    ruleset: CharacterRuleset = "2024",
+): ClassRules | undefined {
+    const table = ruleset === "2014" ? CLASS_RULES_2014 : CLASS_RULES_2024;
+    return table[classData.id] ?? table[classData.name.toLowerCase()];
+}
+
+// ===== Species =====
+
+/** A species trait that hands out proficiencies, named for the step and the sheet. */
+export interface SpeciesGrant {
+    feature: string;
+    grant: RuleGrant;
+}
+
+const ELF_WEAPONS = ["Longsword", "Shortsword", "Shortbow", "Longbow"];
+const DWARF_WEAPONS = ["Battleaxe", "Handaxe", "Light Hammer", "Warhammer"];
+const DWARF_TOOLS: RuleChoice = {
+    kind: "tool",
+    count: 1,
+    options: ["Smith's Tools", "Brewer's Supplies", "Mason's Tools"],
+    optionsLabel: "smith's tools, brewer's supplies or mason's tools",
+};
+const KEEN_SENSES_CHOICE: RuleChoice = { kind: "skill", count: 1, options: ["Insight", "Perception", "Survival"] };
+
+/**
+ * Official species whose proficiencies the Archive's documents leave in trait
+ * text, record incompletely, or record wrongly. Keyed by the species slug; a
+ * species listed here is read from this table rather than its document.
+ * Species documents are shared by both rulesets, so this is how they read
+ * under either one unless `SPECIES_RULES_2024` says otherwise.
+ */
+const SPECIES_RULES: Record<string, SpeciesGrant[]> = {
+    "astral-elf": [
+        { feature: "Keen Senses", grant: { choices: [KEEN_SENSES_CHOICE] } },
+        {
+            feature: "Astral Trance",
+            grant: {
+                choices: [
+                    { kind: "skill", count: 1, note: "You can change it each time you finish a Long Rest." },
+                    { kind: "tool", count: 1, note: "Or a weapon instead. You can change it each time you finish a Long Rest." },
+                ],
+            },
+        },
+    ],
+    autognome: [{ feature: "Specialized Design", grant: { choices: [{ kind: "tool", count: 2 }] } }],
+    centaur: [{
+        feature: "Natural Affinity",
+        grant: { choices: [{ kind: "skill", count: 1, options: ["Animal Handling", "Medicine", "Nature", "Survival"] }] },
+    }],
+    changeling: [{
+        feature: "Changeling Instincts",
+        grant: {
+            choices: [{
+                kind: "skill",
+                count: 2,
+                options: ["Deception", "Insight", "Intimidation", "Performance", "Persuasion"],
+            }],
+        },
+    }],
+    drow: [
+        { feature: "Keen Senses", grant: { skills: ["Perception"] } },
+        { feature: "Drow Weapon Training", grant: { weapons: ["Rapier", "Shortsword", "Hand Crossbow"] } },
+    ],
+    eladrin: [{ feature: "Keen Senses", grant: { choices: [KEEN_SENSES_CHOICE] } }],
+    giff: [{ feature: "Firearms Mastery", grant: { weapons: ["Firearms"] } }],
+    githyanki: [
+        {
+            feature: "Martial Prodigy",
+            grant: { armor: ["Light Armor", "Medium Armor"], weapons: ["Shortsword", "Longsword", "Greatsword"] },
+        },
+        {
+            feature: "Decadent Mastery",
+            grant: { choices: [{ kind: "language", count: 1 }, { kind: "skillOrTool", count: 1, optionsLabel: "any skill or tool" }] },
+        },
+    ],
+    goliath: [{ feature: "Natural Athlete", grant: { skills: ["Athletics"] } }],
+    "half-elf": [{ feature: "Skill Versatility", grant: { choices: [{ kind: "skill", count: 2 }] } }],
+    "half-orc": [{ feature: "Menacing", grant: { skills: ["Intimidation"] } }],
+    "high-elf": [
+        { feature: "Keen Senses", grant: { skills: ["Perception"] } },
+        { feature: "Elf Weapon Training", grant: { weapons: ELF_WEAPONS } },
+    ],
+    "hill-dwarf": [
+        { feature: "Dwarven Combat Training", grant: { weapons: DWARF_WEAPONS } },
+        { feature: "Tool Proficiency", grant: { choices: [DWARF_TOOLS] } },
+    ],
+    hobgoblin: [{
+        feature: "Martial Training",
+        grant: {
+            armor: ["Light Armor"],
+            choices: [{ kind: "weapon", count: 2, options: MARTIAL_WEAPONS, optionsLabel: "martial weapons" }],
+        },
+    }],
+    kenku: [{
+        feature: "Kenku Training",
+        grant: { choices: [{ kind: "skill", count: 2, options: ["Acrobatics", "Deception", "Stealth", "Sleight of Hand"] }] },
+    }],
+    khoravar: [{ feature: "Skill Versatility", grant: { choices: [{ kind: "skill", count: 2 }] } }],
+    leonin: [{
+        feature: "Hunter's Instincts",
+        grant: { choices: [{ kind: "skill", count: 1, options: ["Athletics", "Intimidation", "Perception", "Survival"] }] },
+    }],
+    lizardfolk: [{
+        feature: "Hunter's Lore",
+        grant: {
+            choices: [{
+                kind: "skill",
+                count: 2,
+                options: ["Animal Handling", "Nature", "Perception", "Stealth", "Survival"],
+            }],
+        },
+    }],
+    "mountain-dwarf": [
+        { feature: "Dwarven Combat Training", grant: { weapons: DWARF_WEAPONS } },
+        { feature: "Tool Proficiency", grant: { choices: [DWARF_TOOLS] } },
+        { feature: "Dwarven Armor Training", grant: { armor: ["Light Armor", "Medium Armor"] } },
+    ],
+    relicborn: [{
+        feature: "Soul of Revelry",
+        grant: {
+            choices: [{
+                kind: "skillOrTool",
+                count: 1,
+                options: ["Performance", ...MUSICAL_INSTRUMENTS],
+                optionsLabel: "Performance or a musical instrument",
+            }],
+        },
+    }],
+    satyr: [{
+        feature: "Reveler",
+        grant: {
+            skills: ["Performance", "Persuasion"],
+            choices: [{ kind: "tool", count: 1, options: MUSICAL_INSTRUMENTS, optionsLabel: "a musical instrument" }],
+        },
+    }],
+    "sea-elf": [
+        { feature: "Keen Senses", grant: { skills: ["Perception"] } },
+        { feature: "Sea Elf Training", grant: { weapons: ["Spear", "Trident", "Light Crossbow", "Net"] } },
+    ],
+    tabaxi: [{ feature: "Cat's Talent", grant: { skills: ["Perception", "Stealth"] } }],
+    tarandus: [
+        { feature: "Student of History", grant: { skills: ["History"] } },
+        { feature: "Born to Navigate", grant: { tools: ["Navigator's Tools"] } },
+    ],
+    tortle: [{ feature: "Survival Instinct", grant: { skills: ["Survival"] } }],
+    warforged: [{
+        feature: "Specialized Design",
+        grant: { choices: [{ kind: "skill", count: 1 }, { kind: "tool", count: 1 }] },
+    }],
+    "wood-elf": [
+        { feature: "Keen Senses", grant: { skills: ["Perception"] } },
+        { feature: "Elf Weapon Training", grant: { weapons: ELF_WEAPONS } },
+    ],
+};
+
+/** The 2024 Handbook's species, where they differ; an empty list grants nothing. */
+const SPECIES_RULES_2024: Record<string, SpeciesGrant[]> = {
+    elf: [{ feature: "Keen Senses", grant: { choices: [KEEN_SENSES_CHOICE] } }],
+    goliath: [],
+    human: [{ feature: "Skillful", grant: { choices: [{ kind: "skill", count: 1 }] } }],
+};
+
+export function speciesRulesFor(speciesId: string, ruleset: CharacterRuleset = "2024"): SpeciesGrant[] | undefined {
+    if (ruleset === "2024" && speciesId in SPECIES_RULES_2024) return SPECIES_RULES_2024[speciesId];
+    return SPECIES_RULES[speciesId];
+}
+
 // ===== Subclasses =====
 
 /**
  * Subclass grants, keyed by the subclass document's slug and gated on the level
  * the feature arrives at. Only subclasses whose features actually hand out a
- * proficiency are listed.
+ * proficiency are listed. The Archive shares its subclasses between rulesets,
+ * so this is the 2014 reading; `SUBCLASS_RULES_2024` overrides the few the 2024
+ * Handbook reprinted with different grants.
  */
-export const SUBCLASS_RULES: Record<string, LeveledGrant[]> = {
+const SUBCLASS_RULES: Record<string, LeveledGrant[]> = {
     // Artificer
     alchemist: [{ level: 3, feature: "Tool Proficiency", grant: { tools: ["Alchemist's Supplies"] } }],
     armorer: [{ level: 3, feature: "Tools of the Trade", grant: { tools: ["Smith's Tools"] } }],
@@ -580,6 +911,36 @@ export const SUBCLASS_RULES: Record<string, LeveledGrant[]> = {
     // `proficiencies` rules, which this file defers to for the Archive's own classes.
 };
 
+/** 2024 reprints whose grants changed; an empty list means the grant is gone. */
+const SUBCLASS_RULES_2024: Record<string, LeveledGrant[]> = {
+    // Heavy armour moved to the cleric's Divine Order.
+    "life-domain": [],
+    "war-domain": [],
+    "battle-master": [{
+        level: 3,
+        feature: "Student of War",
+        grant: {
+            choices: [
+                { kind: "tool", count: 1, options: ARTISAN_TOOLS, optionsLabel: "artisan's tools" },
+                {
+                    kind: "skill",
+                    count: 1,
+                    options: [
+                        "Acrobatics", "Animal Handling", "Athletics", "History", "Insight",
+                        "Intimidation", "Perception", "Persuasion", "Survival",
+                    ],
+                    optionsLabel: "the Fighter's skills",
+                },
+            ],
+        },
+    }],
+};
+
+export function subclassRulesFor(subclassId: string, ruleset: CharacterRuleset = "2024"): LeveledGrant[] | undefined {
+    if (ruleset === "2024" && subclassId in SUBCLASS_RULES_2024) return SUBCLASS_RULES_2024[subclassId];
+    return SUBCLASS_RULES[subclassId];
+}
+
 // ===== Feats =====
 
 /**
@@ -655,6 +1016,33 @@ export const FEAT_RULES: Record<string, RuleGrant> = {
         choices: [{ kind: "expertise", count: 2 }],
     },
 };
+
+/**
+ * Where a feat grants something different under one ruleset. `null` means it
+ * grants no proficiency there at all: the 2014 Keen Mind and Observant teach
+ * no skill, and the 2024 Weapon Master grants a weapon's Mastery instead of
+ * proficiencies.
+ */
+const FEAT_RULES_BY_EDITION: Record<CharacterRuleset, Record<string, RuleGrant | null>> = {
+    "2014": {
+        "Keen Mind": null,
+        Observant: null,
+    },
+    "2024": {
+        "Lightly Armored": { armor: ["Light Armor", "Shields"] },
+        "Weapon Master": null,
+    },
+};
+
+/**
+ * What a feat grants under the character's ruleset: `undefined` when the
+ * tables don't know the feat, `null` when they know it grants nothing.
+ */
+export function featRulesFor(name: string, ruleset: CharacterRuleset = "2024"): RuleGrant | null | undefined {
+    const editionRules = FEAT_RULES_BY_EDITION[ruleset];
+    if (name in editionRules) return editionRules[name];
+    return FEAT_RULES[name];
+}
 
 /**
  * A last resort for feats the table above does not name — most of the Archive's

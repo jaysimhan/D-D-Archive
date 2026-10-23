@@ -1,14 +1,15 @@
 import type { Subclass, Spell } from "../../../types/dnd-types";
 import type { LibraryData } from "../useLibraryData";
 import { entryPath } from "../categories";
-import { SUBCLASS_RULES } from "../../../data/proficiency-rules";
+import { subclassRulesFor } from "../../../data/proficiency-rules";
+import { grantRows } from "../../../utils/proficiency-plan";
 import { HeroImage, Section, Prose, StatGrid, SourceTags, LinkChips, FeaturesByLevel, ProficiencyRules, SpellGrants, EntryLink, titleCase } from "./parts";
 
 export function SubclassEntry({ subclass, data, spellIndex }: { subclass: Subclass; data: LibraryData; spellIndex: Map<string, Spell> }) {
   const parent = data.classes.find((c) => c.id === subclass.parentClassId);
   const siblings = data.subclasses.filter((other) => other.parentClassId === subclass.parentClassId && other.id !== subclass.id);
   const grantedSpells = data.spells.filter((spell) => (spell.subclasses || []).includes(subclass.id));
-  const leveledGrants = SUBCLASS_RULES[subclass.id] || [];
+  const leveledGrants = subclassRulesFor(subclass.id, data.ruleset) || [];
   const levels = (subclass.features || []).map((feature) => feature.level).filter(Boolean);
 
   return (
@@ -41,19 +42,12 @@ export function SubclassEntry({ subclass, data, spellIndex }: { subclass: Subcla
           <ProficiencyRules rules={subclass.proficiencies} />
           {leveledGrants.length > 0 && (
             <ul className="space-y-1.5 text-sm text-gray-300 mt-2">
-              {leveledGrants.map((grant, i) => {
-                const parts = [
-                  grant.grant.armor?.join(", "),
-                  grant.grant.weapons?.join(", "),
-                  grant.grant.tools?.join(", "),
-                  grant.grant.skills?.join(", "),
-                  grant.grant.languages?.join(", "),
-                  ...(grant.grant.choices || []).map((choice) => `choose ${choice.count} ${choice.optionsLabel ?? choice.kind}${choice.options?.length && !choice.optionsLabel ? ` (${choice.options.join(", ")})` : ""}`),
-                ].filter(Boolean);
-                return (
-                  <li key={i}><span className="text-brand-300">{grant.feature} (level {grant.level}): </span>{parts.join("; ")}</li>
-                );
-              })}
+              {leveledGrants.map((grant, i) => (
+                <li key={i}>
+                  <span className="text-brand-300">{grant.feature} (level {grant.level}): </span>
+                  {grantRows(grant.grant).map((row) => `${row.label} — ${row.value}`).join(". ")}
+                </li>
+              ))}
             </ul>
           )}
         </Section>

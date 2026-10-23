@@ -2,17 +2,27 @@ import type { Feat, Spell } from "../../../types/dnd-types";
 import type { LibraryData } from "../useLibraryData";
 import { entryPath } from "../categories";
 import { Section, Prose, StatGrid, SourceTags, LinkChips, ProficiencyRules, SpellGrants, EntryLink, Tag, titleCase, ordinal } from "./parts";
+import { featWeight } from "../../../utils/feats";
 
 function prerequisiteLines(feat: Feat): string[] {
   const prereq = feat.prerequisites;
   if (!prereq) return [];
   return [
     prereq.level && prereq.level > 1 ? `${ordinal(prereq.level)} level` : undefined,
-    ...Object.entries(prereq.abilityScore || {}).map(([ability, score]) => `${ability} ${score} or higher`),
+    ...abilityLines(prereq),
     prereq.race?.length ? `Race: ${prereq.race.map(titleCase).join(", ")}` : undefined,
     prereq.class?.length ? `Class: ${prereq.class.map(titleCase).join(", ")}` : undefined,
     ...(prereq.features || []).map((feature) => `Feature: ${feature}`),
   ].filter((line): line is string => Boolean(line));
+}
+
+/** "STR 13 or higher", or "STR or DEX 13 or higher" when any one will do. */
+function abilityLines(prereq: NonNullable<Feat["prerequisites"]>): string[] {
+  const entries = Object.entries(prereq.abilityScore || {}).filter(([, score]) => score);
+  if (prereq.abilityScoreAnyOf && entries.length > 1) {
+    return [`${orList(entries.map(([ability]) => ability))} ${entries[0][1]} or higher`];
+  }
+  return entries.map(([ability, score]) => `${ability} ${score} or higher`);
 }
 
 /** "INT, WIS, or CHA". */
@@ -27,6 +37,7 @@ export function FeatEntry({ feat, data, spellIndex }: { feat: Feat; data: Librar
   const fixedIncrease = Object.entries(benefits.abilityScoreIncrease || {}).map(([ability, amount]) => `${ability} +${amount}`);
   const flexible = benefits.flexibleAbilityIncrease;
   const backgrounds = data.backgrounds.filter((background) => (background.feats || []).some((granted) => granted?.id === feat.id));
+  const weight = featWeight(feat);
   const sameCategory = data.feats.filter((other) => other.id !== feat.id && (other.featCategory ?? "General") === (feat.featCategory ?? "General")).slice(0, 16);
 
   return (
@@ -34,11 +45,13 @@ export function FeatEntry({ feat, data, spellIndex }: { feat: Feat; data: Librar
       <div className="flex flex-wrap items-center gap-2">
         <SourceTags entity={feat} />
         <Tag tone="amber">{feat.featCategory ?? "General"} feat</Tag>
+        <Tag tone={weight.kind === "half" ? "green" : "neutral"}>{weight.kind === "half" ? "Half feat" : "Full feat"}</Tag>
       </div>
 
       <StatGrid
         stats={[
           { label: "Category", value: feat.featCategory ?? "General" },
+          { label: "Type", value: weight.kind === "half" ? "Half feat: a benefit plus +1 to an ability" : "Full feat: a benefit, no ability increase" },
           { label: "Prerequisite", value: prerequisites.length ? prerequisites.join("; ") : "None" },
           { label: "Ability Increase", value: fixedIncrease.length ? fixedIncrease.join(", ") : flexible ? `+${flexible.amount} to ${flexible.options?.length ? orList(flexible.options) : "any score"}` : undefined },
         ]}

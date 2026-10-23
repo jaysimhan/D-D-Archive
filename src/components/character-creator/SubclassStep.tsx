@@ -5,6 +5,7 @@ import { useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
 import { ClampedText } from "../ui/clamped-text";
 import { isOfficial } from "../../utils/source-label";
+import { subclassLevelFor } from "../../utils/class-progression";
 
 
 // Subclass Step
@@ -27,10 +28,7 @@ export function SubclassStep({
     // Fetch subclasses from Sanity, fall back to mock data
     const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses(ruleset);
 
-    const subclassLevel = classData.id === "cleric" ||
-        classData.id === "sorcerer" ||
-        classData.id === "warlock" ? 1 :
-        classData.id === "wizard" ? 2 : 3;
+    const subclassLevel = subclassLevelFor(classData, ruleset);
 
     const availableSubclasses = useMemo(() => {
         const sanity = sanitySubclasses || [];
@@ -308,6 +306,64 @@ export function SubclassStep({
                     </div>
                 )}
             </div>
+        </div>
+    );
+}
+
+/**
+ * Every class that has reached its subclass level, the starting class first.
+ * With more than one, a tab per class picks which one is being chosen; a check
+ * marks the ones already settled.
+ */
+export function SubclassesStep({
+    entries,
+    ruleset,
+    onSelect,
+}: {
+    entries: { class: Class; subclass?: Subclass; level: number }[];
+    ruleset: CharacterRuleset;
+    onSelect: (classId: string, subclass: Subclass) => void;
+}) {
+    const firstOpen = Math.max(0, entries.findIndex((entry) => !entry.subclass));
+    const [active, setActive] = useState(firstOpen);
+    const entry = entries[Math.min(active, entries.length - 1)];
+    if (!entry) return null;
+
+    return (
+        <div>
+            {entries.length > 1 && (
+                <div className="flex flex-wrap gap-2 mb-6 border-b border-zinc-800 pb-3">
+                    {entries.map((option, index) => (
+                        <button
+                            key={option.class.id}
+                            type="button"
+                            onClick={() => setActive(index)}
+                            className={`px-4 py-2 rounded-lg text-sm font-serif font-bold border transition-colors ${option === entry
+                                ? "border-brand-500 bg-brand-900/40 text-brand-100"
+                                : "border-zinc-800 bg-zinc-900/40 text-gray-400 hover:text-gray-200 hover:border-brand-500/50"
+                            }`}
+                        >
+                            {option.class.name} {option.level}
+                            <span className={option.subclass ? "text-emerald-400 ml-2" : "text-gray-600 ml-2"}>
+                                {option.subclass ? "✓" : "•"}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            )}
+            <SubclassStep
+                key={entry.class.id}
+                classData={entry.class}
+                ruleset={ruleset}
+                selectedSubclass={entry.subclass}
+                level={entry.level}
+                onSelect={(subclass) => {
+                    onSelect(entry.class.id, subclass);
+                    // Move on to the next class still waiting for one.
+                    const next = entries.findIndex((other, index) => index !== entries.indexOf(entry) && !other.subclass);
+                    if (next >= 0) setActive(next);
+                }}
+            />
         </div>
     );
 }

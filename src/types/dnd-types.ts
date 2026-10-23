@@ -1,3 +1,4 @@
+import type { SpeciesGrant } from "../data/proficiency-rules";
 // Core D&D Type System for Omni-Archive
 // Supports both 2014 and 2024 editions
 
@@ -132,6 +133,10 @@ export interface Subrace {
   abilityScoreIncrease: Partial<AbilityScores>;
   traits: { name: string; description: string }[];
   proficiencies?: ProficiencyRule[];
+  /** Proficiencies a subspecies built by the creator hands out, by trait. */
+  ruleGrants?: SpeciesGrant[];
+  /** The ability its spells are cast with, where the player chose one. */
+  spellcastingAbility?: AbilityScore;
   spells?: SpellGrant[];
   racialSpellChoices?: {
     choose: number;
@@ -179,7 +184,7 @@ export interface Class {
   startingEquipment?: string[];
   traits?: { name: string; description: string }[];
   subclasses: Subclass[]; // Auto-detected from Subclass.parentClassId
-  subclassLevel?: number; // Level at which subclass is selected (1-3)
+  subclassLevel?: number; // Level at which subclass is selected
 }
 
 export interface Feature {
@@ -281,7 +286,7 @@ export interface Spell {
   version: number;
   /** Creator-only provenance. Optional so archived spells and old drafts remain valid. */
   selectionSlotId?: string;
-  selectionSource?: "Class" | "Magic Initiate" | "Aberrant Dragonmark" | "Feat" | "Racial" | "Subclass" | "Automatic";
+  selectionSource?: "Class" | "Multiclass" | "Magic Initiate" | "Aberrant Dragonmark" | "Feat" | "Racial" | "Subclass" | "Automatic";
   /** Creator-only casting entitlement for spells granted by a feat or ancestry. */
   freeCastReset?: "Short Rest" | "Long Rest" | "Dawn";
   canUseSpellSlots?: boolean;
@@ -326,6 +331,8 @@ export interface Feat {
   prerequisites?: {
     level?: number;
     abilityScore?: Partial<AbilityScores>;
+    /** One of the scores above is enough, as in "Strength or Dexterity 13+". */
+    abilityScoreAnyOf?: boolean;
     race?: string[];
     class?: string[];
     features?: string[];
@@ -349,6 +356,13 @@ export interface Feat {
     spells?: string[]; // Spell IDs granted by this feat
     features?: string[];
   };
+  /**
+   * Creator-only: the choice this feat fills. "species" is a 2024 Human's
+   * Versatile Origin feat. An Ability Score Improvement is keyed by class
+   * level: a number for the first class, "wizard:4" for a multiclass one.
+   * Feats a background grants carry none.
+   */
+  takenAt?: "species" | number | `${string}:${number}`;
 }
 
 // ===== Item System =====

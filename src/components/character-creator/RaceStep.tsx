@@ -1,18 +1,43 @@
 import { useState, useMemo } from "react";
 import { Search, User } from "lucide-react";
-import { CharacterRuleset, Race } from "../../types/dnd-types";
+import { CharacterRuleset, Feat, Race } from "../../types/dnd-types";
+import type { CharacterData } from "../../types/character-creator";
 import { useRaces } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
+import { speciesRulesFor } from "../../data/proficiency-rules";
+import { subspeciesFor } from "../../data/subspecies";
+import { grantFromRules, grantRows } from "../../utils/proficiency-plan";
+import { featTakenAt, speciesGrantsOriginFeat } from "../../utils/feats";
+import { PlanChoicePicker } from "./PlanChoicePicker";
+import { OriginFeatPicker } from "./OriginFeatPicker";
+
+/** What a species' traits grant, row by row, for the details panel. */
+function speciesProficiencyRows(race: Race, ruleset: CharacterRuleset): { label: string; value: string }[] {
+    const table = speciesRulesFor(race.id, ruleset);
+    if (table) {
+        return table.flatMap(({ feature, grant }) =>
+            grantRows(grant).map((row) => ({ label: `${row.label} (${feature})`, value: row.value })));
+    }
+    const fromRules = grantFromRules(race.proficiencies);
+    return fromRules ? grantRows(fromRules) : [];
+}
 
 // Race Selection Step
 export function RaceStep({
     race,
     ruleset,
+    character,
     onChange,
+    onProficiencyChange,
+    onSpeciesFeatChange,
 }: {
     race?: Race;
     ruleset: CharacterRuleset;
+    character: CharacterData;
     onChange: (race: Race) => void;
+    onProficiencyChange: (update: (prev: CharacterData) => Partial<CharacterData>) => void;
+    /** A 2024 Human's Versatile Origin feat. */
+    onSpeciesFeatChange?: (feat: Feat | undefined) => void;
 }) {
     const ancestryLabel = ruleset === "2024" ? "Species" : "Race";
     const [showNonCore, setShowNonCore] = useState(true);
@@ -41,6 +66,8 @@ export function RaceStep({
 
     // Use the race from displayRaces to ensure we have Sanity image data
     const displayedRace = race ? displayRaces.find(r => r.id === race.id) || race : undefined;
+    const proficiencyRows = displayedRace ? speciesProficiencyRows(displayedRace, ruleset) : [];
+    const subspecies = subspeciesFor(displayedRace?.id, ruleset);
 
     const handleRaceClick = (r: Race) => {
         onChange(r);
@@ -166,8 +193,49 @@ export function RaceStep({
 
                             <div>
                                 <span className="font-bold text-brand-400">Languages.</span>{' '}
-                                <span className="text-gray-300">{displayedRace.languages?.join(", ") || "Common"}</span>
+                                <span className="text-gray-300">
+                                    {ruleset === "2024"
+                                        ? "Common plus two Standard languages of your choice"
+                                        : displayedRace.languages?.join(", ") || "Common"}
+                                </span>
                             </div>
+
+                            {proficiencyRows.length > 0 && (
+                                <div>
+                                    <h4 className="font-bold text-brand-400 mb-1">Proficiencies.</h4>
+                                    <ul className="text-sm space-y-1 mb-3">
+                                        {proficiencyRows.map((row, i) => (
+                                            <li key={i}>
+                                                <span className="font-semibold text-gray-200">{row.label}:</span>{" "}
+                                                <span className="text-gray-300">{row.value}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <PlanChoicePicker
+                                        character={character}
+                                        include={(choice) => !choice.duplicate && (
+                                            choice.id.startsWith(`species:${displayedRace.id}:`)
+                                            || choice.id.startsWith(`race-rules:${displayedRace.id}`)
+                                        )}
+                                        onChange={onProficiencyChange}
+                                    />
+                                </div>
+                            )}
+
+                            {speciesGrantsOriginFeat(ruleset, displayedRace) && onSpeciesFeatChange && (
+                                <OriginFeatPicker
+                                    ruleset={ruleset}
+                                    selected={featTakenAt(character.feats, "species")}
+                                    takenElsewhere={(character.background?.feats ?? []).map((feat) => feat.name)}
+                                    onChange={onSpeciesFeatChange}
+                                />
+                            )}
+
+                            {subspecies && (
+                                <p className="text-sm text-brand-300 bg-brand-950/40 border border-brand-800/50 rounded-md p-3">
+                                    You'll choose your {subspecies.feature} on the next screen.
+                                </p>
+                            )}
 
                             <div>
                                 <h4 className="font-bold text-brand-400 mb-1">Traits.</h4>

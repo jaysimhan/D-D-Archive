@@ -33,6 +33,7 @@ import {
     type LuckSwitch,
 } from "../lib/dice";
 import { playDiceSound } from "../lib/dice-sound";
+import { announceStatRoll, onStatRollRequest } from "../lib/stat-roll-bridge";
 
 type RollMode = "normal" | "advantage" | "disadvantage";
 
@@ -147,6 +148,12 @@ export function DiceRoller() {
     const [pulses, setPulses] = useState<Record<string, number>>({});
 
     const shuffleTimer = useRef<number | null>(null);
+    /**
+     * The latest stat array's lines and the totals they have rolled so far.
+     * Once all six have a total they go out to the character creator.
+     */
+    const statLineIds = useRef<string[]>([]);
+    const statTotals = useRef(new Map<string, number>());
 
     useEffect(() => () => {
         if (shuffleTimer.current !== null) window.clearInterval(shuffleTimer.current);
@@ -257,6 +264,17 @@ export function DiceRoller() {
                 return next;
             });
 
+            const statIds = statLineIds.current;
+            let statRolled = false;
+            for (const { line, roll } of rolled) {
+                if (!statIds.includes(line.id)) continue;
+                statTotals.current.set(line.id, roll.total);
+                statRolled = true;
+            }
+            if (statRolled && statIds.every((id) => statTotals.current.has(id))) {
+                announceStatRoll(statIds.map((id) => statTotals.current.get(id)!));
+            }
+
             pushBatch(logged);
             announce(logged);
             if (soundOn) playDiceSound(rolled.reduce((running, { roll }) => running + roll.dice.length, 0));
@@ -330,8 +348,12 @@ export function DiceRoller() {
         });
     }, []);
 
-    /** Six lines of 4d6 drop lowest, rolled straight away — the classic spread. */
-    const rollStatArray = useCallback(() => {
+    /**
+     * Six lines of 4d6 drop lowest — the classic spread. The button rolls them
+     * straight away; the creator can ask for them only set up, and replaces its
+     * previous set rather than stacking a new one under it.
+     */
+    const rollStatArray = useCallback((roll = true, replace = false) => {
         const fresh = Array.from({ length: STAT_ARRAY_SIZE }, (_, index) => createLine({
             label: `Ability ${index + 1}`,
             count: 4,
@@ -342,9 +364,26 @@ export function DiceRoller() {
             keepCount: 1,
         }));
 
-        setLines((prev) => [...prev, ...fresh].slice(0, MAX_LINES));
-        rollLines(fresh);
+        const previous = statLineIds.current;
+        statLineIds.current = fresh.map((line) => line.id);
+        statTotals.current = new Map();
+
+        setLines((prev) => {
+            const kept = replace ? prev.filter((line) => !previous.includes(line.id)) : prev;
+            return replace
+                ? [...kept.slice(Math.max(0, kept.length + STAT_ARRAY_SIZE - MAX_LINES)), ...fresh]
+                : [...kept, ...fresh].slice(0, MAX_LINES);
+        });
+        if (roll) rollLines(fresh);
     }, [rollLines]);
+
+    // The creator's "Rolled" method opens the roller on a fresh stat array.
+    const rollStatArrayRef = useRef(rollStatArray);
+    rollStatArrayRef.current = rollStatArray;
+    useEffect(() => onStatRollRequest(({ roll }) => {
+        setIsOpen(true);
+        rollStatArrayRef.current(roll, true);
+    }), []);
 
     const roomForStatArray = lines.length + STAT_ARRAY_SIZE <= MAX_LINES;
     const shown = shuffle ?? headline?.total ?? 0;
@@ -632,7 +671,7 @@ export function DiceRoller() {
                                     </span>
                                     <div className="flex items-center gap-1">
                                         <button
-                                            onClick={rollStatArray}
+                                            onClick={() => rollStatArray()}
                                             disabled={isRolling || !roomForStatArray}
                                             title={roomForStatArray
                                                 ? "Add and roll six lines of 4d6 drop lowest"

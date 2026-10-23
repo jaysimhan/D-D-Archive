@@ -1,12 +1,25 @@
 import { useState, useMemo } from "react";
 import { Search, User, Sparkles, Plus, Loader2 } from "lucide-react";
-import { Background, CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
+import { AbilityScore, AbilityScores, Background, CharacterRuleset, Class, Spell, Feat, Subclass, Race, Subrace } from "../../types/dnd-types";
 import { useSpells } from "../../hooks/useSanityData";
 import { collectAutomaticSpells } from "../../utils/character-spells";
-import { isMetamagicFeat, metamagicChoiceLimit } from "../../utils/combat-progression";
+import { classMetamagicChoices, isMetamagicFeat, metamagicChoiceLimit } from "../../utils/combat-progression";
+import {
+    cantripsKnown,
+    casterTypeOf,
+    leveledSpellCount,
+    maxSpellLevel,
+    mysticArcanumLevels,
+} from "../../utils/spellcasting-progression";
 import { METAMAGIC_OPTIONS, metamagicDetail } from "../../utils/metamagic";
 import { ClampedText } from "../ui/clamped-text";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+
+/** For class documents that don't name their spellcasting ability. */
+const DEFAULT_CASTING_ABILITY: Record<string, AbilityScore> = {
+    artificer: "INT", bard: "CHA", cleric: "WIS", druid: "WIS", paladin: "CHA",
+    ranger: "WIS", sorcerer: "CHA", warlock: "CHA", wizard: "INT",
+};
 
 // Spell Selection Step - Slot Based
 export function SpellSelectionStep({
@@ -27,6 +40,9 @@ export function SpellSelectionStep({
     ,onMetamagicChange
     ,featSpellcastingAbilities = {}
     ,onFeatSpellcastingAbilityChange
+    ,bonusCantrips = 0
+    ,abilityScores
+    ,classLevel
 }: {
     classData: Class;
     ruleset: CharacterRuleset;
@@ -45,6 +61,12 @@ export function SpellSelectionStep({
     onMetamagicChange?: (choices: string[]) => void;
     featSpellcastingAbilities?: Record<string, "INT" | "WIS" | "CHA">;
     onFeatSpellcastingAbilityChange?: (featId: string, ability: "INT" | "WIS" | "CHA") => void;
+    /** Extra class cantrips from a feature choice, e.g. the 2024 Thaumaturge. */
+    bonusCantrips?: number;
+    /** Final scores; a 2014 prepared caster prepares their level plus this modifier. */
+    abilityScores?: AbilityScores;
+    /** The first class's own level, when multiclassing leaves it below the character's. */
+    classLevel?: number;
 }) {
     const { data: allSpells, loading: spellsLoading, error: spellsError } = useSpells(ruleset);
     const [activeSlot, setActiveSlot] = useState<{ id: string, level: number, index: number, source: NonNullable<Spell["selectionSource"]>, choiceIndex?: number, flexibleLevel?: boolean } | null>(null);
@@ -53,8 +75,11 @@ export function SpellSelectionStep({
     const hasMagicInitiate = feats.some(f => f.name.includes("Magic Initiate"));
     const hasAberrantDragonmark = feats.some(f => f.name.includes("Aberrant Dragonmark"));
     const metamagicFeat = feats.find(isMetamagicFeat);
-    const sorcererMetamagicChoices = classData.id === "sorcerer" && level >= 2 ? 2 : 0;
-    const metamagicLimit = metamagicChoiceLimit(classData.id, level, feats);
+    // A multiclassed character's first class counts only its own levels; the
+    // character level still governs species and feat spells below.
+    const ownLevel = classLevel ?? level;
+    const sorcererMetamagicChoices = classMetamagicChoices(classData.id, ownLevel, ruleset);
+    const metamagicLimit = metamagicChoiceLimit(classData.id, ownLevel, feats, ruleset);
     // A Sorcerer who also took the feat picks four options, so name where each
     // pair came from instead of leaving them to work out why the count grew.
     const metamagicSources = [
@@ -98,125 +123,20 @@ export function SpellSelectionStep({
         return type === 'at-will' ? 'At Will' : type;
     };
 
-    // Helper to determine Class Slots dynamically
-    const getClassCapacities = () => {
-        let cantrips = 0;
-        let level1 = 0;
-        let level2 = 0;
-
-        const type = classData.spellcaster; // 'full', 'half', 'half-up', 'third', 'pact', 'none'
-        const effectiveLevel = level;
-
-        // If not a caster, return 0
-        if (!type || type === 'none') {
-            // Check manual override boolean just in case logic is mixed
-            if (!classData.isSpellcaster) return { cantrips: 0, level1: 0, level2: 0 };
-        }
-
-        // Cantrips
-        // Most full casters start with 3, some 2, some 4. This is hard to generalize perfectly without data field,
-        // but we can make reasonable defaults based on type.
-        // Or we can rely on specific fields in future. For now, we'll use a mix of type + ID override if needed.
-        if (type === 'full') cantrips = 3;
-        if (type === 'half') cantrips = 0; // Paladin/Ranger usually 0
-        if (type === 'half-up') cantrips = 2; // Artificer
-        if (type === 'third') cantrips = 2; // But usually AT/EK start at lvl 3
-        if (type === 'pact') cantrips = 2;
-
-        // Specific overrides for accuracy (still needed for exact 5e rules until we add 'cantripsKnown' to schema)
-        if (["bard", "druid"].includes(classData.id)) cantrips = 2;
-        if (classData.id === "sorcerer") cantrips = 4;
-        if (classData.id === "warmage") cantrips = 4;
-        if (level >= 4 && (type === 'full' || type === 'pact')) cantrips += 1;
-
-
-        // Slot Logic
-        if (type === 'pact') {
-            // Warlock Logic
-            level1 = level + 1; // 1 slot at lvl 1, 2 slots at lvl 2+
-            if (level >= 2) level1 = 2;
-            // Warlock slots upgrade level, they don't add strictly.
-            // Beginner creator (1-3):
-            // Lvl 1: 1 x 1st
-            // Lvl 2: 2 x 1st
-            // Lvl 3: 2 x 2nd
-            if (level === 1) { level1 = 1; level2 = 0; }
-            if (level === 2) { level1 = 2; level2 = 0; }
-            if (level === 3) { level1 = 0; level2 = 2; }
-        } else if (type === 'full' || type === 'half-up' || type === 'half' || type === 'third') {
-            // Standard Progression
-            let casterLevel = 0;
-            if (type === 'full') casterLevel = level;
-            if (type === 'half-up') casterLevel = Math.ceil(level / 2);
-            if (type === 'half') casterLevel = Math.floor(level / 2);
-            if (type === 'third') casterLevel = Math.floor(level / 3);
-
-            // Level 1 Slots
-            if (casterLevel >= 1) level1 = 2;
-            if (casterLevel >= 2) level1 = 3;
-            if (casterLevel >= 3) level1 = 4;
-
-            // Level 2 Slots
-            if (casterLevel >= 3) {
-                level2 = 2;
-                // Note: In 5e, slots are additive. You have 4 1st AND 2 2nd.
-                // But this UI seems slot-selection based (known spells vs slots).
-                // "Spells Known" (Bard/Sorc/Warlock) vs "Prepared" (Cleric/Druid/Wiz).
-                // Existing logic seemed to try to calculate "Spells you can select".
-
-                // Let's approximate "Spells Known/Prepared" count, not Spell Slots.
-                // User selects spells to "prepare" or "know".
-
-                // Full Casters (Prep): Lvl + Mod (assume +3)
-                // Full Casters (Known): Bard/Sorc ~ Lvl + something.
-
-                // Let's default to a generous "Standard Prep" formula for future proofing:
-                // Level + 3. (Min 1).
-
-                const baseCount = Math.max(1, effectiveLevel + 3);
-
-                // Distribute reasonable split for UI
-                level1 = baseCount;
-                if (casterLevel >= 3) {
-                    level2 = 2;
-                    level1 = Math.max(1, baseCount - 2);
-                }
-            } else {
-                // Low level
-                level1 = Math.max(1, casterLevel + 2); // heuristic
-                if (type === 'half' && casterLevel < 2) level1 = 0; // Paladin 1 has 0
-                if (type === 'half' && casterLevel >= 2 && effectiveLevel >= 2) level1 = 2; // Paladin 2
-            }
-        }
-
-        // Manual override for "Subclass Caster" (Third Caster logic usually handles this if class is updated, but if subclass adds it to non-caster class?)
-        // E.g. Fighter (None) -> Eldritch Knight (Third).
-        // If class is 'none' but subclass isSpellcaster?
-        if (classData.spellcaster === 'none' && subclass?.isSpellcaster) {
-            // Assume Third Caster
-            const casterLevel = Math.floor(level / 3);
-            if (casterLevel >= 1) { // Level 3+
-                cantrips = 2;
-                if (subclass.id === 'arcane-trickster') cantrips = 3;
-                level1 = 3; // usually 3 known at lvl 3
-            } else {
-                cantrips = 0; level1 = 0; level2 = 0;
-            }
-        }
-
-        // Sorcerers learn a total number of leveled spells; spell slots are not
-        // additional spells known. Keep the beginner UI's two level buckets
-        // within the official 2/3/4 known progression for levels 1–3.
-        if (classData.id === "sorcerer") {
-            if (level === 1) { level1 = 2; level2 = 0; }
-            if (level === 2) { level1 = 3; level2 = 0; }
-            if (level >= 3) { level1 = 2; level2 = 2; }
-        }
-
-        return { cantrips, level1, level2 };
+    // The class's picks come from the Handbook tables: cantrips known, and a
+    // pool of spells known or prepared that may be of any level its slots reach.
+    const casterType = casterTypeOf(classData, subclass);
+    // Spells known or prepared follow the class's own level even when
+    // multiclassed; only the slots pool, and the sheet works those out.
+    const highestSpellLevel = maxSpellLevel(casterType, ownLevel, ruleset);
+    const castingAbility = classData.spellcastingAbility ?? DEFAULT_CASTING_ABILITY[classData.id] ?? "INT";
+    const castingModifier = Math.floor(((abilityScores?.[castingAbility] ?? 10) - 10) / 2);
+    const classCapacities = {
+        cantrips: cantripsKnown(classData, ownLevel, subclass) + (casterType === "none" ? 0 : bonusCantrips),
+        leveled: highestSpellLevel > 0
+            ? leveledSpellCount(classData, ownLevel, ruleset, castingModifier, subclass)
+            : 0,
     };
-
-    const classCapacities = getClassCapacities();
 
     const createSlots = (count: number, level: number, prefix: string, source: string) => {
         return Array.from({ length: count }).map((_, i) => ({
@@ -227,17 +147,18 @@ export function SpellSelectionStep({
         }));
     };
 
-    const classSlots = classData.id === "sorcerer"
-        ? [
-            ...createSlots(classCapacities.cantrips, 0, "class-cantrip", "Class"),
-            ...createSlots(level === 1 ? 2 : level === 2 ? 3 : 4, level >= 3 ? 2 : 1, "class-known", "Class")
-                .map((slot) => ({ ...slot, flexibleLevel: true })),
-        ]
-        : [
-            ...createSlots(classCapacities.cantrips, 0, "class-cantrip", "Class"),
-            ...createSlots(classCapacities.level1, 1, "class-lvl1", "Class"),
-            ...createSlots(classCapacities.level2, 2, "class-lvl2", "Class"),
-        ];
+    const classSlots = [
+        ...createSlots(classCapacities.cantrips, 0, "class-cantrip", "Class"),
+        ...createSlots(classCapacities.leveled, highestSpellLevel, "class-known", "Class")
+            .map((slot) => ({ ...slot, flexibleLevel: true })),
+        // Mystic Arcanum: one spell of each level 6-9, cast without a Pact slot.
+        ...mysticArcanumLevels(classData, ownLevel).map((spellLevel) => ({
+            level: spellLevel,
+            index: 0,
+            id: `class-arcanum-${spellLevel}`,
+            source: "Class",
+        })),
+    ];
 
     // Magic Initiate Slots
     const magicInitiateSlots = hasMagicInitiate ? [
@@ -382,7 +303,13 @@ export function SpellSelectionStep({
                     return (
                         <div key={lvl} className="mb-4 last:mb-0">
                             <h4 className="text-sm font-semibold text-brand-400 mb-2 uppercase tracking-wide">
-                                {lvl === 0 ? "Cantrips" : lvlSlots.some((slot) => slot.flexibleLevel) ? `Level 1–${lvl} Spells Known` : `Level ${lvl} Spells`}
+                                {lvl === 0
+                                    ? "Cantrips"
+                                    : lvlSlots.some((slot) => slot.flexibleLevel) && lvl > 1
+                                        ? `Spells of Level 1–${lvl}`
+                                        : lvlSlots.some((slot) => slot.id.startsWith("class-arcanum"))
+                                            ? `Mystic Arcanum (Level ${lvl})`
+                                            : `Level ${lvl} Spells`}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {lvlSlots.map((slot) => {

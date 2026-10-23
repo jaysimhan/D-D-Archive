@@ -20,6 +20,7 @@ import {
     remainingPicks,
     SkillView,
 } from "../../utils/proficiency-plan";
+import { PlanChoicePicker } from "./PlanChoicePicker";
 
 /**
  * Proficiencies & Languages.
@@ -29,8 +30,9 @@ import {
  * this list", and this step is where those choices are made. Grants are shown
  * locked with the feature that gave them, and a skill the character has no
  * claim on cannot be taken at all. Expertise appears only where a feature
- * grants it — a rogue's two skills at 1st level, a bard's at 2nd, a ranger's
- * Deft Explorer, a wizard's Scholar, the Knowledge domain's blessing.
+ * grants it — a rogue's two skills at 1st level, a bard's at 2nd (3rd under
+ * 2014 rules), a 2024 ranger's Deft Explorer and wizard's Scholar, the
+ * Knowledge domain's blessing.
  */
 export function ProficiencyStep({
     character,
@@ -49,6 +51,8 @@ export function ProficiencyStep({
     ) => void;
 }) {
     const plan = useMemo(() => buildProficiencyPlan(character), [
+        character.ruleset,
+        character.classFeatureChoices,
         character.race,
         character.subrace,
         character.class,
@@ -56,6 +60,7 @@ export function ProficiencyStep({
         character.background,
         character.feats,
         character.level,
+        character.multiclasses,
     ]);
 
     const selections: ProficiencySelections = character.proficiencyChoices ?? {};
@@ -154,7 +159,8 @@ export function ProficiencyStep({
 
     const grantedOf = (kind: ProficiencyKind) => plan.granted.filter((grant) => grant.kind === kind);
     const choicesOf = (...kinds: PlanChoice["kind"][]) =>
-        plan.choices.filter((choice) => kinds.includes(choice.kind));
+        plan.choices.filter((choice) => !choice.duplicate && kinds.includes(choice.kind));
+    const duplicateChoices = plan.choices.filter((choice) => choice.duplicate);
 
     const skillChoices = choicesOf("skill", "skillOrTool", "expertise");
     const languageChoices = choicesOf("language");
@@ -163,6 +169,7 @@ export function ProficiencyStep({
 
     /** Where each outstanding choice is filled in, for the header's shortcuts. */
     const sectionOf = (choice: PlanChoice): { id: string; label: string } => {
+        if (choice.duplicate) return { id: SECTIONS.overlaps, label: "Overlapping Proficiencies" };
         if (choice.kind === "language") return { id: SECTIONS.languages, label: "Languages" };
         if (choice.kind === "tool") return { id: SECTIONS.tools, label: "Tools" };
         if (choice.kind === "armor" || choice.kind === "weapon") {
@@ -264,6 +271,25 @@ export function ProficiencyStep({
                             bottom of this step.
                         </p>
                     </div>
+                )}
+
+                {/* ---------------- Overlaps ---------------- */}
+                {duplicateChoices.length > 0 && (
+                    <section id={SECTIONS.overlaps} className="bg-zinc-900/60 p-6 rounded-xl border border-brand-800/50">
+                        <SectionHeading
+                            title="Overlapping Proficiencies"
+                            left={sumPlaceable(plan, duplicateChoices, selections)}
+                        />
+                        <p className="text-xs text-gray-500 mb-4">
+                            Two of your features grant the same proficiency. Proficiency doesn't stack, so
+                            for each overlap you choose a different one of the same kind instead.
+                        </p>
+                        <PlanChoicePicker
+                            character={character}
+                            include={(choice) => !!choice.duplicate}
+                            onChange={onChange}
+                        />
+                    </section>
                 )}
 
                 {/* ---------------- Skills ---------------- */}
@@ -388,6 +414,7 @@ export function ProficiencyStep({
 /* ------------------------------------------------------------------ */
 
 const SECTIONS = {
+    overlaps: "proficiency-overlaps",
     skills: "proficiency-skills",
     languages: "proficiency-languages",
     tools: "proficiency-tools",

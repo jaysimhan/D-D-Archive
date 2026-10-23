@@ -53,10 +53,21 @@ export function hasMetamagicFeat(feats: Feat[]): boolean {
   return feats.some(isMetamagicFeat);
 }
 
-export function metamagicChoiceLimit(classId: string, classLevel: number, feats: Feat[]): number {
-  const classChoices = classId === "sorcerer" && classLevel >= 2 ? 2 : 0;
+/**
+ * Metamagic options a Sorcerer knows. 2014 starts with two at level 3 and adds
+ * one at 10 and 17; 2024 starts with two at level 2 and adds two at each.
+ */
+export function classMetamagicChoices(classId: string, classLevel: number, ruleset?: CharacterRuleset): number {
+  if (classId !== "sorcerer") return 0;
+  const legacy = ruleset === "2014";
+  if (classLevel < (legacy ? 3 : 2)) return 0;
+  const later = [10, 17].filter((level) => classLevel >= level).length;
+  return 2 + later * (legacy ? 1 : 2);
+}
+
+export function metamagicChoiceLimit(classId: string, classLevel: number, feats: Feat[], ruleset?: CharacterRuleset): number {
   const featChoices = hasMetamagicFeat(feats) ? 2 : 0;
-  return classChoices + featChoices;
+  return classMetamagicChoices(classId, classLevel, ruleset) + featChoices;
 }
 
 function grantsSorceryPoints(feat: Feat): boolean {

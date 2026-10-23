@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft, Check, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { CharacterData, CreationStep, isCreationStep } from "../types/character-creator";
@@ -14,6 +14,7 @@ import {
 import { useBackgrounds, useClasses, useFeats, useRaces, useSpells, useSubclasses } from "../hooks/useSanityData";
 import {
   buildProficiencyPlan,
+  chosenFeatureOption,
   EMPTY_CUSTOM,
   pruneSelections,
   resolveProficiencies,
@@ -24,17 +25,28 @@ import {
   withoutSpellSource,
 } from "../utils/character-spells";
 import { subclassLevelFor } from "../utils/class-progression";
+import { classRulesFor } from "../data/proficiency-rules";
 import { metamagicChoiceLimit } from "../utils/combat-progression";
-import { pruneFeatAbilityChoices, trimFeatsToBudget } from "../utils/feats";
-import { finalAbilityScores } from "../utils/ability-scores";
+import {
+  earnedFeats,
+  featTakenAt,
+  improvementSlots,
+  pruneFeatAbilityChoices,
+  speciesGrantsOriginFeat,
+  unfinishedImprovements,
+} from "../utils/feats";
+import type { Feat } from "../types/dnd-types";
+import { abilityScoresReady, finalAbilityScores } from "../utils/ability-scores";
 
 // Import Step Components
 import { NameStep } from "./character-creator/NameStep";
 import { RulesetStep } from "./character-creator/RulesetStep";
 import { RaceStep } from "./character-creator/RaceStep";
+import { SubspeciesStep, subspeciesComplete } from "./character-creator/SubspeciesStep";
+import { subspeciesFor } from "../data/subspecies";
 import { ClassStep } from "./character-creator/ClassStep";
-import { SubclassStep } from "./character-creator/SubclassStep";
-import { AbilityScoreStep } from "./character-creator/AbilityScoreStep";
+import { SubclassesStep } from "./character-creator/SubclassStep";
+import { AbilityScoreStep, type ScoreGeneration } from "./character-creator/AbilityScoreStep";
 import { BackgroundStep } from "./character-creator/BackgroundStep";
 import { SpellSelectionStep } from "./character-creator/SpellSelectionStep";
 import { EquipmentStep } from "./character-creator/EquipmentStep";
@@ -42,7 +54,51 @@ import { PersonalityStep } from "./character-creator/PersonalityStep";
 import { FeatSelectionStep } from "./character-creator/FeatSelectionStep";
 import { ProficiencyStep } from "./character-creator/ProficiencyStep";
 import { HitPointsStep } from "./character-creator/HitPointsStep";
+import { MulticlassSpells } from "./character-creator/MulticlassSpells";
+import {
+  classLevels,
+  isMulticlassed,
+  levelDice,
+  primaryClassLevel,
+  unmetMulticlassPrerequisites,
+  withoutMulticlassSpells,
+  type MulticlassEntry,
+} from "../utils/multiclass";
+import { casterTypeOf } from "../utils/spellcasting-progression";
 import { MagicItemStep } from "./character-creator/MagicItemStep";
+
+/**
+ * Swaps in a new feat list and lets go of what the old one carried: the
+ * ability points a dropped feat placed, Metamagic picks past the new limit,
+ * and spells chosen through feats, which are picked again on the Spells step.
+ */
+function changeFeats(character: CharacterData, feats: Feat[]): CharacterData {
+  const sameFeats = feats.length === character.feats.length
+    && feats.every((feat) => character.feats.some((held) => held.id === feat.id && held.takenAt === feat.takenAt));
+  return {
+    ...character,
+    feats,
+    featAbilityChoices: pruneFeatAbilityChoices(feats, character.featAbilityChoices),
+    metamagicChoices: (character.metamagicChoices || []).slice(
+      0,
+      metamagicChoiceLimit(character.class?.id ?? "", character.level, feats, character.ruleset),
+    ),
+    selectedSpells: sameFeats
+      ? character.selectedSpells
+      : withoutSpellSource(character.selectedSpells, "Feat", "Magic Initiate", "Aberrant Dragonmark"),
+  };
+}
+
+/**
+ * After a change of level, class or species, keeps only the feats the
+ * character still earns: improvements above the new level, a Fighter's extra
+ * ones after switching class, or a Human's Versatile feat after switching
+ * species all go.
+ */
+function settleFeats(character: CharacterData): CharacterData {
+  const feats = earnedFeats(character);
+  return feats.length === character.feats.length ? { ...character, feats } : changeFeats(character, feats);
+}
 
 export function CharacterCreator() {
   const navigate = useNavigate();
@@ -50,9 +106,12 @@ export function CharacterCreator() {
   // The draft is read straight into initial state: localStorage is synchronous,
   // so the very first render already knows which steps this character has
   // earned and no step ever mounts against an empty character.
-  const [characterData, setCharacterData] = useState<CharacterData>(
-    () => loadDraft()?.character ?? createEmptyCharacter(),
-  );
+  // Drafts from before improvements existed may hold feats picked freely at
+  // level 1; settling drops whatever the character no longer earns.
+  const [characterData, setCharacterData] = useState<CharacterData>(() => {
+    const draft = loadDraft()?.character;
+    return draft ? settleFeats(draft) : createEmptyCharacter();
+  });
 
   // Fetch subclasses here for the check
   const { data: sanitySubclasses, loading: subclassesLoading } = useSubclasses(characterData.ruleset);
@@ -82,36 +141,45 @@ export function CharacterCreator() {
     }));
   }, [sanityClasses, sanityRaces, sanitySubclasses, sanityFeats, sanitySpells, sanityBackgrounds]);
 
+  // Each class, starting class first, that has reached its subclass level and
+  // has subclasses in the Archive to choose from.
+  const subclassEntries = useMemo(
+    () => classLevels(characterData).filter((entry) =>
+      entry.level >= subclassLevelFor(entry.class, characterData.ruleset)
+      && allSubclasses.some((subclass) => subclass.parentClassId === entry.class.id)),
+    [characterData.class, characterData.subclass, characterData.level, characterData.multiclasses, characterData.ruleset, allSubclasses],
+  );
+
   const steps: CreationStep[] = useMemo(() => {
-    const baseSteps: CreationStep[] = ["ruleset", "race", "class"];
+    const baseSteps: CreationStep[] = ["ruleset", "class"];
 
-    // Add subclass step if character level requires it
-    if (characterData.class) {
-      const subclassLevel = subclassLevelFor(characterData.class, characterData.ruleset);
+    // One subclass step covers every class that has reached its subclass level.
+    if (subclassEntries.length > 0) baseSteps.push("subclass");
 
-      // Check if there are any subclasses available for this class
-      const hasSubclasses = allSubclasses.some(s => s.parentClassId === characterData.class?.id);
-
-      if (characterData.level >= subclassLevel && hasSubclasses) {
-        baseSteps.push("subclass");
-      }
-    }
-
+    baseSteps.push("race");
+    if (subspeciesFor(characterData.race?.id, characterData.ruleset)) baseSteps.push("subspecies");
     baseSteps.push("background");
-    baseSteps.push("feats");
     baseSteps.push("abilities");
+    // Ability Score Improvements start at level 4: each is a +2/+1+1 or a feat,
+    // chosen once the base scores they build on are known.
+    if (improvementSlots(characterData).length > 0) baseSteps.push("feats");
     baseSteps.push("proficiencies");
 
     // Add spells step if class is spellcaster OR race is spellcaster OR subclass is spellcaster
     const isClassCaster = characterData.class?.isSpellcaster === true || (characterData.class?.spellcaster && characterData.class.spellcaster !== 'none' && characterData.class.spellcaster !== 'None');
-    const isRaceCaster = characterData.race?.isSpellcaster === true;
+    const isRaceCaster = characterData.race?.isSpellcaster === true || (characterData.subrace?.spells?.length ?? 0) > 0;
     const isSubclassCaster = characterData.subclass?.isSpellcaster === true || characterData.subclass?.spellcaster === true;
     const hasFeatSpells = characterData.feats.some((feat) =>
       (feat.spells?.length ?? 0) > 0 ||
       feat.grants?.some((grant) => grant.grantType === "Specific Spell" || grant.grantType === "Spell Slot"),
     );
 
-    if (isClassCaster || isRaceCaster || isSubclassCaster || hasFeatSpells) {
+    // A later class that casts brings the spells step too.
+    const isMulticlassCaster = classLevels(characterData)
+      .slice(1)
+      .some((entry) => casterTypeOf(entry.class, entry.subclass) !== "none");
+
+    if (isClassCaster || isRaceCaster || isSubclassCaster || hasFeatSpells || isMulticlassCaster) {
       baseSteps.push("spells");
     }
 
@@ -133,26 +201,84 @@ export function CharacterCreator() {
     characterData.feats,
     characterData.race,
     characterData.subrace,
+    characterData.ruleset,
     characterData.subclass,
+    characterData.multiclasses,
     allSubclasses,
+    subclassEntries,
   ]);
+
+  const unmetPrerequisites = unmetMulticlassPrerequisites(characterData, finalAbilityScores(characterData));
+  const multiclassPrerequisitesMet = unmetPrerequisites.length === 0;
+  // The last step that can still change the scores is where they are checked.
+  const prerequisiteStep: CreationStep = steps.includes("feats") ? "feats" : "abilities";
+
+  /**
+   * Every class with its level, starting class first. The character level is
+   * their sum; a class that drops out, or a starting class that changes, takes
+   * its spell picks with it, and improvements it no longer earns go too.
+   */
+  const setClasses = (entries: MulticlassEntry[]) => {
+    const [first, ...rest] = entries;
+    if (!first) return;
+    const ruleset = characterData.ruleset;
+    const reached = (entry: MulticlassEntry) =>
+      entry.subclass && entry.level >= subclassLevelFor(entry.class, ruleset) ? entry.subclass : undefined;
+    const before = classLevels(characterData);
+    const firstChanged = first.class.id !== before[0]?.class.id || first.level !== before[0]?.level;
+    const unchanged = new Set(rest
+      .filter((entry) => before.some((old, index) => index > 0 && old.class.id === entry.class.id && old.level === entry.level))
+      .map((entry) => entry.class.id));
+
+    setCharacterData(settleFeats({
+      ...characterData,
+      class: first.class,
+      subclass: reached(first),
+      level: entries.reduce((total, entry) => total + entry.level, 0),
+      multiclasses: rest.length ? rest.map((entry) => ({ ...entry, subclass: reached(entry) })) : undefined,
+      selectedSpells: withoutMulticlassSpells(
+        firstChanged
+          ? withoutSpellSource(characterData.selectedSpells, "Class", "Subclass")
+          : characterData.selectedSpells,
+        (classId) => unchanged.has(classId),
+      ),
+    }));
+  };
 
   const canLeaveStep = (step: CreationStep | undefined): boolean => {
     switch (step) {
       case "ruleset":
         return characterData.ruleset === "2014" || characterData.ruleset === "2024";
       case "race":
-        return !!characterData.race;
-      case "class":
-        return !!characterData.class;
+        // A 2024 Human's Versatile Origin feat is part of picking the species.
+        return !!characterData.race && (
+          !speciesGrantsOriginFeat(characterData.ruleset, characterData.race, characterData.subrace)
+          || !!featTakenAt(characterData.feats, "species")
+        );
+      case "subspecies":
+        return subspeciesComplete(characterData);
+      case "class": {
+        if (!characterData.class) return false;
+        // A 2024 cleric or druid has to settle their Divine or Primal Order.
+        // Later classes need theirs too; subclasses come in the next step.
+        return classLevels(characterData).every((entry) => {
+          const featureChoice = classRulesFor(entry.class, characterData.ruleset)?.featureChoice;
+          return !featureChoice
+            || entry.level < featureChoice.level
+            || !!characterData.classFeatureChoices?.[featureChoice.feature];
+        });
+      }
       case "subclass":
-        return !!characterData.subclass;
+        return subclassEntries.every((entry) => !!entry.subclass);
       case "background":
         return !!characterData.background;
       case "feats":
-        return true;
+        // Every improvement needs a choice, and every point it hands out a home.
+        // Improvements can lift a score to 13, so multiclass prerequisites are
+        // judged here when the character has any.
+        return unfinishedImprovements(characterData).length === 0 && multiclassPrerequisitesMet;
       case "abilities":
-        return true;
+        return abilityScoresReady(characterData) && (steps.includes("feats") || multiclassPrerequisitesMet);
       case "proficiencies":
         return true;
       case "spells":
@@ -240,6 +366,19 @@ export function CharacterCreator() {
   useEffect(() => {
     if (currentStep) window.scrollTo({ top: 0 });
   }, [currentStep]);
+
+  // Stable, because the ability step listens to the dice roller through it;
+  // the function form keeps a roll landing late from undoing a newer edit.
+  const updateScoreGeneration = useCallback(
+    (patch: ScoreGeneration) => setCharacterData((prev) => ({ ...prev, ...patch })),
+    [],
+  );
+
+  const updateFromPicker = useCallback(
+    (update: (prev: CharacterData) => Partial<CharacterData>) =>
+      setCharacterData((prev) => ({ ...prev, ...update(prev) })),
+    [],
+  );
 
   const goToStep = (step: CreationStep) => navigate(`/creator/${step}`);
 
@@ -333,7 +472,7 @@ export function CharacterCreator() {
                 </div>
                 <div>
                   <h1 className="text-white text-2xl md:text-3xl font-serif tracking-wide">Character Creator</h1>
-                  <p className="text-brand-400/60 text-sm">Create your D&D character (Levels 1-3)</p>
+                  <p className="text-brand-400/60 text-sm">Create your D&D character (Levels 1-20)</p>
                 </div>
               </div>
               {/* Progress is kept between visits now, so there has to be a way
@@ -361,7 +500,9 @@ export function CharacterCreator() {
                 <ArrowLeft className="w-4 h-4" />
                 Previous
               </button>
-              <span className="text-brand-400 font-medium capitalize ml-2">{currentStep.replace("-", " ")}</span>
+              <span className="text-brand-400 font-medium capitalize ml-2">
+                {currentStep === "feats" ? "ASI or Feat" : currentStep.replace("-", " ")}
+              </span>
             </div>
 
             <div className="flex items-center gap-4">
@@ -393,6 +534,22 @@ export function CharacterCreator() {
             <div className="p-4 md:p-8 min-h-[600px]">
               {/* Step Content */}
 
+              {currentStep === prerequisiteStep && unmetPrerequisites.length > 0 && (
+                <div className="mb-6 rounded-xl border border-amber-700/60 bg-amber-950/30 p-4 text-sm text-amber-200">
+                  <p className="font-semibold mb-1">Your scores don't allow this multiclass yet.</p>
+                  <ul className="list-disc list-inside text-amber-200/80">
+                    {unmetPrerequisites.map(({ classData, requirement }) => (
+                      <li key={classData.id}>{classData.name} needs {requirement}.</li>
+                    ))}
+                  </ul>
+                  <p className="mt-1 text-amber-200/70">
+                    {prerequisiteStep === "feats"
+                      ? "Raise a score here with an improvement, or change your class levels to continue."
+                      : "Adjust your ability scores, or change your class levels to continue."}
+                  </p>
+                </div>
+              )}
+
               {currentStep === "ruleset" && (
                 <RulesetStep
                   selected={characterData.ruleset}
@@ -404,96 +561,108 @@ export function CharacterCreator() {
                 <RaceStep
                   ruleset={characterData.ruleset!}
                   race={characterData.race}
+                  character={characterData}
+                  onProficiencyChange={updateFromPicker}
                   onChange={(race) => {
-                    // Only Humans get the second level-1 feat, so moving away
-                    // from Human takes that slot — and its feat — back.
-                    const feats = trimFeatsToBudget(characterData.feats, characterData.level, race);
-                    setCharacterData({
+                    // Only a 2024 Human gets the Versatile feat, so moving away
+                    // from Human takes it — and anything it granted — back.
+                    setCharacterData(settleFeats({
                       ...characterData,
                       race,
                       subrace: undefined,
-                      feats,
-                      featAbilityChoices: pruneFeatAbilityChoices(feats, characterData.featAbilityChoices),
                       selectedSpells: withoutSpellSource(characterData.selectedSpells, "Racial"),
-                    });
+                    }));
                   }}
+                  onSpeciesFeatChange={(feat) => setCharacterData(changeFeats(characterData, [
+                    ...characterData.feats.filter((taken) => taken.takenAt !== "species"),
+                    ...(feat ? [{ ...feat, takenAt: "species" as const }] : []),
+                  ]))}
+                />
+              )}
+              {currentStep === "subspecies" && characterData.race && (
+                <SubspeciesStep
+                  ruleset={characterData.ruleset!}
+                  character={characterData}
+                  onSubraceChange={(subrace) => setCharacterData((prev) => ({ ...prev, subrace }))}
+                  onProficiencyChange={updateFromPicker}
                 />
               )}
               {currentStep === "class" && (
                 <ClassStep
                   ruleset={characterData.ruleset!}
                   selected={characterData.class}
+                  subclass={characterData.subclass}
+                  multiclasses={characterData.multiclasses}
+                  onClassesChange={setClasses}
                   level={characterData.level}
-                  onSelect={(classData) =>
+                  featureChoices={characterData.classFeatureChoices}
+                  onFeatureChoice={(feature, option) => {
+                    if (characterData.classFeatureChoices?.[feature] === option) return;
+                    // Thaumaturge and Magician add a cantrip, so the class's picks start over.
                     setCharacterData({
+                      ...characterData,
+                      classFeatureChoices: { ...characterData.classFeatureChoices, [feature]: option },
+                      selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class"),
+                    });
+                  }}
+                  onSelect={(classData) =>
+                    // Fighters and Rogues have extra improvement levels, so a
+                    // class change can take some choices back.
+                    setCharacterData(settleFeats({
                       ...characterData,
                       class: classData,
                       subclass: undefined,
-                      selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
-                    })
+                      classFeatureChoices: undefined,
+                      // A class can't be taken twice, so it leaves the multiclass list.
+                      multiclasses: characterData.multiclasses?.filter((entry) => entry.class.id !== classData.id),
+                      selectedSpells: withoutMulticlassSpells(
+                        withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
+                        (classId) => classId !== classData.id,
+                      ),
+                    }))
                   }
                   onLevelChange={(level) => {
-                    // Levelling down hands feat slots back, so anything that no
-                    // longer fits goes — along with the ability points it placed.
-                    const feats = trimFeatsToBudget(
-                      characterData.feats,
-                      level,
-                      characterData.race,
-                      characterData.subrace,
-                    );
-                    setCharacterData({
-                      ...characterData,
-                      level,
-                      feats,
-                      featAbilityChoices: pruneFeatAbilityChoices(feats, characterData.featAbilityChoices),
-                      subclass: characterData.class && level >= subclassLevelFor(characterData.class, characterData.ruleset)
-                        ? characterData.subclass
-                        : undefined,
-                      selectedSpells: withoutSpellSource(characterData.selectedSpells, "Class", "Subclass"),
-                    });
+                    // The total moves the starting class's levels. Below what
+                    // the later classes hold, they give levels back from the last.
+                    if (!characterData.class) return;
+                    const entries = classLevels(characterData);
+                    const surplus = entries.reduce((total, entry) => total + entry.level, 0) - level;
+                    const next = entries.map((entry) => ({ ...entry }));
+                    next[0].level -= surplus;
+                    for (let index = next.length - 1; index > 0 && next[0].level < 1; index -= 1) {
+                      const give = Math.min(next[index].level, 1 - next[0].level);
+                      next[index].level -= give;
+                      next[0].level += give;
+                    }
+                    // Levelling down hands improvement levels back, so anything
+                    // taken there goes — along with the ability points it placed.
+                    setClasses(next.filter((entry, index) => index === 0 || entry.level > 0));
                   }}
                 />
               )}
-              {currentStep === "subclass" && characterData.class && (
-                <SubclassStep
+              {currentStep === "subclass" && (
+                <SubclassesStep
+                  entries={subclassEntries}
                   ruleset={characterData.ruleset!}
-                  classData={characterData.class}
-                  selectedSubclass={characterData.subclass}
-                  level={characterData.level}
-                  onSelect={(subclass) => setCharacterData({
-                    ...characterData,
-                    subclass,
-                    selectedSpells: withoutSpellSource(characterData.selectedSpells, "Subclass"),
-                  })}
+                  onSelect={(classId, subclass) => setCharacterData((prev) => prev.class?.id === classId
+                    ? {
+                      ...prev,
+                      subclass,
+                      selectedSpells: withoutSpellSource(prev.selectedSpells, "Subclass"),
+                    }
+                    : {
+                      ...prev,
+                      multiclasses: prev.multiclasses?.map((entry) =>
+                        entry.class.id === classId ? { ...entry, subclass } : entry),
+                    })}
                 />
               )}
               {currentStep === "feats" && (
                 <FeatSelectionStep
-                  ruleset={characterData.ruleset!}
-                  selectedFeats={characterData.feats}
-                  lockedFeatIds={(characterData.background?.feats || []).map((feat) => feat.id)}
-                  classData={characterData.class}
-                  subclass={characterData.subclass}
-                  level={characterData.level}
-                  race={characterData.race}
-                  subrace={characterData.subrace}
-                  abilityScores={finalAbilityScores(characterData)}
-                  onFeatsChange={(feats) => setCharacterData({
-                    ...characterData,
-                    feats,
-                    metamagicChoices: (characterData.metamagicChoices || []).slice(
-                      0,
-                      metamagicChoiceLimit(characterData.class?.id ?? "", characterData.level, feats),
-                    ),
-                    // A dropped feat takes its ability increase with it.
-                    featAbilityChoices: pruneFeatAbilityChoices(feats, characterData.featAbilityChoices),
-                    selectedSpells: withoutSpellSource(
-                      characterData.selectedSpells,
-                      "Feat",
-                      "Magic Initiate",
-                      "Aberrant Dragonmark",
-                    ),
-                  })}
+                  character={characterData}
+                  onChange={({ feats, featAbilityChoices }) =>
+                    setCharacterData({ ...changeFeats(characterData, feats), featAbilityChoices })
+                  }
                 />
               )}
               {currentStep === "abilities" && (
@@ -512,9 +681,10 @@ export function CharacterCreator() {
                   }
                   subrace={characterData.subrace}
                   featAbilityChoices={characterData.featAbilityChoices}
-                  onFeatAbilityChoicesChange={(featAbilityChoices) =>
-                    setCharacterData({ ...characterData, featAbilityChoices })
-                  }
+                  method={characterData.abilityScoreMethod}
+                  rolledScores={characterData.rolledAbilityScores}
+                  assignment={characterData.abilityScoreAssignment}
+                  onGenerationChange={updateScoreGeneration}
                 />
               )}
               {currentStep === "proficiencies" && (
@@ -579,11 +749,27 @@ export function CharacterCreator() {
                   })}
                   metamagicChoices={characterData.metamagicChoices}
                   onMetamagicChange={(metamagicChoices) => setCharacterData({ ...characterData, metamagicChoices })}
+                  classLevel={primaryClassLevel(characterData)}
+                  bonusCantrips={chosenFeatureOption(
+                    classRulesFor(characterData.class, characterData.ruleset)?.featureChoice,
+                    characterData.classFeatureChoices,
+                    primaryClassLevel(characterData),
+                  )?.bonusCantrip ? 1 : 0}
+                  abilityScores={finalAbilityScores(characterData)}
                   featSpellcastingAbilities={characterData.featSpellcastingAbilities}
                   onFeatSpellcastingAbilityChange={(featId, ability) => setCharacterData({
                     ...characterData,
                     featSpellcastingAbilities: { ...characterData.featSpellcastingAbilities, [featId]: ability },
                   })}
+                />
+              )}
+              {currentStep === "spells" && (
+                <MulticlassSpells
+                  entries={classLevels(characterData).slice(1)}
+                  ruleset={characterData.ruleset!}
+                  abilityScores={finalAbilityScores(characterData)}
+                  selectedSpells={characterData.selectedSpells}
+                  onSpellsChange={(spells) => setCharacterData((prev) => ({ ...prev, selectedSpells: spells }))}
                 />
               )}
               {currentStep === "hp" && (
@@ -597,6 +783,7 @@ export function CharacterCreator() {
                   feats={characterData.feats}
                   racialBonusAllocation={characterData.racialBonusAllocation}
                   hpRolls={characterData.hpRolls}
+                  levelDice={isMulticlassed(characterData) ? levelDice(characterData) : undefined}
                   onHpRollsChange={(rolls) => setCharacterData(prev => ({ ...prev, hpRolls: rolls }))}
                   onMaxHpChange={(val) =>
                     setCharacterData(prev => ({ ...prev, hpMax: val }))

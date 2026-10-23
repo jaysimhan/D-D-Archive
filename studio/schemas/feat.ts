@@ -38,7 +38,7 @@ export default {
         {
             name: 'featCategory',
             title: 'Category',
-            description: 'How the feat may be taken. Origin feats are level-1 picks; General feats replace an Ability Score Improvement.',
+            description: 'How the feat may be taken. Origin feats are level-1 picks (2024 backgrounds and Humans); General feats are taken in place of an Ability Score Improvement at level 4+; Epic Boons at level 19 (2024). In 2014 every feat is General. A feat with an ability increase under Benefits is a half feat; one without is a full feat.',
             type: 'string',
             options: {
                 list: [
@@ -70,6 +70,12 @@ export default {
                         { name: 'WIS', title: 'Wisdom', type: 'number' },
                         { name: 'CHA', title: 'Charisma', type: 'number' },
                     ]
+                },
+                {
+                    name: 'abilityScoreAnyOf',
+                    title: 'Any One Ability Score Is Enough',
+                    description: 'On for prerequisites like "Strength or Dexterity 13+". Off means every score listed above is required.',
+                    type: 'boolean',
                 },
                 {
                     name: 'race',
