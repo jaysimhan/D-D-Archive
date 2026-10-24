@@ -138,6 +138,28 @@ export default {
         },
         // Weapon Specific Fields
         {
+            name: 'weaponCategory',
+            title: 'Weapon Category',
+            type: 'string',
+            options: { list: ['Simple', 'Martial'], layout: 'radio', direction: 'horizontal' },
+            hidden: ({ parent }: any) => parent?.itemCategory !== 'Weapon',
+            description: 'Decides who is proficient. SRD weapons are known by name; set this for homebrew or other books.',
+        },
+        {
+            name: 'weaponRange',
+            title: 'Melee or Ranged',
+            type: 'string',
+            options: { list: ['Melee', 'Ranged'], layout: 'radio', direction: 'horizontal' },
+            hidden: ({ parent }: any) => parent?.itemCategory !== 'Weapon',
+        },
+        {
+            name: 'baseItem',
+            title: 'Base Weapon',
+            type: 'string',
+            hidden: ({ parent }: any) => parent?.itemCategory !== 'Weapon' || !parent?.magical,
+            description: 'For magic weapons: the weapon it is made from, e.g. "Longsword", "Any Sword", "Any Simple or Martial Weapon".',
+        },
+        {
             name: 'weaponProperties',
             title: 'Weapon Properties',
             type: 'array',

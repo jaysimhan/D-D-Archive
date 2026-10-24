@@ -2,6 +2,7 @@ import { SheetTextArea, useSheetState } from "./sheet-state";
 import { useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from "react";
 import { ImagePlus, Trash2, Upload } from "lucide-react";
 import type { Spell } from "../../types/dnd-types";
+import type { CharacterData } from "../../types/character-creator";
 import type { SpellcastingSummary } from "./CharacterSheetA4";
 import {
     Icon,
@@ -30,12 +31,15 @@ function ProsePanel({
     label,
     height,
     grow = false,
+    defaultText,
     children,
 }: {
     icon: ReactNode;
     label: string;
     height?: number;
     grow?: boolean;
+    /** What the blank starts out holding, before anything is written in it. */
+    defaultText?: string;
     children?: ReactNode;
 }) {
     return (
@@ -56,6 +60,7 @@ function ProsePanel({
                     {children ?? (
                         <SheetTextArea
                             aria-label={label}
+                            defaultValue={defaultText}
                             className="relative min-h-[1px] w-full flex-[1_0_0] rounded-[23.88px] bg-white px-[28px] py-[22px] text-[30px] font-medium not-italic leading-[1.35] text-black"
                         />
                     )}
@@ -70,9 +75,9 @@ function ProsePanel({
  * are read as data URLs, so the exact picture is already part of the DOM that
  * both download paths capture; no local-file or server URL can go stale.
  */
-function AppearanceField() {
+function AppearanceField({ defaultText = "" }: { defaultText?: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [appearance, setAppearance] = useSheetState("appearance", { text: "", image: "" });
+    const [appearance, setAppearance] = useSheetState("appearance", { text: defaultText, image: "" });
     const { text, image } = appearance;
     const [dragging, setDragging] = useState(false);
     const [error, setError] = useState("");
@@ -218,10 +223,35 @@ function AppearanceField() {
     );
 }
 
+/**
+ * The creator asks for traits, ideals, bonds and flaws apart; the sheet has
+ * one Personality Traits blank, so the last three follow the traits, named.
+ */
+function personalityText(personality?: CharacterData["personality"]) {
+    return [
+        personality?.traits?.trim(),
+        ...(
+            [
+                ["Ideals", personality?.ideals],
+                ["Bonds", personality?.bonds],
+                ["Flaws", personality?.flaws],
+            ] as const
+        ).map(([label, text]) => (text?.trim() ? `${label}: ${text.trim()}` : undefined)),
+    ]
+        .filter(Boolean)
+        .join("\n\n");
+}
+
 export function CharacterSheetA4Page4({
     spellcasting,
     spells,
-}: { spellcasting?: SpellcastingSummary; spells?: Spell[] } = {}) {
+    personality,
+}: {
+    spellcasting?: SpellcastingSummary;
+    spells?: Spell[];
+    /** The creator's answers, written into Appearance and Personality Traits. */
+    personality?: CharacterData["personality"];
+} = {}) {
     const spellsAt = useSpellsByLevel(spells);
     const slotsAt = spellSlotsAt(spellcasting);
     return (
@@ -270,11 +300,12 @@ export function CharacterSheetA4Page4({
                         />
                     }
                 >
-                    <AppearanceField />
+                    <AppearanceField defaultText={personality?.appearance?.trim()} />
                 </ProsePanel>
                 <ProsePanel
                     label="Personality Traits"
                     grow
+                    defaultText={personalityText(personality)}
                     icon={
                         <Icon
                             src={spellAsset("personality-traits")}

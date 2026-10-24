@@ -1,6 +1,6 @@
 import { Item } from "../types/dnd-types";
 import { Package, Coins, Weight, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { EditionBadge, SourceBadge } from "./library/CardBadges";
 import { formatCost } from "../utils/item-cost";
 import { CardTitle, ViewEntryLink } from "./library/ViewEntryLink";
@@ -11,9 +11,11 @@ interface ItemCardProps {
   onClick?: () => void;
   /** The item's own page, when shown in the Library. */
   href?: string;
+  /** Extra detail under the stats, such as a weapon's proficiency. */
+  footer?: ReactNode;
 }
 
-export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
+export function ItemCard({ item, isSelected, onClick, href, footer }: ItemCardProps) {
   const [expanded, setExpanded] = useState(false);
 
 
@@ -91,6 +93,8 @@ export function ItemCard({ item, isSelected, onClick, href }: ItemCardProps) {
           </span>
         )}
       </div>
+
+      {footer && <div className="mb-3">{footer}</div>}
 
       {/* Description */}
       <p className={`text-sm text-gray-300 mb-3 ${expanded ? "" : "line-clamp-3"}`}>{item.description}</p>

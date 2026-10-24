@@ -36,6 +36,7 @@ export interface SheetSuggestions {
     /** Carries the text page 2 writes into the Species Traits panel. */
     species: {
         name: string;
+        size?: string;
         speed?: number;
         isSpellcaster?: boolean;
         traits?: { name: string; description?: string }[];
@@ -107,6 +108,7 @@ const QUERY = `{
     },
     "species": *[_type in ["species", "race"] && defined(name)] | order(name asc) {
         name,
+        size,
         speed,
         // Races carry the flag; species record the same thing as spell grants.
         "isSpellcaster": coalesce(
@@ -437,6 +439,7 @@ export function useSheetSuggestions(edition = '2024'): SheetSuggestions {
                     }>(result.classes),
                     species: uniqueDocs<{
                         name: string;
+                        size?: string;
                         speed?: number;
                         isSpellcaster?: boolean;
                         traits?: { name: string; description?: string }[];

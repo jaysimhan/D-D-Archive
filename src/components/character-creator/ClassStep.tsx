@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { ChevronDown, Minus, Plus, Search, X } from "lucide-react";
+import { Check, ChevronDown, Minus, Plus, Search, X } from "lucide-react";
 import { CharacterRuleset, Class, Subclass } from "../../types/dnd-types";
 import { useClasses, useSubclasses } from "../../hooks/useSanityData";
 import SanityImage from "../SanityImage";
@@ -11,6 +11,11 @@ import { grantFromRules, grantRows } from "../../utils/proficiency-plan";
 import { multiclassProficiencies, prerequisiteText, type MulticlassEntry } from "../../utils/multiclass";
 
 const MAX_LEVEL = 20;
+
+/** The element id of a class feature's pick, so the creator can scroll to it. */
+export function featureChoiceAnchor(feature: string) {
+    return `feature-choice-${feature.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
 
 /**
  * The frame around a level stepper. Focus lightens the border and adds a soft
@@ -281,31 +286,69 @@ export function ClassStep({
                                 ))}
                             </div>
 
-                            {featureChoice && level >= featureChoice.level && (
-                                <div className="pt-4 border-t border-brand-900/30 mt-4">
-                                    <h4 className="font-bold text-gray-200 text-sm mb-1">{featureChoice.feature}</h4>
-                                    <p className="text-xs text-gray-500 mb-3">Choose one. You can't continue until you do.</p>
-                                    <div className="grid gap-2">
-                                        {featureChoice.options.map((option) => {
-                                            const active = featureChoices?.[featureChoice.feature] === option.name;
-                                            return (
-                                                <button
-                                                    key={option.name}
-                                                    type="button"
-                                                    onClick={() => onFeatureChoice(featureChoice.feature, option.name)}
-                                                    className={`text-left p-3 rounded-lg border transition-all ${active
-                                                        ? "border-brand-500 bg-brand-900/40"
-                                                        : "border-zinc-800 bg-zinc-900/40 hover:border-brand-500/50"
-                                                    }`}
-                                                >
-                                                    <span className={`font-serif font-semibold text-sm ${active ? "text-brand-200" : "text-gray-200"}`}>{option.name}</span>
-                                                    <p className="text-xs text-gray-400 mt-1">{option.summary}</p>
-                                                </button>
-                                            );
-                                        })}
+                            {featureChoice && level >= featureChoice.level && (() => {
+                                const chosen = featureChoices?.[featureChoice.feature];
+                                return (
+                                    // A pick the step can't be left without, so it reads as one:
+                                    // framed and flagged until made, then marked done.
+                                    <div
+                                        id={featureChoiceAnchor(featureChoice.feature)}
+                                        role="radiogroup"
+                                        aria-label={featureChoice.feature}
+                                        className={`mt-4 scroll-mt-24 rounded-xl border-2 p-4 transition-colors ${chosen
+                                            ? "border-emerald-600/50 bg-emerald-950/20"
+                                            : "border-amber-500/70 bg-amber-950/25 shadow-[0_0_24px_rgba(245,158,11,0.15)]"
+                                        }`}
+                                    >
+                                        <div className="mb-1 flex items-center justify-between gap-2">
+                                            <h4 className="font-serif text-base font-bold text-white">{featureChoice.feature}</h4>
+                                            {chosen ? (
+                                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-900/40 px-2 py-0.5 text-xs font-semibold text-emerald-200">
+                                                    <Check className="h-3 w-3" /> Chosen
+                                                </span>
+                                            ) : (
+                                                <span className="animate-pulse rounded-full border border-amber-400/70 bg-amber-500/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-200">
+                                                    Required
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className={`mb-3 text-xs ${chosen ? "text-gray-400" : "text-amber-200/90"}`}>
+                                            {chosen
+                                                ? `${selected?.name ?? "Your class"} takes ${chosen}. You can change it any time.`
+                                                : `Pick one to continue — Next stays locked until you do.`}
+                                        </p>
+                                        <div className="grid gap-2">
+                                            {featureChoice.options.map((option) => {
+                                                const active = chosen === option.name;
+                                                return (
+                                                    <button
+                                                        key={option.name}
+                                                        type="button"
+                                                        role="radio"
+                                                        aria-checked={active}
+                                                        onClick={() => onFeatureChoice(featureChoice.feature, option.name)}
+                                                        className={`flex items-start gap-3 rounded-lg border-2 p-3 text-left transition-all ${active
+                                                            ? "border-brand-500 bg-brand-900/40"
+                                                            : "border-zinc-700 bg-zinc-900/70 hover:-translate-y-0.5 hover:border-brand-500/70 hover:bg-zinc-800"
+                                                        }`}
+                                                    >
+                                                        <span
+                                                            aria-hidden
+                                                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${active ? "border-brand-400 bg-brand-500" : "border-zinc-500"}`}
+                                                        >
+                                                            {active && <Check className="h-3 w-3 text-white" />}
+                                                        </span>
+                                                        <span>
+                                                            <span className={`font-serif text-sm font-semibold ${active ? "text-brand-100" : "text-gray-100"}`}>{option.name}</span>
+                                                            <span className="mt-1 block text-xs text-gray-400">{option.summary}</span>
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
 
                             {relatedSubclasses.length > 0 && (
                                 <div className="pt-4 border-t border-brand-900/30 mt-4">
@@ -504,7 +547,7 @@ function ClassListPanel({
                                     </p>
                                 )}
                                 {featureChoice && entry.level >= featureChoice.level && (
-                                    <div className="flex flex-wrap items-center gap-2">
+                                    <div id={featureChoiceAnchor(featureChoice.feature)} className="flex flex-wrap items-center gap-2 scroll-mt-24">
                                         <span className="text-gray-300">{featureChoice.feature}</span>
                                         {featureChoice.options.map((option) => (
                                             <button

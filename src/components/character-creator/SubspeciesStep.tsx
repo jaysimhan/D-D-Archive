@@ -241,16 +241,26 @@ export function SubspeciesStep({
 }
 
 /** Whether the subspecies screen has everything it needs before moving on. */
-export function subspeciesComplete(character: Pick<CharacterData, "race" | "subrace" | "ruleset">): boolean {
+/** What the subspecies step still needs, or null when it is done. */
+export function subspeciesBlocker(character: Pick<CharacterData, "race" | "subrace" | "ruleset">): string | null {
     const choice = subspeciesFor(character.race?.id, character.ruleset);
-    if (!choice) return true;
+    if (!choice) return null;
     const subrace = character.subrace;
-    if (!subrace || subrace.parentRaceId !== character.race?.id) return false;
+    const missing = `Choose your ${choice.feature}.`;
+    if (!subrace || subrace.parentRaceId !== character.race?.id) return missing;
     const [, optionId, formerId] = subrace.id.split(":");
-    if (!choice.options.some((option) => option.id === optionId)) return false;
-    if (choice.choosesSpellcastingAbility && !subrace.spellcastingAbility) return false;
-    if (choice.ancestralLegacy && optionId === "legacy" && !formerId) return false;
-    return true;
+    if (!choice.options.some((option) => option.id === optionId)) return missing;
+    if (choice.choosesSpellcastingAbility && !subrace.spellcastingAbility) {
+        return "Choose the spellcasting ability for your lineage's spells.";
+    }
+    if (choice.ancestralLegacy && optionId === "legacy" && !formerId) {
+        return "Choose the species your Ancestral Legacy comes from.";
+    }
+    return null;
+}
+
+export function subspeciesComplete(character: Pick<CharacterData, "race" | "subrace" | "ruleset">): boolean {
+    return subspeciesBlocker(character) === null;
 }
 
 /** Traits that give a speed an Ancestral Legacy carries over. */
@@ -372,3 +382,4 @@ function FormerSpeciesPicker({
         </div>
     );
 }
+

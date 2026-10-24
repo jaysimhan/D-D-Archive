@@ -1,5 +1,8 @@
 import { BookOpen, Check } from "lucide-react";
 import type { CharacterRuleset } from "../../types/dnd-types";
+import type { CharacterData } from "../../types/character-creator";
+
+type Leveling = NonNullable<CharacterData["leveling"]>;
 
 const OPTIONS: Array<{
     value: CharacterRuleset;
@@ -18,12 +21,29 @@ const OPTIONS: Array<{
     },
 ];
 
+const LEVELING_OPTIONS: Array<{ value: Leveling; title: string; description: string }> = [
+    {
+        value: "xp",
+        title: "Experience Points",
+        description: "Track XP on the sheet; the level follows the total.",
+    },
+    {
+        value: "milestone",
+        title: "Milestone",
+        description: "Level up when the DM says so; the sheet leaves XP off.",
+    },
+];
+
 export function RulesetStep({
     selected,
     onSelect,
+    leveling,
+    onLevelingChange,
 }: {
     selected?: CharacterRuleset;
     onSelect: (ruleset: CharacterRuleset) => void;
+    leveling: Leveling;
+    onLevelingChange: (leveling: Leveling) => void;
 }) {
     return (
         <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -56,6 +76,39 @@ export function RulesetStep({
                         </button>
                     );
                 })}
+            </div>
+
+            {/* Carried to the sheet, which opens on the same choice. */}
+            <div className="mt-10">
+                <h3 id="leveling-heading" className="text-white text-xl font-bold font-serif mb-4 text-center">
+                    Leveling
+                </h3>
+                <div role="radiogroup" aria-labelledby="leveling-heading" className="grid sm:grid-cols-2 gap-4">
+                    {LEVELING_OPTIONS.map((option) => {
+                        const active = leveling === option.value;
+                        return (
+                            <button
+                                key={option.value}
+                                type="button"
+                                role="radio"
+                                aria-checked={active}
+                                onClick={() => onLevelingChange(option.value)}
+                                className={`relative text-left px-5 py-4 rounded-xl border-2 transition-all ${active
+                                    ? "border-brand-500 bg-brand-950/60"
+                                    : "border-zinc-700 bg-zinc-900/60 hover:border-brand-700 hover:bg-zinc-900"
+                                }`}
+                            >
+                                {active && (
+                                    <span className="absolute right-3 top-3 w-6 h-6 rounded-full bg-brand-600 flex items-center justify-center">
+                                        <Check className="w-3.5 h-3.5 text-white" />
+                                    </span>
+                                )}
+                                <span className="block text-lg text-white font-bold font-serif mb-1">{option.title}</span>
+                                <span className="block text-sm leading-relaxed text-gray-400 pr-6">{option.description}</span>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

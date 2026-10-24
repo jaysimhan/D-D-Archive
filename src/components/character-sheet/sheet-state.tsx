@@ -49,7 +49,7 @@ export function SheetInput({ defaultValue = "", ...props }: InputHTMLAttributes<
     return <input {...props} value={value} onChange={(event) => setValue(event.target.value)} />;
 }
 
-export function SheetTextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-    const [value, setValue] = useSheetState(`text:${props["aria-label"]}`, "");
+export function SheetTextArea({ defaultValue = "", ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+    const [value, setValue] = useSheetState(`text:${props["aria-label"]}`, String(defaultValue));
     return <textarea {...props} value={value} onChange={(event) => setValue(event.target.value)} />;
 }

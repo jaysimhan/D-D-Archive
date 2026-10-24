@@ -34,6 +34,7 @@ export function createEmptyCharacter(): CharacterData {
         feats: [],
         equipment: [],
         magicItems: [],
+        attunedItemIds: [],
         magicInitiateClass: undefined,
         personality: {},
         proficiencies: {
@@ -168,6 +169,7 @@ function normalizeCharacter(value: unknown): CharacterData | null {
         ...empty,
         ...stored,
         ruleset: stored.ruleset === "2014" || stored.ruleset === "2024" ? stored.ruleset : undefined,
+        leveling: stored.leveling === "xp" || stored.leveling === "milestone" ? stored.leveling : undefined,
         name: typeof stored.name === "string" ? stored.name : empty.name,
         level: typeof stored.level === "number" ? stored.level : empty.level,
         abilityScores: { ...empty.abilityScores, ...(stored.abilityScores ?? {}) },
@@ -177,6 +179,7 @@ function normalizeCharacter(value: unknown): CharacterData | null {
         feats: asArray(stored.feats),
         equipment: asArray(stored.equipment),
         magicItems: asArray(stored.magicItems),
+        attunedItemIds: asArray(stored.attunedItemIds),
         personality: { ...(stored.personality ?? {}) },
         proficiencies: {
             skills: asArray(stored.proficiencies?.skills),

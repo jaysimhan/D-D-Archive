@@ -258,6 +258,7 @@ export function FitInput({
     value,
     onChange,
     readOnly = false,
+    initialValue = "",
 }: {
     label: string;
     className: string;
@@ -265,8 +266,10 @@ export function FitInput({
     value?: string;
     onChange?: (value: string) => void;
     readOnly?: boolean;
+    /** What an uncontrolled field starts out holding. */
+    initialValue?: string;
 }) {
-    const [internal, setInternal] = useSheetState(`fit:${label}`, "");
+    const [internal, setInternal] = useSheetState(`fit:${label}`, initialValue);
     const text = value ?? internal;
     const [inputRef, fitStyle] = useFitText<HTMLInputElement>(text);
     return (
@@ -837,12 +840,14 @@ function HeaderFieldSm({
     options,
     value,
     onValueChange,
+    initialValue,
 }: {
     icon: ReactNode;
     label: string;
     options: string[];
     value?: string;
     onValueChange?: (value: string) => void;
+    initialValue?: string;
 }) {
     return (
         <div className="relative flex w-full shrink-0 items-center gap-[24.714px] rounded-[24.714px] border-[3.089px] border-solid border-black p-[24.714px]">
@@ -855,6 +860,7 @@ function HeaderFieldSm({
                 options={options}
                 value={value}
                 onValueChange={onValueChange}
+                initialValue={initialValue}
                 className="text-[30.893px] font-medium not-italic leading-[normal] text-black"
             />
         </div>
@@ -1847,7 +1853,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
     const [characterLevel, setCharacterLevel] = useSheetState("characterLevel", 
         initialCharacter ? `${initialCharacter.level}` : "",
     );
-    const [leveling, setLeveling] = useSheetState<Leveling>("leveling", "xp");
+    const [leveling, setLeveling] = useSheetState<Leveling>("leveling", initialCharacter?.leveling ?? "xp");
     const changeLeveling = async (next: Leveling) => {
         if (next === leveling) return;
         if (next === "milestone" && confirmMilestone && !(await confirmMilestone())) return;
@@ -2252,10 +2258,8 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         (initialCharacter?.equipment ?? []).find((item) =>
             item.name.toLowerCase().includes("shield"),
         )?.name ?? "";
-    const initialWeapons = (initialCharacter?.equipment ?? [])
-        .filter((item) => item.type === "Weapon")
-        .map((item) => item.name)
-        .join("\n");
+    // Training, not the weapons carried: those go to Actions and the Inventory.
+    const initialWeapons = initialCharacter?.proficiencies?.weapons.join("\n") ?? "";
     const initialTools = initialCharacter?.proficiencies?.tools.join("\n") ?? "";
 
     // Held here under the keys their own fields save to, so Armor Class and the
@@ -2351,7 +2355,10 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         weaponTraining: weaponTraining.split("\n"),
         magicItems:
             magicItems ??
-            (initialCharacter?.magicItems ?? []).map((item) => ({ name: item.name, attuned: false })),
+            (initialCharacter?.magicItems ?? []).map((item) => ({
+                name: item.name,
+                attuned: initialCharacter?.attunedItemIds?.includes(item.id) ?? false,
+            })),
         archiveItems: suggestions.itemStats,
     });
 
@@ -2499,20 +2506,21 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
         return weaponAction(trimmed, actionContext);
     };
 
+    // The weapons carried come first, then the spells that attack or deal
+    // damage, cantrips ahead; the rest are on the spellbook pages. Naming one
+    // is enough: the row works out its own numbers.
+    const attackSpells = (initialCharacter?.selectedSpells ?? [])
+        .filter((spell) => /spell attack|\d+d\d+[^.]*\bdamage\b/i.test(spell.description ?? ""))
+        .sort((a, b) => Number(a.level > 0) - Number(b.level > 0));
     const initialActions: ActionValue[] = [
-        ...(initialCharacter?.selectedSpells ?? []).map((spell) => ({
-            action: spell.name,
-            attack: firstCasting?.attack ?? "",
-            damage: spell.school,
-            range: spell.range,
-        })),
         ...(initialCharacter?.equipment ?? [])
             .filter((item) => item.type === "Weapon")
-            .map((item) => ({
-                action: item.name,
-                damage: item.properties?.join(", ") ?? "",
-            })),
-    ].slice(0, ACTION_ROW_COUNT);
+            .map((item) => ({ action: item.name })),
+        ...attackSpells.map((spell) => ({ action: spell.name, range: spell.range })),
+    ]
+        .filter((row, index, rows) =>
+            rows.findIndex((other) => other.action.toLowerCase() === row.action.toLowerCase()) === index)
+        .slice(0, ACTION_ROW_COUNT);
 
     const handleAbilityModifierChange = (ability: string, modifier: number | null) => {
         setAbilityModifiers((current) => ({ ...current, [ability]: modifier }));
@@ -2657,6 +2665,7 @@ export const CharacterSheetA4 = memo(function CharacterSheetA4({
                             <HeaderFieldSm
                                 label="Alignment"
                                 options={ALIGNMENTS}
+                                initialValue={initialCharacter?.personality?.alignment}
                                 icon={
                                     <Icon
                                         src={asset("alignment")}

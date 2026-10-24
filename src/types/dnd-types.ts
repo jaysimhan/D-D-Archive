@@ -402,6 +402,9 @@ export interface Item {
   attunementRequirement?: string;
   /** The mundane item a magic weapon or armor is built on: "Longsword", "Any Sword". */
   baseItem?: string;
+  /** Weapon group tags, for weapons the SRD table doesn't know by name. */
+  weaponCategory?: "Simple" | "Martial";
+  weaponRange?: "Melee" | "Ranged";
   /** Variants and naming asides, e.g. the rarity of each tier. */
   notes?: string;
   /** The SRD's fuller rules text, kept beside an Archive description that is shorter. */

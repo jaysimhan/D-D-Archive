@@ -425,6 +425,7 @@ export function CharacterSheetPage() {
                     <CharacterSheetA4Page4
                         spellcasting={spellcastingWithFeats}
                         spells={initialCharacter?.selectedSpells}
+                        personality={initialCharacter?.personality}
                     />,
                 ].map((content, index) => (
                     <div

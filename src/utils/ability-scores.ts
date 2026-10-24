@@ -49,24 +49,39 @@ export function scoresFromAssignment(pool: number[], assignment: ScoreAssignment
   return scores;
 }
 
-/** Whether the base scores are finished under the method the player chose. */
-export function abilityScoresReady(
+/** Why the base scores aren't finished under the chosen method, or null when they are. */
+export function abilityScoresBlocker(
   character: Pick<CharacterData, "abilityScores" | "abilityScoreMethod" | "abilityScoreAssignment" | "rolledAbilityScores">,
-): boolean {
+): string | null {
   const assignment = character.abilityScoreAssignment ?? {};
   const fullyAssigned = (pool: number[]) =>
     ABILITY_ORDER.every((ability) => pool[assignment[ability] ?? -1] !== undefined);
 
   switch (character.abilityScoreMethod ?? "pointBuy") {
     case "standard":
-      return fullyAssigned(STANDARD_ARRAY);
+      return fullyAssigned(STANDARD_ARRAY) ? null : "Assign each standard-array score to an ability.";
     case "rolled":
-      return (character.rolledAbilityScores?.length ?? 0) === 6 && fullyAssigned(character.rolledAbilityScores!);
+      if ((character.rolledAbilityScores?.length ?? 0) !== 6) return "Roll your six ability scores.";
+      return fullyAssigned(character.rolledAbilityScores!) ? null : "Assign each rolled score to an ability.";
     case "manual":
-      return Object.values(character.abilityScores).every((score) => score >= MANUAL_MIN && score <= MANUAL_MAX);
+      return Object.values(character.abilityScores).every((score) => score >= MANUAL_MIN && score <= MANUAL_MAX)
+        ? null
+        : `Every score must be between ${MANUAL_MIN} and ${MANUAL_MAX}.`;
     case "pointBuy":
-      return isValidPointBuy(character.abilityScores);
+      if (!Object.values(character.abilityScores).every((score) => score >= 8 && score <= 15)) {
+        return "Point-buy scores must be between 8 and 15.";
+      }
+      return pointBuyCost(character.abilityScores) <= POINT_BUY_BUDGET
+        ? null
+        : `You've spent ${pointBuyCost(character.abilityScores)} of ${POINT_BUY_BUDGET} points; lower a score.`;
   }
+}
+
+/** Whether the base scores are finished under the method the player chose. */
+export function abilityScoresReady(
+  character: Pick<CharacterData, "abilityScores" | "abilityScoreMethod" | "abilityScoreAssignment" | "rolledAbilityScores">,
+): boolean {
+  return abilityScoresBlocker(character) === null;
 }
 
 export function finalAbilityScores(

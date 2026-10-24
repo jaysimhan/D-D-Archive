@@ -1,4 +1,6 @@
 import { SheetInput, SheetTextArea, useSheetState, SheetRulesetContext } from "./sheet-state";
+import { LIFESTYLES } from "../../data/starting-equipment";
+import { formatCopper } from "../../utils/starting-equipment";
 import { memo, useCallback, useEffect, useMemo, useState, useContext, type ReactNode } from "react";
 import { useSheetSuggestions, type SheetSuggestions } from "../../hooks/useSheetSuggestions";
 import type { CharacterData } from "../../types/character-creator";
@@ -125,13 +127,31 @@ function speciesTraits({
     return named.length ? named : fromCharacter;
 }
 
-/** Equipment carries no count of its own, so repeats become the Amount. */
+/** The sheet has no Lifestyle box, so the Treasure panel opens with it. */
+function lifestyleLine(name?: string) {
+    const tier = LIFESTYLES.find((lifestyle) => lifestyle.name === name);
+    if (!tier) return undefined;
+    return `Lifestyle: ${tier.name} (${tier.costPerDay ? `${formatCopper(tier.costPerDay)} a day` : "free"})`;
+}
+
+/** The character's magic items, attuned ones first so they claim the sheet's few rows. */
+function sortedMagicItems(character?: CharacterData) {
+    const attuned = new Set(character?.attunedItemIds ?? []);
+    return (character?.magicItems ?? [])
+        .map((item) => ({ name: item.name, attuned: attuned.has(item.id) }))
+        .sort((a, b) => Number(b.attuned) - Number(a.attuned));
+}
+
+/** Equipment carries its count; anything listed twice adds to the Amount. */
 function inventoryRows(character?: CharacterData) {
     const amounts = new Map<string, number>();
-    for (const item of character?.equipment ?? []) {
+    // Magic items past the sheet's own rows are carried in the inventory.
+    const overflow = sortedMagicItems(character).slice(MAGIC_ITEM_ROWS);
+    for (const item of [...(character?.equipment ?? []), ...overflow]) {
         const name = item.name?.trim();
         if (!name) continue;
-        amounts.set(name, (amounts.get(name) ?? 0) + 1);
+        const quantity = "quantity" in item ? (item.quantity ?? 1) : 1;
+        amounts.set(name, (amounts.get(name) ?? 0) + quantity);
     }
     return [...amounts].map(([item, amount]) => ({ item, amount: `${amount}` }));
 }
@@ -213,6 +233,7 @@ function WritingPanel({
     onTextChange,
     exportField,
     notes,
+    defaultText,
 }: {
     borderColor: string;
     icon: ReactNode;
@@ -240,6 +261,11 @@ function WritingPanel({
      * opens its description on hover or long press.
      */
     notes?: NoteMap;
+    /**
+     * What a plain panel starts out holding, before anything is written in
+     * it — the Backstory from the creator.
+     */
+    defaultText?: string;
 }) {
     const [text, setText] = useEditableAutoValue(label, value ?? "");
 
@@ -302,6 +328,7 @@ function WritingPanel({
                             aria-label={label}
                             value={text}
                             onChange={(event) => setText(event.target.value)}
+                            defaultValue={defaultText}
                             className={PANEL_TEXT}
                         />
                     )}
@@ -323,17 +350,25 @@ function StatPanel({
     headerClassName = "",
     multiline = false,
     options,
+    initialValue,
+    value,
+    onValueChange,
 }: {
     icon: ReactNode;
     label: string;
     height: number;
     headerClassName?: string;
     multiline?: boolean;
+    /** Provide both where the sheet fills the blank in (Size, from the species). */
+    value?: string;
+    onValueChange?: (value: string) => void;
     /**
      * Suggest these from the Archive, one entry per line, as the Weapons and
      * Tools blocks on page 1 do. Languages are picked this way; Size is not.
      */
     options?: string[];
+    /** What a suggesting blank opens with: the creator's languages. */
+    initialValue?: string;
 }) {
     return (
         <div
@@ -358,12 +393,21 @@ function StatPanel({
                         <SuggestTextArea
                             label={label}
                             options={options}
+                            initialValue={initialValue}
                             className="text-[34px] font-medium not-italic leading-[1.3] text-black"
                         />
                     ) : multiline ? (
                         <SheetTextArea
                             aria-label={label}
                             className="relative h-full w-full text-[34px] font-medium not-italic leading-[1.3] text-black"
+                        />
+                    ) : value !== undefined ? (
+                        <input
+                            type="text"
+                            aria-label={label}
+                            value={value}
+                            onChange={(event) => onValueChange?.(event.target.value)}
+                            className="relative h-full w-full text-center text-[72.483px] font-medium not-italic leading-[normal] text-black"
                         />
                     ) : (
                         <SheetInput
@@ -379,7 +423,7 @@ function StatPanel({
 }
 
 /** CP / SP / GP / PP. */
-function CurrencyPanel({ label }: { label: string }) {
+function CurrencyPanel({ label, initialValue }: { label: string; initialValue?: string }) {
     return (
         <div
             className="relative flex min-h-[1px] w-full flex-[1_0_0] items-start rounded-[33.248px] border-[4.14px] border-solid p-[15.776px]"
@@ -392,6 +436,7 @@ function CurrencyPanel({ label }: { label: string }) {
                 <div className="relative flex h-full min-w-[1px] flex-[1_0_0] flex-col items-center rounded-[13.522px] border-2 border-solid border-black bg-white px-[22.537px] py-[4px]">
                     <FitInput
                         label={`${label} coins`}
+                        initialValue={initialValue}
                         className="relative h-full w-full text-center text-[60px] font-medium not-italic leading-[normal] text-black"
                     />
                 </div>
@@ -452,17 +497,19 @@ function InventoryDivider({ height = 44.197 }: { height?: number }) {
 function MagicItemRow({
     index,
     defaultName,
+    defaultAttuned,
     options,
     onChange,
 }: {
     index: number;
     defaultName: string;
+    defaultAttuned: boolean;
     options: string[];
     onChange: (index: number, name: string, attuned: boolean) => void;
 }) {
     const label = `Magic item ${index + 1}`;
     const [name] = useSheetState(`autocomplete:${label}`, defaultName);
-    const [attuned] = useSheetState(`attuned:${label}`, false);
+    const [attuned] = useSheetState(`attuned:${label}`, defaultAttuned);
     useEffect(() => onChange(index, name, attuned), [index, name, attuned, onChange]);
 
     return (
@@ -473,7 +520,7 @@ function MagicItemRow({
                 defaultValue={defaultName}
                 className="w-full text-[32px] font-medium not-italic leading-[normal] text-black"
             />
-            <AttunementMarker label={label} />
+            <AttunementMarker label={label} initialAttuned={defaultAttuned} />
         </div>
     );
 }
@@ -549,6 +596,15 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
             : `${10 + perception + passivePerceptionFeatBonus(entryNames(feats))}`;
     const [passiveValue, setPassiveValue] = useEditableAutoValue("passive", passive);
 
+    // Page 1's Species, or the creator's where this page stands alone.
+    const speciesKey = (species ?? initialCharacter?.race?.name ?? "").trim().toLowerCase();
+    const automaticSize =
+        suggestions.species.find((option) => option.name.toLowerCase() === speciesKey)?.size ??
+        (speciesKey && speciesKey === initialCharacter?.race?.name.trim().toLowerCase()
+            ? initialCharacter.race.size
+            : "");
+    const [size, setSize] = useEditableAutoValue("size", automaticSize ?? "");
+
     const traitEntries = speciesTraits({
         species,
         options: suggestions.species,
@@ -563,15 +619,20 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
         () => noteMap(suggestions.feats, matchingCharacter?.feats),
         [matchingCharacter?.feats, suggestions.feats],
     );
+    // What the creator's shopping left in the purse; PP stays blank.
+    const coins: Record<"cp" | "sp" | "gp" | "pp", string | undefined> = {
+        cp: initialCharacter?.currency ? `${initialCharacter.currency.cp}` : undefined,
+        sp: initialCharacter?.currency ? `${initialCharacter.currency.sp}` : undefined,
+        gp: initialCharacter?.currency ? `${initialCharacter.currency.gp}` : undefined,
+        pp: undefined,
+    };
     const inventory = inventoryRows(initialCharacter).slice(0, INVENTORY_ROWS);
-    const magicItems = (initialCharacter?.magicItems ?? [])
-        .map((item) => item.name)
-        .slice(0, MAGIC_ITEM_ROWS);
+    const magicItems = sortedMagicItems(initialCharacter).slice(0, MAGIC_ITEM_ROWS);
 
     const [magicItemRows, setMagicItemRows] = useState(() =>
         Array.from({ length: MAGIC_ITEM_ROWS }, (_, index) => ({
-            name: magicItems[index] ?? "",
-            attuned: false,
+            name: magicItems[index]?.name ?? "",
+            attuned: magicItems[index]?.attuned ?? false,
         })),
     );
     const reportMagicItem = useCallback((index: number, name: string, attuned: boolean) => {
@@ -646,6 +707,8 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                             <StatPanel
                                 label="Size"
                                 height={220.812}
+                                value={size}
+                                onValueChange={setSize}
                                 icon={<Icon src={asset("size")} w={49.991} h={21.485} />}
                             />
                             <StatPanel
@@ -653,6 +716,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                 height={261}
                                 multiline
                                 options={suggestions.languages}
+                                initialValue={initialCharacter?.proficiencies?.languages.join("\n")}
                                 headerClassName="justify-center px-[8.333px]"
                                 icon={<Icon src={asset("languages")} w={42.277} h={42.277} />}
                             />
@@ -683,7 +747,11 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
 
                         <div className="relative flex h-[719px] w-[429px] shrink-0 flex-col items-start gap-[20.831px]">
                             {["CP", "SP", "GP", "PP"].map((label) => (
-                                <CurrencyPanel key={label} label={label} />
+                                <CurrencyPanel
+                                    key={label}
+                                    label={label}
+                                    initialValue={coins[label.toLowerCase() as keyof typeof coins]}
+                                />
                             ))}
                         </div>
                     </div>
@@ -732,7 +800,8 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                                     <MagicItemRow
                                         key={index}
                                         index={index}
-                                        defaultName={magicItems[index] ?? ""}
+                                        defaultName={magicItems[index]?.name ?? ""}
+                                        defaultAttuned={magicItems[index]?.attuned ?? false}
                                         options={suggestions.magicItems}
                                         onChange={reportMagicItem}
                                     />
@@ -745,6 +814,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         borderColor={GREEN}
                         height={825}
                         label="Treasure"
+                        defaultText={lifestyleLine(initialCharacter?.lifestyle)}
                         search={{ options: treasureOptions, placeholder: "Search treasure, gems & items…" }}
                         headerClassName="w-full px-[8.333px] py-[19.58px]"
                         icon={<Icon src={asset("treasure")} w={61.314} h={49.377} />}
@@ -854,6 +924,7 @@ export const CharacterSheetA4Page2 = memo(function CharacterSheetA4Page2({
                         borderColor="#000000"
                         height={1760}
                         label="Backstory"
+                        defaultText={initialCharacter?.personality?.backstory}
                         headerClassName="w-[487.454px] pl-[7px] pr-[39.159px] py-[19.58px]"
                         icon={<Icon src={asset("backstory")} w={62.739} h={60.749} />}
                     />

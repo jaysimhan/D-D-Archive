@@ -9,6 +9,7 @@ import {
   type MagicItemEffect,
   type WeaponStats,
 } from "../data/srd-equipment";
+import { tagsFromStats, trainingCovers } from "./weapon-proficiency";
 
 /**
  * The arithmetic behind the character sheet's combat numbers: weapon and
@@ -693,19 +694,9 @@ export function buildSheetRules(input: RulesInput): SheetRules {
   const knowsTraining = training.length > 0 || input.classes.some((item) => item.weaponProficiencies);
   const isProficient = (weapon: WeaponStats) => {
     if (!knowsTraining) return true;
-    const category = weapon.category.toLowerCase();
+    const tags = tagsFromStats(weapon);
     const name = normalizeName(weapon.name);
-    return training.some((entry) => {
-      const singular = entry.replace(/s$/, "");
-      return (
-        entry === `${category} weapons` ||
-        entry === category ||
-        (category === "martial" && /martial (melee )?weapons with the light property/.test(entry) && weapon.light && weapon.kind === "Melee") ||
-        singular === name ||
-        entry === name ||
-        containsWords(entry, name)
-      );
-    });
+    return training.some((entry) => trainingCovers(entry, tags) || containsWords(entry, name));
   };
 
   /* Armor Class ----------------------------------------------------- */

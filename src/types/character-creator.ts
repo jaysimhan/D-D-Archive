@@ -49,6 +49,8 @@ export function isCreationStep(value: unknown): value is CreationStep {
 export interface CharacterData {
     /** Mechanical rules used for every Sanity-backed creator choice. */
     ruleset?: CharacterRuleset;
+    /** How the table levels up; the sheet opens on it. Unset means XP. */
+    leveling?: "xp" | "milestone";
     name: string;
     race?: Race;
     subrace?: Subrace;
@@ -62,8 +64,17 @@ export interface CharacterData {
     abilityScores: AbilityScores;
     selectedSpells: Spell[];
     feats: Feat[];
-    equipment: Item[];
+    /** Kit contents and purchases; written by the equipment step from `startingEquipment`. */
+    equipment: EquipmentItem[];
+    /** How the starting kits were chosen and what was bought with the gold. */
+    startingEquipment?: StartingEquipmentChoices;
+    /** The coins left after the starting purchases. */
+    currency?: { gp: number; sp: number; cp: number };
+    /** A lifestyle tier from LIFESTYLES: "Modest". */
+    lifestyle?: string;
     magicItems?: Item[];
+    /** Ids of the magic items the character is attuned to, three at most. */
+    attunedItemIds?: string[];
     magicInitiateClass?: string;
     metamagicChoices?: string[];
     featSpellcastingAbilities?: Record<string, "INT" | "WIS" | "CHA">;
@@ -79,10 +90,13 @@ export interface CharacterData {
      */
     classFeatureChoices?: Record<string, string>;
     personality: {
+        alignment?: string;
         traits?: string;
         ideals?: string;
         bonds?: string;
         flaws?: string;
+        appearance?: string;
+        backstory?: string;
     };
     /**
      * The proficiencies the character ends up with: what their species, class,
@@ -120,4 +134,29 @@ export interface CharacterData {
     racialBonusAllocation?: Record<string, number>;
     hpMax?: number;
     hpRolls?: number[];
+}
+
+/** A piece of equipment, with how many the character carries. */
+export type EquipmentItem = Item & { quantity?: number };
+
+export interface StartingEquipmentChoices {
+    /** The class kit taken: "A", "B" — or "kit" / "wealth" in 2014. */
+    classOption?: string;
+    /** The background kit taken: "A" or "B" in 2024. */
+    backgroundOption?: string;
+    /**
+     * Picks inside the kits, keyed by the line's path ("class:fighter:kit/1"):
+     * an alternative's index for "(a) or (b)", an item name for "any simple weapon".
+     */
+    picks?: Record<string, string>;
+    /** Gold rolled for 2014 starting wealth, or agreed for a class with no kit. */
+    wealth?: number;
+    purchases?: Purchase[];
+}
+
+export interface Purchase {
+    name: string;
+    quantity: number;
+    /** Price of one, in copper, as listed when it was bought. */
+    unitCost: number;
 }

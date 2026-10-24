@@ -36,15 +36,15 @@ import {
   unfinishedImprovements,
 } from "../utils/feats";
 import type { Feat } from "../types/dnd-types";
-import { abilityScoresReady, finalAbilityScores } from "../utils/ability-scores";
+import { abilityScoresBlocker, finalAbilityScores } from "../utils/ability-scores";
 
 // Import Step Components
 import { NameStep } from "./character-creator/NameStep";
 import { RulesetStep } from "./character-creator/RulesetStep";
 import { RaceStep } from "./character-creator/RaceStep";
-import { SubspeciesStep, subspeciesComplete } from "./character-creator/SubspeciesStep";
+import { SubspeciesStep, subspeciesBlocker } from "./character-creator/SubspeciesStep";
 import { subspeciesFor } from "../data/subspecies";
-import { ClassStep } from "./character-creator/ClassStep";
+import { ClassStep, featureChoiceAnchor } from "./character-creator/ClassStep";
 import { SubclassesStep } from "./character-creator/SubclassStep";
 import { AbilityScoreStep, type ScoreGeneration } from "./character-creator/AbilityScoreStep";
 import { BackgroundStep } from "./character-creator/BackgroundStep";
@@ -245,56 +245,77 @@ export function CharacterCreator() {
     }));
   };
 
-  const canLeaveStep = (step: CreationStep | undefined): boolean => {
+  // A 2024 cleric or druid has to settle their Divine or Primal Order before
+  // leaving the class step. Later classes need theirs too; subclasses come next.
+  const missingFeatureChoices = classLevels(characterData).flatMap((entry) => {
+    const featureChoice = classRulesFor(entry.class, characterData.ruleset)?.featureChoice;
+    return featureChoice
+      && entry.level >= featureChoice.level
+      && !characterData.classFeatureChoices?.[featureChoice.feature]
+      ? [{ className: entry.class.name, ...featureChoice }]
+      : [];
+  });
+
+  /** Why a step can't be left yet, in words for the player; null when it can. */
+  const stepBlocker = (step: CreationStep | undefined): string | null => {
+    const prerequisitesNote = "Your multiclass needs higher ability scores — see the note above.";
     switch (step) {
       case "ruleset":
-        return characterData.ruleset === "2014" || characterData.ruleset === "2024";
+        return characterData.ruleset === "2014" || characterData.ruleset === "2024"
+          ? null
+          : "Choose the 2014 or 2024 rules.";
       case "race":
+        if (!characterData.race) return "Choose a species.";
         // A 2024 Human's Versatile Origin feat is part of picking the species.
-        return !!characterData.race && (
-          !speciesGrantsOriginFeat(characterData.ruleset, characterData.race, characterData.subrace)
-          || !!featTakenAt(characterData.feats, "species")
-        );
+        return speciesGrantsOriginFeat(characterData.ruleset, characterData.race, characterData.subrace)
+          && !featTakenAt(characterData.feats, "species")
+          ? `Choose the Origin feat your ${characterData.race.name} gets.`
+          : null;
       case "subspecies":
-        return subspeciesComplete(characterData);
+        return subspeciesBlocker(characterData);
       case "class": {
-        if (!characterData.class) return false;
-        // A 2024 cleric or druid has to settle their Divine or Primal Order.
-        // Later classes need theirs too; subclasses come in the next step.
-        return classLevels(characterData).every((entry) => {
-          const featureChoice = classRulesFor(entry.class, characterData.ruleset)?.featureChoice;
-          return !featureChoice
-            || entry.level < featureChoice.level
-            || !!characterData.classFeatureChoices?.[featureChoice.feature];
-        });
+        if (!characterData.class) return "Choose a class.";
+        const [first, ...more] = missingFeatureChoices;
+        if (!first) return null;
+        const options = first.options.map((option) => option.name).join(" or ");
+        return `Choose your ${first.className}'s ${first.feature} (${options})${more.length ? `, and ${more.length} more` : ""}.`;
       }
-      case "subclass":
-        return subclassEntries.every((entry) => !!entry.subclass);
+      case "subclass": {
+        const missing = subclassEntries.filter((entry) => !entry.subclass).map((entry) => entry.class.name);
+        return missing.length ? `Choose a subclass for your ${missing.join(" and ")}.` : null;
+      }
       case "background":
-        return !!characterData.background;
-      case "feats":
+        return characterData.background ? null : "Choose a background.";
+      case "feats": {
         // Every improvement needs a choice, and every point it hands out a home.
         // Improvements can lift a score to 13, so multiclass prerequisites are
         // judged here when the character has any.
-        return unfinishedImprovements(characterData).length === 0 && multiclassPrerequisitesMet;
+        const [slot, ...more] = unfinishedImprovements(characterData);
+        if (slot) {
+          const where = slot.epicBoon
+            ? `your Epic Boon at ${slot.className} level ${slot.classLevel}`
+            : `your ${slot.className} level ${slot.classLevel} improvement`;
+          return `Finish ${where} — pick a feat or place its ability points${more.length ? ` (${more.length} more after it)` : ""}.`;
+        }
+        return multiclassPrerequisitesMet ? null : prerequisitesNote;
+      }
       case "abilities":
-        return abilityScoresReady(characterData) && (steps.includes("feats") || multiclassPrerequisitesMet);
+        return abilityScoresBlocker(characterData)
+          ?? (steps.includes("feats") || multiclassPrerequisitesMet ? null : prerequisitesNote);
       case "proficiencies":
-        return true;
       case "spells":
-        return true;
       case "hp":
-        return true;
       case "equipment":
-        return true;
       case "magic-item":
-        return true; // Optional? Or mandatory if step exists? Usually optional or they pick one.
-      case "personality": // Character Details - Check Name
-        return characterData.name.trim().length > 0;
+        return null;
+      case "personality":
+        return characterData.name.trim() ? null : "Enter your character's name.";
       default:
-        return false;
+        return "This step isn't available yet.";
     }
   };
+
+  const canLeaveStep = (step: CreationStep | undefined): boolean => stepBlocker(step) === null;
 
   // Now that each step is its own URL, one can be typed in or bookmarked out of
   // turn. Reachable ground stops at the first step still missing a choice, so
@@ -394,7 +415,8 @@ export function CharacterCreator() {
     }
   };
 
-  const canProgress = () => canLeaveStep(currentStep);
+  const blocker = stepBlocker(currentStep);
+  const canProgress = () => blocker === null;
 
   const completeCharacter = () => {
     saveCompletedSheet({
@@ -505,11 +527,13 @@ export function CharacterCreator() {
               </span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <span title={blocker ?? undefined} className="flex items-center gap-4">
               {currentStepIndex === steps.length - 1 ? (
                 <button
                   onClick={completeCharacter}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-colors text-sm font-medium shadow-sm border border-green-500/50"
+                  disabled={!canProgress()}
+                  aria-describedby={blocker ? "step-blocker" : undefined}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium shadow-sm border border-green-500/50"
                 >
                   <Check className="w-4 h-4" />
                   Complete
@@ -518,13 +542,14 @@ export function CharacterCreator() {
                 <button
                   onClick={nextStep}
                   disabled={!canProgress()}
+                  aria-describedby={blocker ? "step-blocker" : undefined}
                   className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-lg hover:from-brand-700 hover:to-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium shadow-sm border border-brand-500/50"
                 >
                   Next
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
-            </div>
+            </span>
           </div>
         </div>
 
@@ -533,6 +558,38 @@ export function CharacterCreator() {
           <div className="bg-black/40 backdrop-blur-sm rounded-xl shadow-lg border border-brand-900/30">
             <div className="p-4 md:p-8 min-h-[600px]">
               {/* Step Content */}
+
+              {/* A class feature that must be picked holds Next; the pick sits
+                  far down the class details, so say what it is and go there. */}
+              {currentStep === "class" && characterData.class && missingFeatureChoices.length > 0 && (
+                <div
+                  role="alert"
+                  className="mb-6 rounded-xl border border-brand-600/70 bg-brand-950/40 p-4 text-sm text-brand-100 flex flex-wrap items-center gap-3"
+                >
+                  <AlertTriangle className="w-5 h-5 shrink-0 text-brand-400" />
+                  <p className="flex-1 min-w-[12rem]">
+                    <span className="font-semibold">You can't continue yet:</span>{" "}
+                    {missingFeatureChoices.map(({ className, feature, options }, index) => (
+                      <span key={feature}>
+                        {index > 0 && "; "}
+                        choose your {className}&apos;s {feature} ({options.map((option) => option.name).join(" or ")})
+                      </span>
+                    ))}
+                    .
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      document
+                        .getElementById(featureChoiceAnchor(missingFeatureChoices[0].feature))
+                        ?.scrollIntoView({ behavior: "smooth", block: "center" })
+                    }
+                    className="rounded-lg border border-brand-500/60 bg-brand-900/40 px-3 py-1.5 font-medium text-white hover:bg-brand-900/60"
+                  >
+                    Show me
+                  </button>
+                </div>
+              )}
 
               {/* Multiclass prerequisites: a warning wherever scores can still
                   change, and the reason Next is held on the step that checks. */}
@@ -583,6 +640,10 @@ export function CharacterCreator() {
                 <RulesetStep
                   selected={characterData.ruleset}
                   onSelect={selectRuleset}
+                  leveling={characterData.leveling ?? "xp"}
+                  onLevelingChange={(leveling) =>
+                    setCharacterData((previous) => ({ ...previous, leveling }))
+                  }
                 />
               )}
 
@@ -653,7 +714,12 @@ export function CharacterCreator() {
                   onLevelChange={(level) => {
                     // The total moves the starting class's levels. Below what
                     // the later classes hold, they give levels back from the last.
-                    if (!characterData.class) return;
+                    // Before a class is picked the level is simply held; the
+                    // class takes it when chosen.
+                    if (!characterData.class) {
+                      setCharacterData(settleFeats({ ...characterData, level }));
+                      return;
+                    }
                     const entries = classLevels(characterData);
                     const surplus = entries.reduce((total, entry) => total + entry.level, 0) - level;
                     const next = entries.map((entry) => ({ ...entry }));
@@ -825,15 +891,23 @@ export function CharacterCreator() {
                   equipment={characterData.equipment}
                   classData={characterData.class}
                   race={characterData.race}
+                  background={characterData.background}
                   armorProficiencies={characterData.proficiencies?.armor}
-                  onEquipmentChange={(equipment) => setCharacterData({ ...characterData, equipment })}
+                  toolProficiencies={characterData.proficiencies?.tools}
+                  weaponProficiencies={characterData.proficiencies?.weapons}
+                  choices={characterData.startingEquipment}
+                  currency={characterData.currency}
+                  lifestyle={characterData.lifestyle}
+                  onChange={(patch) => setCharacterData((prev) => ({ ...prev, ...patch }))}
                 />
               )}
               {currentStep === "magic-item" && (
                 <MagicItemStep
                   ruleset={characterData.ruleset!}
-                  magicItem={characterData.magicItems || []}
-                  onMagicItemChange={(items) => setCharacterData({ ...characterData, magicItems: items })}
+                  magicItems={characterData.magicItems || []}
+                  attunedItemIds={characterData.attunedItemIds || []}
+                  weaponProficiencies={characterData.proficiencies?.weapons}
+                  onMagicItemsChange={(magicItems, attunedItemIds) => setCharacterData({ ...characterData, magicItems, attunedItemIds })}
                   level={characterData.level}
                 />
               )}
@@ -863,7 +937,7 @@ export function CharacterCreator() {
               {/* Navigation */}
               <div className="sticky bottom-0 z-10 bg-black/80 backdrop-blur-sm -mx-8 -mb-8 px-4 md:px-8 py-4 md:py-6 border-t border-brand-900/30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] mt-8">
                 {/* Navigation Buttons Row */}
-                <div className="flex justify-between items-center relative">
+                <div className="flex justify-between items-center gap-3 relative">
                   <button
                     onClick={prevStep}
                     disabled={currentStepIndex === 0}
@@ -873,24 +947,40 @@ export function CharacterCreator() {
                     Previous
                   </button>
 
-                  {currentStepIndex === steps.length - 1 ? (
-                    <button
-                      onClick={completeCharacter}
-                      className="flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-colors font-medium shadow-md border border-green-500/50 text-sm md:text-base"
-                    >
-                      <Check className="w-4 h-4 md:w-5 md:h-5" />
-                      Complete
-                    </button>
-                  ) : (
-                    <button
-                      onClick={nextStep}
-                      disabled={!canProgress()}
-                      className="flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-lg hover:from-brand-700 hover:to-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md border border-brand-500/50 text-sm md:text-base"
-                    >
-                      Next
-                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-                    </button>
-                  )}
+                  {/* Why Next is held, beside it; a disabled button can't show
+                      its own tooltip everywhere, so the wrapper carries it. */}
+                  <p
+                    id="step-blocker"
+                    role="status"
+                    className={`flex-1 min-w-0 flex items-center justify-end gap-2 text-right text-xs md:text-sm text-amber-300 ${blocker ? "" : "invisible"}`}
+                  >
+                    {blocker && <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />}
+                    <span className="line-clamp-2">{blocker}</span>
+                  </p>
+
+                  <span title={blocker ?? undefined} className="shrink-0">
+                    {currentStepIndex === steps.length - 1 ? (
+                      <button
+                        onClick={completeCharacter}
+                        disabled={!canProgress()}
+                        aria-describedby={blocker ? "step-blocker" : undefined}
+                        className="flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md border border-green-500/50 text-sm md:text-base"
+                      >
+                        <Check className="w-4 h-4 md:w-5 md:h-5" />
+                        Complete
+                      </button>
+                    ) : (
+                      <button
+                        onClick={nextStep}
+                        disabled={!canProgress()}
+                        aria-describedby={blocker ? "step-blocker" : undefined}
+                        className="flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-lg hover:from-brand-700 hover:to-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md border border-brand-500/50 text-sm md:text-base"
+                      >
+                        Next
+                        <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+                      </button>
+                    )}
+                  </span>
                 </div>
               </div>
             </div>

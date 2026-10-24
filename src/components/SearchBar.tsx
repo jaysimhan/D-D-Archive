@@ -41,6 +41,9 @@ interface SearchBarProps {
     /** Where the equipment sliders end, in gp and lb. */
     highestPrice?: number;
     highestWeight?: number;
+    /** Narrower rarity and +N choices, when only some are allowed. */
+    rarities?: string[];
+    bonuses?: number[];
   };
 }
 
@@ -461,7 +464,7 @@ export function SearchBar({ filters, onFiltersChange, filterSet, options }: Sear
 
         {filterSet === "magic-items" && (
           <>
-            <SelectFilter label="Rarity" value={filters.rarity} onChange={(rarity) => set({ rarity })} anyLabel="Any rarity" options={RARITIES} />
+            <SelectFilter label="Rarity" value={filters.rarity} onChange={(rarity) => set({ rarity })} anyLabel="Any rarity" options={options?.rarities ?? RARITIES} />
             <SelectFilter
               label="Attunement"
               value={filters.attunement === undefined ? undefined : filters.attunement ? "yes" : "no"}
@@ -471,7 +474,7 @@ export function SearchBar({ filters, onFiltersChange, filterSet, options }: Sear
             />
             <Field label="Bonus" className="w-auto">
               <div className="flex gap-1.5">
-                {[1, 2, 3].map((bonus) => (
+                {(options?.bonuses ?? [1, 2, 3]).map((bonus) => (
                   <Chip key={bonus} active={filters.magicBonus === bonus} onClick={() => set({ magicBonus: filters.magicBonus === bonus ? undefined : bonus })} title={`Only +${bonus} items`}>
                     +{bonus}
                   </Chip>

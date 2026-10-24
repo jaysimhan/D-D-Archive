@@ -90,11 +90,12 @@ export const MARTIAL_WEAPONS = [
     "War Pick", "Warhammer", "Whip",
 ];
 
-/** Martial weapons with the Light property, which is what a monk trains with. */
-const LIGHT_MARTIAL_WEAPONS = ["Hand Crossbow", "Scimitar", "Shortsword"];
-
-/** Martial weapons with Finesse or Light, which is what a rogue trains with. */
-const FINESSE_OR_LIGHT_MARTIAL_WEAPONS = ["Hand Crossbow", "Rapier", "Scimitar", "Shortsword", "Whip"];
+/**
+ * Weapon groups named by property, as the 2024 rules word them. The weapons
+ * they cover are worked out from each weapon's tags (utils/weapon-proficiency).
+ */
+const LIGHT_MARTIAL_WEAPONS = "Martial Weapons that have the Light property";
+const FINESSE_OR_LIGHT_MARTIAL_WEAPONS = "Martial Weapons that have the Finesse or Light property";
 
 /** Melee weapons a single hand can hold, for features that grant one. */
 const ONE_HANDED_MELEE_WEAPONS = [
@@ -358,7 +359,7 @@ const CLASS_RULES_2024: Record<string, ClassRules> = {
     monk: {
         // Simple weapons plus martial weapons with the Light property.
         base: {
-            weapons: ["Simple Weapons", ...LIGHT_MARTIAL_WEAPONS],
+            weapons: ["Simple Weapons", LIGHT_MARTIAL_WEAPONS],
             choices: [
                 {
                     kind: "skill",
@@ -413,7 +414,7 @@ const CLASS_RULES_2024: Record<string, ClassRules> = {
         // Simple weapons plus martial weapons with Finesse or Light.
         base: {
             armor: ["Light Armor"],
-            weapons: ["Simple Weapons", ...FINESSE_OR_LIGHT_MARTIAL_WEAPONS],
+            weapons: ["Simple Weapons", FINESSE_OR_LIGHT_MARTIAL_WEAPONS],
             tools: ["Thieves' Tools"],
             choices: [{
                 kind: "skill",
