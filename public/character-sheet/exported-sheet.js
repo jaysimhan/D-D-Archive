@@ -745,8 +745,35 @@
             ) + "px";
         card.style.top = openBelow ? hit.bottom + NOTE_CARD_GAP + "px" : "";
         card.style.bottom = openBelow ? "" : page.offsetHeight - hit.top + NOTE_CARD_GAP + "px";
-        card.style.maxHeight =
-            Math.max(0, Math.min(NOTE_CARD_HEIGHT, openBelow ? below : above)) + "px";
+        card.style.maxHeight = Math.max(0, openBelow ? below : above) + "px";
+    }
+
+    var MIN_NOTE_SCALE = 0.45;
+
+    /**
+     * Steps a card's description down a size until the card holds all of it —
+     * the card never takes the pointer, so whatever it clips is lost. The same
+     * fit as entry-notes.tsx on the site.
+     */
+    function fitNoteCard(card) {
+        var description = card.querySelector("[data-cs-note-description]");
+        if (!description) return;
+        description.style.fontSize = "";
+        var design = parseFloat(window.getComputedStyle(description).fontSize);
+        function fits() {
+            return card.scrollHeight <= card.clientHeight + 1;
+        }
+        if (!design || fits()) return;
+
+        var low = design * MIN_NOTE_SCALE;
+        var high = design;
+        while (high - low > 0.05) {
+            var middle = (low + high) / 2;
+            description.style.fontSize = middle + "px";
+            if (fits()) low = middle;
+            else high = middle;
+        }
+        description.style.fontSize = low + "px";
     }
 
     /**
@@ -797,6 +824,7 @@
                 card.querySelector("[data-cs-note-description]").textContent = description;
                 placeNoteCard(card, hit, page);
                 page.appendChild(card);
+                fitNoteCard(card);
                 shownTop = hit.top;
                 return true;
             }

@@ -1,6 +1,7 @@
 import {
     useCallback,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -39,7 +40,10 @@ export const LONG_PRESS_MS = 450;
 /** How far a finger may drift before the press counts as a scroll, in px. */
 const LONG_PRESS_SLOP = 10;
 
-/** How tall a card would like to be, its width, and its gap, in design px. */
+/**
+ * How tall a card would like to be, its width, and its gap, in design px. A
+ * longer description may take the whole side it opens on.
+ */
 const NOTE_CARD_HEIGHT = 620;
 const NOTE_CARD_WIDTH = 760;
 const NOTE_CARD_GAP = 10;
@@ -186,8 +190,36 @@ export function notePlacement(hit: LineHit, page: HTMLElement) {
         left,
         top: openBelow ? hit.bottom + NOTE_CARD_GAP : undefined,
         bottom: openBelow ? undefined : page.offsetHeight - hit.top + NOTE_CARD_GAP,
-        maxHeight: Math.max(0, Math.min(NOTE_CARD_HEIGHT, openBelow ? below : above)),
+        maxHeight: Math.max(0, openBelow ? below : above),
     };
+}
+
+/** Floor on a card description's shrink, as a share of its designed size. */
+const MIN_NOTE_SCALE = 0.45;
+
+/**
+ * Steps a card's description down a size until the card holds all of it. The
+ * card never takes the pointer, so it cannot be scrolled: whatever it clips is
+ * lost.
+ */
+export function fitNoteCard(card: HTMLElement) {
+    const description = card.querySelector<HTMLElement>("[data-cs-note-description]");
+    if (!description) return;
+    description.style.fontSize = "";
+    const design = Number.parseFloat(getComputedStyle(description).fontSize);
+    const fits = () => card.scrollHeight <= card.clientHeight + 1;
+    if (!design || fits()) return;
+
+    // The largest size that still fits, to within a twentieth of a px.
+    let low = design * MIN_NOTE_SCALE;
+    let high = design;
+    while (high - low > 0.05) {
+        const middle = (low + high) / 2;
+        description.style.fontSize = `${middle}px`;
+        if (fits()) low = middle;
+        else high = middle;
+    }
+    description.style.fontSize = `${low}px`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -210,8 +242,14 @@ export function NoteCard({
     description: string;
     style?: React.CSSProperties;
 }) {
+    const ref = useRef<HTMLDivElement>(null);
+    useLayoutEffect(() => {
+        if (ref.current) fitNoteCard(ref.current);
+    }, [name, description, style?.maxHeight]);
+
     return (
         <div
+            ref={ref}
             role="tooltip"
             data-cs-note-card=""
             className="pointer-events-none absolute z-40 w-[760px] overflow-hidden rounded-[18px] border-[3px] border-solid border-black bg-white p-[24px] shadow-[0_18px_48px_rgba(0,0,0,0.28)]"
