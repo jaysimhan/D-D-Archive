@@ -360,6 +360,8 @@ export function OwlbearDice() {
 
     const rootRef = useRef<HTMLDivElement>(null);
     const headerRef = useRef<HTMLDivElement>(null);
+    /** Where the roller draws its banner: first, above the tabs. */
+    const [bannerSlot, setBannerSlot] = useState<HTMLDivElement | null>(null);
     /** The tallest the popover may be, and what the pinned header takes of it. */
     const [limit, setLimit] = useState(FALLBACK_LIMIT);
     const [headerHeight, setHeaderHeight] = useState(0);
@@ -396,7 +398,12 @@ export function OwlbearDice() {
 
     return (
         <div ref={rootRef} className="bg-white">
+            {/*
+              * Banner, tabs, the GM's strip and, on the table, its filters — all
+              * fixed; everything under them scrolls.
+              */}
             <div ref={headerRef} className="relative z-30 bg-white">
+                <div ref={setBannerSlot} />
                 <div className="flex border-b border-gray-200">
                     <button className={tabClass("roll")} onClick={() => setTab("roll")}>Roll</button>
                     <button
@@ -423,6 +430,11 @@ export function OwlbearDice() {
                         }}
                     />
                 )}
+                {tab === "table" && (players.length > 0 || hasGM) && (
+                    <div className="px-3 py-2 border-b border-gray-100">
+                        <TableFilter value={active} onChange={setFilter} players={players} hasGM={hasGM} />
+                    </div>
+                )}
             </div>
             {/*
               * Each tab keeps to the room under the tabs: the roller by letting
@@ -430,15 +442,12 @@ export function OwlbearDice() {
               * stacking layer of its own, so nothing in it can rise over them.
               */}
             <div className={`isolate ${tab === "roll" ? "" : "hidden"}`}>
-                <DiceRoller embedded maxHeight={paneHeight} onRoll={onRoll} />
+                <DiceRoller embedded headerSlot={bannerSlot} maxHeight={paneHeight} onRoll={onRoll} />
             </div>
             <div
                 className={`isolate roller-scroll overflow-y-auto overscroll-contain p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}
                 style={{ maxHeight: paneHeight }}
             >
-                {(players.length > 0 || hasGM) && (
-                    <TableFilter value={active} onChange={setFilter} players={players} hasGM={hasGM} />
-                )}
                 <TableLog batches={filtered} me={me} onReveal={reveal} onHide={hide} />
                 {isGM && shown.length > 0 && (
                     <ClearTable

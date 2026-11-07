@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
     X, Minus, Plus, Volume2, VolumeX, ScrollText,
     ChevronsDownUp, ChevronsUpDown, Sparkles, Clover,
@@ -99,10 +100,12 @@ function useIsLargeScreen(breakpoint: number = 1410) {
  */
 export function DiceRoller({
     embedded = false,
+    headerSlot,
     maxHeight,
     onRoll,
 }: {
     embedded?: boolean;
+    headerSlot?: HTMLElement | null;
     maxHeight?: number;
     onRoll?: (rolls: LoggedRoll[]) => void;
 } = {}) {
@@ -401,6 +404,53 @@ export function DiceRoller({
         rollStatArrayRef.current(roll, true);
     }), []);
 
+    /**
+     * The banner across the top. Embedded with a `headerSlot`, it is drawn there
+     * instead — above the host's own tabs — while staying the roller's: its
+     * sound switch and its lucky colours go with it.
+     */
+    const header = (
+        <div className={`bg-gradient-to-r to-brand-700 px-4 py-3 flex items-center justify-between shrink-0
+            transition-colors duration-500 ${lucky ? "from-amber-600" : "from-brand-600"}`}>
+            <span className="text-white text-[15px] font-normal flex items-center gap-1.5">
+                Dice Roller
+                {lucky && (
+                    <span title="The dice are listening" className="flex">
+                        <Clover className="w-3.5 h-3.5 text-amber-200" />
+                    </span>
+                )}
+            </span>
+            <div className="flex items-center gap-1">
+                <button
+                    onClick={() => setSoundOn(!soundOn)}
+                    title={soundOn ? "Sound on" : "Sound off"}
+                    aria-pressed={soundOn}
+                    className="p-1 hover:bg-white/10 rounded transition-all"
+                >
+                    {soundOn
+                        ? <Volume2 className="w-4 h-4 text-white" />
+                        : <VolumeX className="w-4 h-4 text-white/50" />}
+                </button>
+                {!embedded && (
+                    <button
+                        onClick={toggleExpandAll}
+                        title={allExpanded ? "Collapse all options" : "Expand all options"}
+                        className="p-1 hover:bg-white/10 rounded transition-all"
+                    >
+                        {allExpanded
+                            ? <ChevronsDownUp className="w-4 h-4 text-white" />
+                            : <ChevronsUpDown className="w-4 h-4 text-white" />}
+                    </button>
+                )}
+                {!embedded && (
+                    <button onClick={() => setIsOpen(false)} title="Close" className="p-1 hover:bg-white/10 rounded transition-all">
+                        <X className="w-4 h-4 text-white" />
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+
     const roomForStatArray = lines.length + STAT_ARRAY_SIZE <= MAX_LINES;
     const shown = shuffle ?? headline?.total ?? 0;
 
@@ -480,46 +530,9 @@ export function DiceRoller({
                             maxHeight: isLargeScreen ? 'calc(100vh - 64px)' : 'calc(100vh - 112px)',
                         }}
                     >
-                        {/* Header */}
-                        <div className={`bg-gradient-to-r to-brand-700 px-4 py-3 flex items-center justify-between shrink-0
-                            transition-colors duration-500 ${lucky ? "from-amber-600" : "from-brand-600"}`}>
-                            <span className="text-white text-[15px] font-normal flex items-center gap-1.5">
-                                Dice Roller
-                                {lucky && (
-                                    <span title="The dice are listening" className="flex">
-                                        <Clover className="w-3.5 h-3.5 text-amber-200" />
-                                    </span>
-                                )}
-                            </span>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={() => setSoundOn(!soundOn)}
-                                    title={soundOn ? "Sound on" : "Sound off"}
-                                    aria-pressed={soundOn}
-                                    className="p-1 hover:bg-white/10 rounded transition-all"
-                                >
-                                    {soundOn
-                                        ? <Volume2 className="w-4 h-4 text-white" />
-                                        : <VolumeX className="w-4 h-4 text-white/50" />}
-                                </button>
-                                {!embedded && (
-                                    <button
-                                        onClick={toggleExpandAll}
-                                        title={allExpanded ? "Collapse all options" : "Expand all options"}
-                                        className="p-1 hover:bg-white/10 rounded transition-all"
-                                    >
-                                        {allExpanded
-                                            ? <ChevronsDownUp className="w-4 h-4 text-white" />
-                                            : <ChevronsUpDown className="w-4 h-4 text-white" />}
-                                    </button>
-                                )}
-                                {!embedded && (
-                                    <button onClick={() => setIsOpen(false)} title="Close" className="p-1 hover:bg-white/10 rounded transition-all">
-                                        <X className="w-4 h-4 text-white" />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                        {embedded
+                            ? headerSlot && createPortal(header, headerSlot)
+                            : header}
 
                         <div className={`p-3 sm:p-4 space-y-3 overflow-y-auto ${embedded ? "flex-1 min-h-0 flex flex-col" : ""}`}>
                             {/* Result Display */}
