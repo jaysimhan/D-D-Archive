@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import OBR from "@owlbear-rodeo/sdk";
-import { EyeOff, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { DiceRoller } from "../components/DiceRoller";
 import { Die } from "../components/DiceRollLog";
 import type { LoggedRoll } from "../lib/dice";
@@ -63,6 +63,42 @@ function TableLog({ batches, me }: { batches: TableBatch[]; me: string }) {
                 </li>
             ))}
         </ol>
+    );
+}
+
+/**
+ * The GM's switch for rolling out of the players' sight, in a strip of its own
+ * under the tabs — tinted while it is on, so a hidden roll is never a surprise.
+ */
+function RollVisibility({ hidden, onChange }: { hidden: boolean; onChange: (hidden: boolean) => void }) {
+    const Icon = hidden ? EyeOff : Eye;
+    return (
+        <div
+            className={`shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 border-b text-[11px] transition-colors ${hidden
+                ? "bg-brand-50 border-brand-100 text-brand-700"
+                : "bg-gray-50 border-gray-200 text-gray-500"}`}
+        >
+            <span className="flex items-center gap-1.5 font-medium">
+                <Icon className="w-3.5 h-3.5" />
+                {hidden ? "Rolls hidden from players" : "Rolls visible to the table"}
+            </span>
+            <button
+                role="switch"
+                aria-checked={hidden}
+                aria-label="Hide my rolls from players"
+                onClick={() => onChange(!hidden)}
+                className="flex items-center gap-1.5 font-semibold"
+            >
+                Hide
+                <span
+                    className={`relative inline-flex h-[18px] w-8 shrink-0 rounded-full transition-colors ${hidden ? "bg-brand-600" : "bg-gray-300"}`}
+                >
+                    <span
+                        className={`absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow transition-transform ${hidden ? "translate-x-[16px]" : "translate-x-[2px]"}`}
+                    />
+                </span>
+            </button>
+        </div>
     );
 }
 
@@ -153,27 +189,15 @@ export function OwlbearDice() {
                         </span>
                     )}
                 </button>
-                {isGM && (
-                    <button
-                        onClick={() => {
-                            writeHideRolls(!hideRolls);
-                            setHideRolls(!hideRolls);
-                        }}
-                        aria-pressed={hideRolls}
-                        title={hideRolls ? "Your rolls are hidden from players" : "Hide your rolls from players"}
-                        className={`shrink-0 flex items-center gap-1 px-2.5 text-[11px] font-semibold border-b-2 border-transparent transition-colors ${hideRolls
-                            ? "text-brand-700 bg-brand-50"
-                            : "text-gray-400 hover:text-gray-600"}`}
-                    >
-                        <EyeOff className="w-3.5 h-3.5" />
-                        {hideRolls ? "Hidden" : "Hide"}
-                    </button>
-                )}
             </div>
-            {secret && (
-                <div className="shrink-0 bg-brand-50 text-brand-700 text-[11px] text-center py-1 border-b border-brand-100">
-                    Your rolls are hidden from players
-                </div>
+            {isGM && (
+                <RollVisibility
+                    hidden={hideRolls}
+                    onChange={(next) => {
+                        writeHideRolls(next);
+                        setHideRolls(next);
+                    }}
+                />
             )}
             <div className={`flex-1 min-h-0 ${tab === "roll" ? "" : "hidden"}`}>
                 <DiceRoller embedded onRoll={onRoll} />
