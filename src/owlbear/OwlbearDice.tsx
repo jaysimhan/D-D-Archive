@@ -4,13 +4,14 @@ import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { DiceRoller } from "../components/DiceRoller";
 import { Die } from "../components/DiceRollLog";
 import type { LoggedRoll } from "../lib/dice";
-import { clearTable, shareRolls, watchTable, type TableBatch } from "./table-rolls";
+import { clearTable, shareRolls, unshareRolls, watchTable, type TableBatch } from "./table-rolls";
 import {
     forgetHidden,
     keepHidden,
     readHidden,
     readHideRolls,
     removeHidden,
+    returnHidden,
     writeHideRolls,
 } from "./hidden-rolls";
 import { showTray } from "./tray-open";
@@ -37,10 +38,12 @@ function TableLog({
     batches,
     me,
     onReveal,
+    onHide,
 }: {
     batches: TableBatch[];
     me: string;
     onReveal: (batch: TableBatch) => void;
+    onHide: (batch: TableBatch) => void;
 }) {
     if (!batches.length) {
         return <p className="text-[12px] text-center text-gray-400 py-6">No rolls here yet</p>;
@@ -102,6 +105,15 @@ function TableLog({
                             Reveal to the table
                         </button>
                     )}
+                    {batch.gm && !batch.hidden && batch.playerId === me && (
+                        <button
+                            onClick={() => onHide(batch)}
+                            className="mt-1.5 w-full flex items-center justify-center gap-1 rounded border border-gray-200 bg-white py-1 text-[11px] font-semibold text-gray-500 hover:bg-gray-100 transition-colors"
+                        >
+                            <EyeOff className="w-3 h-3" />
+                            Hide from the table
+                        </button>
+                    )}
                 </li>
             ))}
         </ol>
@@ -137,6 +149,62 @@ function TableFilter({
                     {player.name}
                 </button>
             ))}
+        </div>
+    );
+}
+
+/** How long the confirmation waits before standing down, in ms. */
+const CONFIRM_MS = 5000;
+
+/**
+ * The GM's way to wipe the table, kept below the rolls and behind a second,
+ * deliberate tap: a stray touch only ever opens the question.
+ */
+function ClearTable({ onClear }: { onClear: () => void }) {
+    const [asking, setAsking] = useState(false);
+
+    useEffect(() => {
+        if (!asking) return;
+        const id = window.setTimeout(() => setAsking(false), CONFIRM_MS);
+        return () => window.clearTimeout(id);
+    }, [asking]);
+
+    if (!asking) {
+        return (
+            <div className="pt-3 mt-1 border-t border-gray-100 flex justify-center">
+                <button
+                    onClick={() => setAsking(true)}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                >
+                    <Trash2 className="w-3 h-3" />
+                    Clear table
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="pt-3 mt-1 border-t border-gray-100">
+            <div className="rounded border border-red-200 bg-red-50 px-2.5 py-2 flex items-center justify-between gap-2">
+                <span className="text-[11px] font-medium text-red-700">Clear every roll for everyone?</span>
+                <div className="flex shrink-0 gap-1.5">
+                    <button
+                        onClick={() => setAsking(false)}
+                        className="px-2 py-0.5 rounded border border-gray-200 bg-white text-[11px] font-semibold text-gray-600 hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => {
+                            setAsking(false);
+                            onClear();
+                        }}
+                        className="px-2 py-0.5 rounded bg-red-600 text-[11px] font-semibold text-white hover:bg-red-700"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
@@ -274,6 +342,19 @@ export function OwlbearDice() {
             });
     }, []);
 
+    // Anyone who already saw it has seen it; it leaves their table all the same.
+    const hide = useCallback((batch: TableBatch) => {
+        unshareRolls(batch.id)
+            .then(() => {
+                const back = returnHidden(batch);
+                setHidden((prev) => [back, ...prev.filter((item) => item.id !== batch.id)]);
+            })
+            .catch((cause) => {
+                console.error("Could not hide the roll", cause);
+                OBR.notification.show("The roll could not be hidden", "ERROR");
+            });
+    }, []);
+
     const rootRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const root = rootRef.current;
@@ -297,7 +378,7 @@ export function OwlbearDice() {
 
     return (
         <div ref={rootRef} className="bg-white">
-            <div className="sticky top-0 z-10 bg-white">
+            <div className="sticky top-0 z-30 bg-white">
                 <div className="flex border-b border-gray-200">
                     <button className={tabClass("roll")} onClick={() => setTab("roll")}>Roll</button>
                     <button
@@ -325,13 +406,18 @@ export function OwlbearDice() {
                     />
                 )}
             </div>
-            <div className={tab === "roll" ? "" : "hidden"}>
+            {/* Its own stacking layer: nothing in the roller can rise over the pinned tabs. */}
+            <div className={`isolate ${tab === "roll" ? "" : "hidden"}`}>
                 <DiceRoller embedded onRoll={onRoll} />
             </div>
-            <div className={`p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}>
+            <div className={`isolate p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}>
+                {(players.length > 0 || hasGM) && (
+                    <TableFilter value={active} onChange={setFilter} players={players} hasGM={hasGM} />
+                )}
+                <TableLog batches={filtered} me={me} onReveal={reveal} onHide={hide} />
                 {isGM && shown.length > 0 && (
-                    <button
-                        onClick={() => {
+                    <ClearTable
+                        onClear={() => {
                             forgetHidden();
                             setHidden([]);
                             clearTable().catch((cause) => {
@@ -339,17 +425,8 @@ export function OwlbearDice() {
                                 OBR.notification.show("The table could not be cleared", "ERROR");
                             });
                         }}
-                        className="w-full text-[12px] text-red-500 hover:text-red-700 hover:bg-red-50 py-1 rounded transition-colors flex items-center justify-center gap-1"
-                        title="Clears every player's rolls from the table"
-                    >
-                        <Trash2 className="w-3 h-3" />
-                        Clear table
-                    </button>
+                    />
                 )}
-                {(players.length > 0 || hasGM) && (
-                    <TableFilter value={active} onChange={setFilter} players={players} hasGM={hasGM} />
-                )}
-                <TableLog batches={filtered} me={me} onReveal={reveal} />
             </div>
         </div>
     );

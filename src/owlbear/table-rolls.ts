@@ -137,6 +137,20 @@ export async function shareRolls(rolls: LoggedRoll[], revealing?: LogBatch) {
     });
 }
 
+/** Takes one of this player's rolls back off the table — a GM hiding it again. */
+export async function unshareRolls(id: string) {
+    const [playerId, metadata] = await Promise.all([OBR.player.getId(), OBR.room.getMetadata()]);
+    const key = KEY_PREFIX + playerId;
+    const previous = readPlayer(metadata[key]);
+    if (!previous) return;
+    const batches = previous.batches.filter((batch) => batch.id !== id);
+    await OBR.room.setMetadata({
+        [key]: batches.length
+            ? { ...previous, batches, revealed: previous.revealed.filter((item) => item !== id) }
+            : null,
+    });
+}
+
 /**
  * Wipes every player's rolls from the room: the GM clearing the table, or a
  * new session starting. A key is emptied rather than removed, since a

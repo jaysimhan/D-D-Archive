@@ -77,6 +77,16 @@ export async function keepHidden(rolls: LoggedRoll[]): Promise<TableBatch> {
     return batch;
 }
 
+/** Takes back a roll the GM had shown the table, keeping its place in time. */
+export function returnHidden(batch: TableBatch): TableBatch {
+    const back: TableBatch = { ...batch, gm: true, hidden: true, revealed: false };
+    const batches = [back, ...readHidden().filter((item) => item.id !== batch.id)]
+        .sort((a, b) => b.at - a.at)
+        .slice(0, MAX_HIDDEN);
+    store(batch.playerId, batch.player, batch.color, batches);
+    return back;
+}
+
 /** Drops one hidden roll — the GM has revealed it, so the table holds it now. */
 export function removeHidden(id: string) {
     const rest = readHidden().filter((batch) => batch.id !== id);
