@@ -1,0 +1,16 @@
+{
+    "name": "D&D Archive Dice",
+    "version": "1.0.0",
+    "manifest_version": 1,
+    "action": {
+        "title": "D&D Archive Dice",
+        "icon": "https://d-d-archive.vercel.app/owlbear/icon.svg",
+        "popover": "https://d-d-archive.vercel.app/owlbear/index.html",
+        "height": 640,
+        "width": 400
+    },
+    "background_url": "https://d-d-archive.vercel.app/owlbear/background.html",
+    "description": "The D&D Archive dice roller. Every roll is shared with the table.",
+    "author": "D&D Archive",
+    "homepage_url": "https://d-d-archive.vercel.app"
+}

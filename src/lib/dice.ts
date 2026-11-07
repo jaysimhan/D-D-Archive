@@ -258,7 +258,16 @@ export interface LoggedRoll {
     dice: DieResult[];
     total: number;
     sides: DieSides;
+    /**
+     * A "to each" modifier, signed: every die that counts carries it, so it is
+     * shown on each die rather than left for the total to explain.
+     */
+    perDie?: number;
 }
+
+/** What a die counts for in its roll: its face, plus any "to each" modifier. */
+export const dieTotal = (die: DieResult, perDie = 0): number =>
+    die.dropped ? die.value : die.value + perDie;
 
 /** One press of Roll or ALL: everything it rolled, under one timestamp. */
 export interface LogBatch {
@@ -272,6 +281,7 @@ export const MAX_LOG_BATCHES = 25;
 export const makeId = (prefix: string): string => nextId(prefix);
 
 export function toLoggedRoll(line: DiceLine, roll: LineRoll): LoggedRoll {
+    const modifier = clampInt(line.modifier, 0, MAX_MODIFIER);
     return {
         id: nextId("roll"),
         name: lineName(line),
@@ -279,6 +289,7 @@ export function toLoggedRoll(line: DiceLine, roll: LineRoll): LoggedRoll {
         dice: roll.dice,
         total: roll.total,
         sides: line.sides,
+        ...(line.modTarget === "each" && modifier > 0 ? { perDie: line.sign * modifier } : {}),
     };
 }
 
@@ -331,6 +342,9 @@ export function sanitizeLog(raw: unknown): LogBatch[] {
                         dice,
                         total: roll.total,
                         sides: DIE_SIDES.includes(roll.sides as DieSides) ? (roll.sides as DieSides) : 20,
+                        ...(typeof roll.perDie === "number" && Number.isFinite(roll.perDie) && roll.perDie !== 0
+                            ? { perDie: clampInt(roll.perDie, -MAX_MODIFIER, MAX_MODIFIER) }
+                            : {}),
                     };
                 })
                 .filter((roll): roll is LoggedRoll => roll !== null);

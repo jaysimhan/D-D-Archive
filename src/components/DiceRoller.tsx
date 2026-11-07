@@ -14,6 +14,7 @@ import {
     clampInt,
     createLine,
     critOf,
+    dieTotal,
     lineName,
     duplicateLine,
     makeId,
@@ -45,6 +46,8 @@ interface Headline {
     crit: "success" | "failure" | null;
     /** The individual dice, when a single line was rolled. */
     dice: DieResult[] | null;
+    /** The "to each" modifier those dice carry. */
+    perDie?: number;
     /** Line-by-line totals, when ALL was. */
     parts: { id: string; name: string; total: number }[];
 }
@@ -104,12 +107,28 @@ function useIsLargeScreen(breakpoint: number = 1410) {
     return isLarge;
 }
 
-export function DiceRoller() {
+/**
+ * The site's floating roller. Embedded, it is the panel alone, filling its
+ * container and always open — the Owlbear Rodeo extension's popover.
+ *
+ * `onRoll` hears every press as the table should see it: a line that carried
+ * a code goes out under its dice notation rather than the roller's reply, so
+ * nothing in it says whether the dice were listening.
+ */
+export function DiceRoller({
+    embedded = false,
+    onRoll,
+}: {
+    embedded?: boolean;
+    onRoll?: (rolls: LoggedRoll[]) => void;
+} = {}) {
     const isLargeScreen = useIsLargeScreen(1410);
     const reduceMotion = useReducedMotion();
     const [stored] = useState(readStored);
+    const onRollRef = useRef(onRoll);
+    onRollRef.current = onRoll;
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(embedded);
     const [isRollerHovered, setIsRollerHovered] = useState(false);
     const [isRolling, setIsRolling] = useState(false);
     const isRollerAnimated = isRollerHovered && !reduceMotion;
@@ -200,6 +219,7 @@ export function DiceRoller() {
                 total: roll.total,
                 crit: critOf(roll),
                 dice: roll.dice,
+                perDie: roll.perDie,
                 parts: [],
             });
             return;
@@ -277,6 +297,11 @@ export function DiceRoller() {
 
             pushBatch(logged);
             announce(logged);
+            onRollRef.current?.(rolled.map(({ line, roll }, index) => (
+                cheatCode(targets[index].label)
+                    ? toLoggedRoll({ ...line, label: "" }, roll)
+                    : logged[index]
+            )));
             if (soundOn) playDiceSound(rolled.reduce((running, { roll }) => running + roll.dice.length, 0));
         });
     }, [announce, lucky, pushBatch, runShuffle, soundOn]);
@@ -391,7 +416,7 @@ export function DiceRoller() {
     return (
         <>
             {/* Floating Toggle Button */}
-            {!isOpen && (
+            {!isOpen && !embedded && (
                 <motion.button
                     initial={{ scale: 0 }}
                     animate={isRollerAnimated ? {
@@ -450,9 +475,10 @@ export function DiceRoller() {
                         initial={{ opacity: 0, y: 50, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                        className={`fixed rounded-lg shadow-2xl z-50 overflow-hidden flex flex-col transition-colors duration-500
+                        className={`overflow-hidden flex flex-col transition-colors duration-500
+                            ${embedded ? "relative w-full h-full" : "fixed rounded-lg shadow-2xl z-50"}
                             ${lucky ? "bg-[#fffcf3] ring-1 ring-amber-300/70" : "bg-white"}`}
-                        style={{
+                        style={embedded ? undefined : {
                             bottom: isLargeScreen ? '32px' : '80px',
                             ...(isLargeScreen
                                 ? { right: '32px', left: 'auto' }
@@ -494,9 +520,11 @@ export function DiceRoller() {
                                         ? <ChevronsDownUp className="w-4 h-4 text-white" />
                                         : <ChevronsUpDown className="w-4 h-4 text-white" />}
                                 </button>
-                                <button onClick={() => setIsOpen(false)} title="Close" className="p-1 hover:bg-white/10 rounded transition-all">
-                                    <X className="w-4 h-4 text-white" />
-                                </button>
+                                {!embedded && (
+                                    <button onClick={() => setIsOpen(false)} title="Close" className="p-1 hover:bg-white/10 rounded transition-all">
+                                        <X className="w-4 h-4 text-white" />
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -562,8 +590,11 @@ export function DiceRoller() {
                                                             className={`text-[11px] px-1.5 py-0.5 rounded font-semibold tabular-nums ${die.dropped
                                                                 ? "bg-red-50 text-red-400 line-through"
                                                                 : "bg-white/80 text-gray-600 border border-gray-200"}`}
+                                                            title={headline.perDie && !die.dropped
+                                                                ? `Rolled ${die.value}`
+                                                                : undefined}
                                                         >
-                                                            {die.value}
+                                                            {dieTotal(die, headline.perDie)}
                                                         </span>
                                                     ))}
                                                 </div>

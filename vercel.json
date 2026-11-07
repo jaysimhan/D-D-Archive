@@ -1,7 +1,15 @@
 {
+    "headers": [
+        {
+            "source": "/owlbear/(.*)",
+            "headers": [
+                { "key": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+        }
+    ],
     "rewrites": [
         {
-            "source": "/((?!api/|assets/).*)",
+            "source": "/((?!api/|assets/|owlbear/).*)",
             "destination": "/index.html"
         }
     ]

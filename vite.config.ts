@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { sharedSheetsPlugin } from './server/vite-sheets'
@@ -29,6 +30,13 @@ export default defineConfig(({ mode }) => {
         build: {
             chunkSizeWarningLimit: 1500,
             rolldownOptions: {
+                // The site, plus the Owlbear Rodeo extension's popover and the
+                // page that runs behind it (see public/owlbear/manifest.json).
+                input: {
+                    main: fileURLToPath(new URL('./index.html', import.meta.url)),
+                    owlbear: fileURLToPath(new URL('./owlbear/index.html', import.meta.url)),
+                    owlbearBackground: fileURLToPath(new URL('./owlbear/background.html', import.meta.url)),
+                },
                 output: {
                     manualChunks(id) {
                         if (!id.includes('/node_modules/')) return

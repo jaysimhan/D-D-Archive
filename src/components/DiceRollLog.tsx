@@ -1,16 +1,19 @@
 import { Trash2 } from "lucide-react";
-import type { DieResult, LogBatch } from "../lib/dice";
+import { dieTotal, type DieResult, type LogBatch } from "../lib/dice";
 
 const stamp = (at: number) =>
     new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
+const signed = (amount: number) => (amount < 0 ? `\u2212${-amount}` : `+${amount}`);
+
 /**
- * One die as it landed. A dropped die stays on screen struck through rather
+ * One die as it landed, carrying any "to each" modifier — the face it showed
+ * is on hover. A dropped die stays on screen struck through rather
  * than vanishing, because "why is this 17 and not 21" is exactly the question
  * a log is for; a rerolled die shows what it replaced, and a die held to a
  * floor or ceiling says so on hover.
  */
-function Die({ die }: { die: DieResult }) {
+export function Die({ die, perDie = 0 }: { die: DieResult; perDie?: number }) {
     const chip = "inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-semibold tabular-nums";
 
     if (die.dropped) {
@@ -21,15 +24,20 @@ function Die({ die }: { die: DieResult }) {
         );
     }
 
+    const notes = [
+        die.clampedFrom !== undefined ? `Rolled ${die.clampedFrom}, held to ${die.value}` : "",
+        perDie ? `${die.value} ${signed(perDie)}` : "",
+    ].filter(Boolean);
+
     return (
         <span
             className={`${chip} bg-white border border-gray-200 text-gray-700 ${die.clampedFrom !== undefined ? "underline decoration-dotted decoration-brand-500" : ""}`}
-            title={die.clampedFrom !== undefined ? `Rolled ${die.clampedFrom}, held to ${die.value}` : undefined}
+            title={notes.length ? notes.join("; ") : undefined}
         >
             {die.rerolledFrom !== undefined && (
                 <span className="text-gray-400 line-through mr-1 font-normal">{die.rerolledFrom}</span>
             )}
-            {die.value}
+            {dieTotal(die, perDie)}
         </span>
     );
 }
@@ -69,7 +77,7 @@ export function DiceRollLog({ batches, onClear }: { batches: LogBatch[]; onClear
                                     )}
                                     <div className="flex flex-wrap gap-1 mt-1">
                                         {roll.dice.map((die, index) => (
-                                            <Die key={index} die={die} />
+                                            <Die key={index} die={die} perDie={roll.perDie} />
                                         ))}
                                     </div>
                                 </div>
