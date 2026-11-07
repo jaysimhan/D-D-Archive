@@ -2,6 +2,7 @@
     "name": "D&D Archive Dice",
     "version": "1.0.0",
     "manifest_version": 1,
+    "icon": "https://d-d-archive.vercel.app/owlbear/logo.svg",
     "action": {
         "title": "D&D Archive Dice",
         "icon": "https://d-d-archive.vercel.app/owlbear/icon.svg",
