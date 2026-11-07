@@ -19,7 +19,11 @@ const KEY_PREFIX = `${EXTENSION_ID}/rolls/`;
 interface PlayerRolls {
     name: string;
     color: string;
+    /** Whether these are the GM's rolls, so the table can sort them out. */
+    gm: boolean;
     batches: LogBatch[];
+    /** Batches the GM rolled hidden and showed the table afterwards. */
+    revealed: string[];
 }
 
 /** A batch as the table sees it: whose it was, and what they rolled. */
@@ -27,8 +31,12 @@ export interface TableBatch extends LogBatch {
     playerId: string;
     player: string;
     color: string;
+    /** Rolled by the GM. */
+    gm?: boolean;
     /** A GM roll kept out of the room; only that GM ever holds one. */
     hidden?: boolean;
+    /** A hidden GM roll the GM has since shown the table. */
+    revealed?: boolean;
 }
 
 /**
@@ -44,15 +52,19 @@ const size = (value: unknown) => JSON.stringify(value).length;
 
 function fitBudget(entry: PlayerRolls): PlayerRolls {
     const batches = entry.batches.slice(0, MAX_BATCHES);
+    const kept = () => {
+        const ids = new Set(batches.map((batch) => batch.id));
+        return entry.revealed.filter((id) => ids.has(id));
+    };
     while (batches.length > 1 && size({ ...entry, batches }) > BUDGET_BYTES) batches.pop();
-    if (size({ ...entry, batches }) <= BUDGET_BYTES) return { ...entry, batches };
+    if (size({ ...entry, batches }) <= BUDGET_BYTES) return { ...entry, batches, revealed: kept() };
 
     // One press of ROLL ALL on twenty full lines: keep every total, trim dice.
     const trimmed = batches.map((batch) => ({
         ...batch,
         rolls: batch.rolls.map((roll) => ({ ...roll, dice: roll.dice.slice(0, DICE_WHEN_TIGHT) })),
     }));
-    return { ...entry, batches: trimmed };
+    return { ...entry, batches: trimmed, revealed: kept() };
 }
 
 function readPlayer(value: unknown): PlayerRolls | null {
@@ -63,7 +75,11 @@ function readPlayer(value: unknown): PlayerRolls | null {
     return {
         name: typeof raw.name === "string" && raw.name.trim() ? raw.name.trim().slice(0, 40) : "Someone",
         color: typeof raw.color === "string" ? raw.color : "#999999",
+        gm: raw.gm === true,
         batches,
+        revealed: Array.isArray(raw.revealed)
+            ? raw.revealed.filter((id): id is string => typeof id === "string")
+            : [],
     };
 }
 
@@ -75,28 +91,49 @@ export function tableBatches(metadata: Metadata): TableBatch[] {
         const entry = readPlayer(value);
         if (!entry) continue;
         const playerId = key.slice(KEY_PREFIX.length);
+        const revealed = new Set(entry.revealed);
         for (const batch of entry.batches) {
-            out.push({ ...batch, playerId, player: entry.name, color: entry.color });
+            out.push({
+                ...batch,
+                playerId,
+                player: entry.name,
+                color: entry.color,
+                gm: entry.gm,
+                revealed: revealed.has(batch.id),
+            });
         }
     }
     return out.sort((a, b) => b.at - a.at);
 }
 
-/** Shares one press of the roller with the room. */
-export async function shareRolls(rolls: LoggedRoll[]) {
+/**
+ * Shares one press of the roller with the room. A GM revealing a hidden roll
+ * passes the batch it was, so it keeps its place in time.
+ */
+export async function shareRolls(rolls: LoggedRoll[], revealing?: LogBatch) {
     if (!rolls.length || !OBR.isReady) return;
-    const [playerId, name, color, metadata] = await Promise.all([
+    const [playerId, name, color, role, metadata] = await Promise.all([
         OBR.player.getId(),
         OBR.player.getName(),
         OBR.player.getColor(),
+        OBR.player.getRole(),
         OBR.room.getMetadata(),
     ]);
 
     const key = KEY_PREFIX + playerId;
     const previous = readPlayer(metadata[key]);
-    const batch: LogBatch = { id: makeId("batch"), at: Date.now(), rolls };
+    const batch: LogBatch = revealing
+        ? { id: revealing.id, at: revealing.at, rolls }
+        : { id: makeId("batch"), at: Date.now(), rolls };
+    // Newest-shared first, so a late reveal is the last thing trimmed away.
     await OBR.room.setMetadata({
-        [key]: fitBudget({ name, color, batches: [batch, ...(previous?.batches ?? [])] }),
+        [key]: fitBudget({
+            name,
+            color,
+            gm: role === "GM",
+            batches: [batch, ...(previous?.batches ?? []).filter((item) => item.id !== batch.id)],
+            revealed: [...(revealing ? [batch.id] : []), ...(previous?.revealed ?? [])],
+        }),
     });
 }
 

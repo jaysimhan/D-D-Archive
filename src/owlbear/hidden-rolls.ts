@@ -12,12 +12,15 @@ const MAX_HIDDEN = 20;
 const HIDE_KEY = "dnd-archive:owlbear-hide-rolls";
 const listKey = () => `dnd-archive:owlbear-hidden-rolls:${OBR.room.id}`;
 
-/** Whether the GM has chosen to keep their rolls to themselves. */
+/**
+ * Whether the GM keeps their rolls to themselves — so unless they have turned
+ * it off, a GM's rolls start hidden.
+ */
 export function readHideRolls(): boolean {
     try {
-        return window.localStorage.getItem(HIDE_KEY) === "on";
+        return window.localStorage.getItem(HIDE_KEY) !== "off";
     } catch {
-        return false;
+        return true;
     }
 }
 
@@ -45,6 +48,7 @@ export function readHidden(): TableBatch[] {
             playerId: raw.playerId as string,
             player,
             color,
+            gm: true,
             hidden: true,
         }));
     } catch {
@@ -59,14 +63,34 @@ export async function keepHidden(rolls: LoggedRoll[]): Promise<TableBatch> {
         OBR.player.getName(),
         OBR.player.getColor(),
     ]);
-    const batch: TableBatch = { id: makeId("batch"), at: Date.now(), rolls, playerId, player, color, hidden: true };
-    const batches = [batch, ...readHidden()].slice(0, MAX_HIDDEN);
+    const batch: TableBatch = {
+        id: makeId("batch"),
+        at: Date.now(),
+        rolls,
+        playerId,
+        player,
+        color,
+        gm: true,
+        hidden: true,
+    };
+    store(playerId, player, color, [batch, ...readHidden()].slice(0, MAX_HIDDEN));
+    return batch;
+}
+
+/** Drops one hidden roll — the GM has revealed it, so the table holds it now. */
+export function removeHidden(id: string) {
+    const rest = readHidden().filter((batch) => batch.id !== id);
+    const first = rest[0];
+    if (!first) forgetHidden();
+    else store(first.playerId, first.player, first.color, rest);
+}
+
+function store(playerId: string, player: string, color: string, batches: TableBatch[]) {
     try {
         window.sessionStorage.setItem(listKey(), JSON.stringify({ playerId, player, color, batches }));
     } catch {
         // Shown once all the same; it just won't outlive the popover.
     }
-    return batch;
 }
 
 export function forgetHidden() {

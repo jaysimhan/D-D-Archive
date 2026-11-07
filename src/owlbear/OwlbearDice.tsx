@@ -1,22 +1,49 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import OBR from "@owlbear-rodeo/sdk";
 import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { DiceRoller } from "../components/DiceRoller";
 import { Die } from "../components/DiceRollLog";
 import type { LoggedRoll } from "../lib/dice";
 import { clearTable, shareRolls, watchTable, type TableBatch } from "./table-rolls";
-import { forgetHidden, keepHidden, readHidden, readHideRolls, writeHideRolls } from "./hidden-rolls";
+import {
+    forgetHidden,
+    keepHidden,
+    readHidden,
+    readHideRolls,
+    removeHidden,
+    writeHideRolls,
+} from "./hidden-rolls";
 import { showTray } from "./tray-open";
 
 type Tab = "roll" | "table";
 
+/**
+ * The popover follows its content: shorter when lines are removed, taller as
+ * they are added, up to the manifest's height — past that, the page scrolls
+ * under the pinned tabs.
+ */
+const MAX_HEIGHT = 640;
+const MIN_HEIGHT = 120;
+/** Everyone, the DM's rolls, or one player's, by id. */
+type Filter = "all" | "gm" | string;
+
 const stamp = (at: number) =>
     new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+const tag = "inline-flex items-center gap-0.5 rounded px-1 text-[10px] font-semibold uppercase tracking-wide";
+
 /** Every roll at the table, newest first, each under the player who made it. */
-function TableLog({ batches, me }: { batches: TableBatch[]; me: string }) {
+function TableLog({
+    batches,
+    me,
+    onReveal,
+}: {
+    batches: TableBatch[];
+    me: string;
+    onReveal: (batch: TableBatch) => void;
+}) {
     if (!batches.length) {
-        return <p className="text-[12px] text-center text-gray-400 py-6">Nobody has rolled yet</p>;
+        return <p className="text-[12px] text-center text-gray-400 py-6">No rolls here yet</p>;
     }
 
     return (
@@ -29,13 +56,19 @@ function TableLog({ batches, me }: { batches: TableBatch[]; me: string }) {
                             {batch.player}
                             {batch.playerId === me && <span className="font-normal text-gray-400"> (you)</span>}
                         </span>
+                        {batch.gm && !batch.hidden && !batch.revealed && (
+                            <span className={`${tag} bg-brand-50 text-brand-700`}>DM</span>
+                        )}
                         {batch.hidden && (
-                            <span
-                                className="inline-flex items-center gap-0.5 rounded bg-gray-200 px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-600"
-                                title="Only you can see this roll"
-                            >
+                            <span className={`${tag} bg-gray-200 text-gray-600`} title="Only you can see this roll">
                                 <EyeOff className="w-2.5 h-2.5" />
                                 Hidden
+                            </span>
+                        )}
+                        {batch.revealed && (
+                            <span className={`${tag} bg-brand-50 text-brand-700`} title="Rolled hidden, then shown to the table">
+                                <Eye className="w-2.5 h-2.5" />
+                                Revealed
                             </span>
                         )}
                         <span className="ml-auto tabular-nums">{stamp(batch.at)}</span>
@@ -60,9 +93,51 @@ function TableLog({ batches, me }: { batches: TableBatch[]; me: string }) {
                             </div>
                         ))}
                     </div>
+                    {batch.hidden && batch.playerId === me && (
+                        <button
+                            onClick={() => onReveal(batch)}
+                            className="mt-1.5 w-full flex items-center justify-center gap-1 rounded border border-brand-200 bg-white py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-50 transition-colors"
+                        >
+                            <Eye className="w-3 h-3" />
+                            Reveal to the table
+                        </button>
+                    )}
                 </li>
             ))}
         </ol>
+    );
+}
+
+/** Chips to narrow the table: everyone, the DM, or one player. */
+function TableFilter({
+    value,
+    onChange,
+    players,
+    hasGM,
+}: {
+    value: Filter;
+    onChange: (value: Filter) => void;
+    players: { id: string; name: string; color: string }[];
+    hasGM: boolean;
+}) {
+    const chip = (active: boolean) =>
+        `inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors ${active
+            ? "border-brand-600 bg-brand-600 text-white"
+            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"}`;
+
+    return (
+        <div className="flex flex-wrap gap-1.5">
+            <button className={chip(value === "all")} onClick={() => onChange("all")}>All</button>
+            {hasGM && (
+                <button className={chip(value === "gm")} onClick={() => onChange("gm")}>DM</button>
+            )}
+            {players.map((player) => (
+                <button key={player.id} className={chip(value === player.id)} onClick={() => onChange(player.id)}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: player.color }} />
+                    {player.name}
+                </button>
+            ))}
+        </div>
     );
 }
 
@@ -162,9 +237,58 @@ export function OwlbearDice() {
     }, []);
 
     // The GM's hidden rolls sit among the table's, where only they can see them.
-    const shown = secret || hidden.length
-        ? [...batches, ...hidden].sort((a, b) => b.at - a.at)
-        : batches;
+    const shown = useMemo(
+        () => (hidden.length ? [...batches, ...hidden].sort((a, b) => b.at - a.at) : batches),
+        [batches, hidden],
+    );
+
+    const [filter, setFilter] = useState<Filter>("all");
+    const players = useMemo(() => {
+        const byId = new Map<string, { id: string; name: string; color: string }>();
+        // Newest first, so a renamed player shows under their current name.
+        for (const batch of shown) {
+            if (!batch.gm && !byId.has(batch.playerId)) {
+                byId.set(batch.playerId, { id: batch.playerId, name: batch.player, color: batch.color });
+            }
+        }
+        return [...byId.values()];
+    }, [shown]);
+    const hasGM = shown.some((batch) => batch.gm);
+    // A filter on someone whose rolls were cleared falls back to everyone.
+    const active: Filter = filter === "all" || (filter === "gm" ? hasGM : players.some((p) => p.id === filter))
+        ? filter
+        : "all";
+    const filtered = active === "all"
+        ? shown
+        : shown.filter((batch) => (active === "gm" ? batch.gm : !batch.gm && batch.playerId === active));
+
+    const reveal = useCallback((batch: TableBatch) => {
+        shareRolls(batch.rolls, batch)
+            .then(() => {
+                removeHidden(batch.id);
+                setHidden((prev) => prev.filter((item) => item.id !== batch.id));
+            })
+            .catch((cause) => {
+                console.error("Could not reveal the roll", cause);
+                OBR.notification.show("The roll could not be revealed", "ERROR");
+            });
+    }, []);
+
+    const rootRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const root = rootRef.current;
+        if (!root) return;
+        let last = 0;
+        const fit = () => {
+            const height = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, Math.ceil(root.getBoundingClientRect().height)));
+            if (height === last) return;
+            last = height;
+            OBR.action.setHeight(height);
+        };
+        const observer = new ResizeObserver(fit);
+        observer.observe(root);
+        return () => observer.disconnect();
+    }, []);
 
     const tabClass = (value: Tab) =>
         `flex-1 py-1.5 text-[12px] font-semibold tracking-wide transition-colors ${tab === value
@@ -172,37 +296,39 @@ export function OwlbearDice() {
             : "text-gray-500 border-b-2 border-transparent hover:text-gray-700"}`;
 
     return (
-        <div className="flex flex-col h-full bg-white">
-            <div className="flex shrink-0 border-b border-gray-200">
-                <button className={tabClass("roll")} onClick={() => setTab("roll")}>Roll</button>
-                <button
-                    className={tabClass("table")}
-                    onClick={() => {
-                        setTab("table");
-                        setUnseen(0);
-                    }}
-                >
-                    Table
-                    {unseen > 0 && (
-                        <span className="ml-1.5 inline-flex min-w-[18px] h-[18px] px-1 items-center justify-center rounded-full bg-brand-600 text-white text-[10px] tabular-nums">
-                            {unseen}
-                        </span>
-                    )}
-                </button>
+        <div ref={rootRef} className="bg-white">
+            <div className="sticky top-0 z-10 bg-white">
+                <div className="flex border-b border-gray-200">
+                    <button className={tabClass("roll")} onClick={() => setTab("roll")}>Roll</button>
+                    <button
+                        className={tabClass("table")}
+                        onClick={() => {
+                            setTab("table");
+                            setUnseen(0);
+                        }}
+                    >
+                        Table
+                        {unseen > 0 && (
+                            <span className="ml-1.5 inline-flex min-w-[18px] h-[18px] px-1 items-center justify-center rounded-full bg-brand-600 text-white text-[10px] tabular-nums">
+                                {unseen}
+                            </span>
+                        )}
+                    </button>
+                </div>
+                {isGM && (
+                    <RollVisibility
+                        hidden={hideRolls}
+                        onChange={(next) => {
+                            writeHideRolls(next);
+                            setHideRolls(next);
+                        }}
+                    />
+                )}
             </div>
-            {isGM && (
-                <RollVisibility
-                    hidden={hideRolls}
-                    onChange={(next) => {
-                        writeHideRolls(next);
-                        setHideRolls(next);
-                    }}
-                />
-            )}
-            <div className={`flex-1 min-h-0 ${tab === "roll" ? "" : "hidden"}`}>
+            <div className={tab === "roll" ? "" : "hidden"}>
                 <DiceRoller embedded onRoll={onRoll} />
             </div>
-            <div className={`flex-1 min-h-0 overflow-y-auto p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}>
+            <div className={`p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}>
                 {isGM && shown.length > 0 && (
                     <button
                         onClick={() => {
@@ -220,7 +346,10 @@ export function OwlbearDice() {
                         Clear table
                     </button>
                 )}
-                <TableLog batches={shown} me={me} />
+                {(players.length > 0 || hasGM) && (
+                    <TableFilter value={active} onChange={setFilter} players={players} hasGM={hasGM} />
+                )}
+                <TableLog batches={filtered} me={me} onReveal={reveal} />
             </div>
         </div>
     );

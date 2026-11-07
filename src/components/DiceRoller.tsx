@@ -446,7 +446,7 @@ export function DiceRoller({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 50, scale: 0.95 }}
                         className={`overflow-hidden flex flex-col transition-colors duration-500
-                            ${embedded ? "relative w-full h-full" : "fixed rounded-lg shadow-2xl z-50"}
+                            ${embedded ? "relative w-full" : "fixed rounded-lg shadow-2xl z-50"}
                             ${lucky ? "bg-[#fffcf3] ring-1 ring-amber-300/70" : "bg-white"}`}
                         style={embedded ? undefined : {
                             bottom: isLargeScreen ? '32px' : '80px',
