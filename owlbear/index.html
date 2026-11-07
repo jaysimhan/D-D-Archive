@@ -9,9 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <title>D&D Archive Dice</title>
   <style>
-    /* The popover scrolls by wheel and touch; a bar beside it only eats width. */
-    * { scrollbar-width: none; }
-    *::-webkit-scrollbar { display: none; }
+    /* The popover scrolls by wheel and touch; a bar beside it only eats width.
+       Important: the site's stylesheet loads after this and gives every element
+       a thin dark scrollbar of its own. */
+    * { scrollbar-width: none !important; }
+    *::-webkit-scrollbar { display: none !important; }
   </style>
 </head>
 
