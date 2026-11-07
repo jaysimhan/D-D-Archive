@@ -90,8 +90,8 @@ function useIsLargeScreen(breakpoint: number = 1410) {
  * The site's floating roller. Embedded, it is the panel alone, filling its
  * container and always open — the Owlbear Rodeo extension's popover.
  *
- * Embedded, the panel has no scroll of its own — its log included — so the
- * host scrolls it in one piece, top to last roll, in a single gesture.
+ * Embedded, the panel has no scroll of its own, so the host scrolls it in one
+ * piece, and no log of its own either — the host's table lists every roll.
  *
  * `onRoll` hears every press as the table should see it: a line that carried
  * a code goes out under its dice notation rather than the roller's reply, so
@@ -753,36 +753,37 @@ export function DiceRoller({
                                 </button>
                             </div>
 
-                            {/* Log */}
-                            <div className="pt-1 border-t border-gray-100">
-                                <button
-                                    onClick={() => setShowLog(!showLog)}
-                                    className="w-full py-2 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700 text-[12px] transition-colors"
-                                >
-                                    <ScrollText className="w-3.5 h-3.5" />
-                                    {showLog ? "Hide" : "Show"} roll log ({log.length})
-                                </button>
+                            {/* Log — embedded, the host's table already lists every roll. */}
+                            {!embedded && (
+                                <div className="pt-1 border-t border-gray-100">
+                                    <button
+                                        onClick={() => setShowLog(!showLog)}
+                                        className="w-full py-2 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700 text-[12px] transition-colors"
+                                    >
+                                        <ScrollText className="w-3.5 h-3.5" />
+                                        {showLog ? "Hide" : "Show"} roll log ({log.length})
+                                    </button>
 
-                                <AnimatePresence initial={false}>
-                                    {showLog && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: "auto", opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden"
-                                        >
-                                            <DiceRollLog
-                                                scroll={!embedded}
-                                                batches={log}
-                                                onClear={() => {
-                                                    setLog([]);
-                                                    setHeadline(null);
-                                                }}
-                                            />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                                    <AnimatePresence initial={false}>
+                                        {showLog && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <DiceRollLog
+                                                        batches={log}
+                                                    onClear={() => {
+                                                        setLog([]);
+                                                        setHeadline(null);
+                                                    }}
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}

@@ -42,19 +42,7 @@ export function Die({ die, perDie = 0 }: { die: DieResult; perDie?: number }) {
     );
 }
 
-/**
- * The log holds to a height of its own and scrolls within it — unless told
- * not to, when whatever holds it does the scrolling, so there is only one.
- */
-export function DiceRollLog({
-    batches,
-    onClear,
-    scroll = true,
-}: {
-    batches: LogBatch[];
-    onClear: () => void;
-    scroll?: boolean;
-}) {
+export function DiceRollLog({ batches, onClear }: { batches: LogBatch[]; onClear: () => void }) {
     if (!batches.length) {
         return <p className="text-[12px] text-center text-gray-400 py-3">No rolls yet</p>;
     }
@@ -69,7 +57,7 @@ export function DiceRollLog({
                 Clear log
             </button>
 
-            <ol className={`space-y-2 ${scroll ? "max-h-56 overflow-y-auto pr-1" : ""}`}>
+            <ol className="max-h-56 overflow-y-auto space-y-2 pr-1">
                 {batches.map((batch) => (
                     <li key={batch.id} className="border-t border-gray-100 pt-2 first:border-t-0 first:pt-0">
                         <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">
