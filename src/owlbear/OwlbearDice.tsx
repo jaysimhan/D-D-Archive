@@ -425,18 +425,15 @@ export function OwlbearDice() {
                 )}
             </div>
             {/*
-              * Each tab scrolls in its own pane under the tabs, and only when
-              * it has to — a stacking layer of its own, so nothing in it can
-              * rise over them.
+              * Each tab keeps to the room under the tabs: the roller by letting
+              * its log scroll, the table by scrolling its rolls. Each is a
+              * stacking layer of its own, so nothing in it can rise over them.
               */}
-            <div
-                className={`isolate roller-scroll overflow-y-auto ${tab === "roll" ? "" : "hidden"}`}
-                style={{ maxHeight: paneHeight }}
-            >
-                <DiceRoller embedded onRoll={onRoll} />
+            <div className={`isolate ${tab === "roll" ? "" : "hidden"}`}>
+                <DiceRoller embedded maxHeight={paneHeight} onRoll={onRoll} />
             </div>
             <div
-                className={`isolate roller-scroll overflow-y-auto p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}
+                className={`isolate roller-scroll overflow-y-auto overscroll-contain p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}
                 style={{ maxHeight: paneHeight }}
             >
                 {(players.length > 0 || hasGM) && (

@@ -15,16 +15,25 @@
     * { scrollbar-width: none !important; }
     *::-webkit-scrollbar { display: none !important; }
 
-    /* The places that do scroll — each tab's pane and the roll log — get a slim,
-       quiet bar in the roller's own red, on a clear track. */
+    /* The places that do scroll — the roll log and the table — get a slim,
+       rounded, quiet bar in the roller's own red on a clear track. Chrome and
+       Safari draw it from the ::-webkit-scrollbar rules, which they ignore
+       while scrollbar-width or scrollbar-color is set, so those go back to
+       auto here; Firefox, which has no such rules, gets its own below. */
     .roller-scroll {
-      scrollbar-width: thin !important;
-      scrollbar-color: rgba(204, 0, 48, 0.3) transparent !important;
+      scrollbar-width: auto !important;
+      scrollbar-color: auto !important;
     }
-    .roller-scroll::-webkit-scrollbar { display: block !important; width: 5px !important; }
+    .roller-scroll::-webkit-scrollbar { display: block !important; width: 6px !important; }
     .roller-scroll::-webkit-scrollbar-track { background: transparent !important; }
-    .roller-scroll::-webkit-scrollbar-thumb { background: rgba(204, 0, 48, 0.3) !important; border-radius: 999px !important; }
-    .roller-scroll::-webkit-scrollbar-thumb:hover { background: rgba(204, 0, 48, 0.6) !important; }
+    .roller-scroll::-webkit-scrollbar-thumb { background: rgba(204, 0, 48, 0.28) !important; border-radius: 999px !important; }
+    .roller-scroll::-webkit-scrollbar-thumb:hover { background: rgba(204, 0, 48, 0.55) !important; }
+    @supports not selector(::-webkit-scrollbar) {
+      .roller-scroll {
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(204, 0, 48, 0.35) transparent !important;
+      }
+    }
   </style>
 </head>
 
