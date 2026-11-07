@@ -56,6 +56,14 @@ interface Headline {
 const MAX_LINES = 20;
 const STAT_ARRAY_SIZE = 6;
 
+/**
+ * Embedded, the readout steps aside once it has been read — the table's dice
+ * tray has the result too. A handful of dice, or every line at once, gets
+ * longer to read than a single die.
+ */
+const RESULT_HOLD_MS = 4000;
+const RESULT_HOLD_MANY_MS = 7000;
+
 /** What a line carrying a code is called once the roller has answered it. */
 const CODE_REPLY: Record<LuckSwitch, string> = {
     on: "The dice are listening",
@@ -143,6 +151,13 @@ export function DiceRoller({
      */
     const statLineIds = useRef<string[]>([]);
     const statTotals = useRef(new Map<string, number>());
+
+    useEffect(() => {
+        if (!embedded || !headline || shuffle !== null) return;
+        const many = (headline.dice?.length ?? 0) > 1 || headline.parts.length > 0;
+        const id = window.setTimeout(() => setHeadline(null), many ? RESULT_HOLD_MANY_MS : RESULT_HOLD_MS);
+        return () => window.clearTimeout(id);
+    }, [embedded, headline, shuffle]);
 
     useEffect(() => () => {
         if (shuffleTimer.current !== null) window.clearInterval(shuffleTimer.current);
