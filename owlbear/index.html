@@ -14,6 +14,17 @@
        a thin dark scrollbar of its own. */
     * { scrollbar-width: none !important; }
     *::-webkit-scrollbar { display: none !important; }
+
+    /* The places that do scroll — each tab's pane and the roll log — get a slim,
+       quiet bar in the roller's own red, on a clear track. */
+    .roller-scroll {
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(204, 0, 48, 0.3) transparent !important;
+    }
+    .roller-scroll::-webkit-scrollbar { display: block !important; width: 5px !important; }
+    .roller-scroll::-webkit-scrollbar-track { background: transparent !important; }
+    .roller-scroll::-webkit-scrollbar-thumb { background: rgba(204, 0, 48, 0.3) !important; border-radius: 999px !important; }
+    .roller-scroll::-webkit-scrollbar-thumb:hover { background: rgba(204, 0, 48, 0.6) !important; }
   </style>
 </head>
 

@@ -57,7 +57,7 @@ export function DiceRollLog({ batches, onClear }: { batches: LogBatch[]; onClear
                 Clear log
             </button>
 
-            <ol className="max-h-56 overflow-y-auto space-y-2 pr-1">
+            <ol className="roller-scroll max-h-56 overflow-y-auto space-y-2 pr-1">
                 {batches.map((batch) => (
                     <li key={batch.id} className="border-t border-gray-100 pt-2 first:border-t-0 first:pt-0">
                         <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">

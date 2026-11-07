@@ -20,11 +20,14 @@ type Tab = "roll" | "table";
 
 /**
  * The popover follows its content: shorter when lines are removed, taller as
- * they are added, up to the manifest's height — past that, the page scrolls
- * under the pinned tabs.
+ * they are added. The roller is shown whole, up to the height of the screen;
+ * past that, each tab scrolls in a pane of its own under the tabs.
  */
-const MAX_HEIGHT = 640;
 const MIN_HEIGHT = 120;
+/** Until Owlbear says how tall the screen is. */
+const FALLBACK_LIMIT = 640;
+/** Room left for Owlbear's own toolbar above the popover and a margin below. */
+const SCREEN_MARGIN = 96;
 /** Everyone, the DM's rolls, or one player's, by id. */
 type Filter = "all" | "gm" | string;
 
@@ -356,20 +359,35 @@ export function OwlbearDice() {
     }, []);
 
     const rootRef = useRef<HTMLDivElement>(null);
+    const headerRef = useRef<HTMLDivElement>(null);
+    /** The tallest the popover may be, and what the pinned header takes of it. */
+    const [limit, setLimit] = useState(FALLBACK_LIMIT);
+    const [headerHeight, setHeaderHeight] = useState(0);
+
+    useEffect(() => {
+        OBR.viewport.getHeight().then((height) => setLimit(Math.max(MIN_HEIGHT, height - SCREEN_MARGIN)));
+    }, []);
+
     useEffect(() => {
         const root = rootRef.current;
-        if (!root) return;
+        const header = headerRef.current;
+        if (!root || !header) return;
         let last = 0;
         const fit = () => {
-            const height = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, Math.ceil(root.getBoundingClientRect().height)));
+            setHeaderHeight(header.offsetHeight);
+            const height = Math.min(limit, Math.max(MIN_HEIGHT, Math.ceil(root.getBoundingClientRect().height)));
             if (height === last) return;
             last = height;
             OBR.action.setHeight(height);
         };
         const observer = new ResizeObserver(fit);
         observer.observe(root);
+        observer.observe(header);
+        fit();
         return () => observer.disconnect();
-    }, []);
+    }, [limit]);
+
+    const paneHeight = Math.max(MIN_HEIGHT, limit - headerHeight);
 
     const tabClass = (value: Tab) =>
         `flex-1 py-1.5 text-[12px] font-semibold tracking-wide transition-colors ${tab === value
@@ -378,7 +396,7 @@ export function OwlbearDice() {
 
     return (
         <div ref={rootRef} className="bg-white">
-            <div className="sticky top-0 z-30 bg-white">
+            <div ref={headerRef} className="relative z-30 bg-white">
                 <div className="flex border-b border-gray-200">
                     <button className={tabClass("roll")} onClick={() => setTab("roll")}>Roll</button>
                     <button
@@ -406,11 +424,21 @@ export function OwlbearDice() {
                     />
                 )}
             </div>
-            {/* Its own stacking layer: nothing in the roller can rise over the pinned tabs. */}
-            <div className={`isolate ${tab === "roll" ? "" : "hidden"}`}>
+            {/*
+              * Each tab scrolls in its own pane under the tabs, and only when
+              * it has to — a stacking layer of its own, so nothing in it can
+              * rise over them.
+              */}
+            <div
+                className={`isolate roller-scroll overflow-y-auto ${tab === "roll" ? "" : "hidden"}`}
+                style={{ maxHeight: paneHeight }}
+            >
                 <DiceRoller embedded onRoll={onRoll} />
             </div>
-            <div className={`isolate p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}>
+            <div
+                className={`isolate roller-scroll overflow-y-auto p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}
+                style={{ maxHeight: paneHeight }}
+            >
                 {(players.length > 0 || hasGM) && (
                     <TableFilter value={active} onChange={setFilter} players={players} hasGM={hasGM} />
                 )}
