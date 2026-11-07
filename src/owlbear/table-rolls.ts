@@ -27,6 +27,8 @@ export interface TableBatch extends LogBatch {
     playerId: string;
     player: string;
     color: string;
+    /** A GM roll kept out of the room; only that GM ever holds one. */
+    hidden?: boolean;
 }
 
 /**

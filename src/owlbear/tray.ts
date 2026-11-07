@@ -16,6 +16,26 @@ const close = () => ready.then(() => OBR.popover.close(TRAY_ID));
 
 document.getElementById("tray")!.addEventListener("click", close);
 
+/**
+ * The dice box sizes its walls and camera once, from its container. Owlbear
+ * grows the popover open, so it waits for the tray to stop changing size —
+ * built any sooner, the dice land in a corner and roll off the edge.
+ */
+function settledSize(element: HTMLElement) {
+    return new Promise<void>((resolve) => {
+        let last = "";
+        let steady = 0;
+        const check = () => {
+            const size = `${element.clientWidth}x${element.clientHeight}`;
+            steady = size === last && element.clientWidth > 0 && element.clientHeight > 0 ? steady + 1 : 0;
+            last = size;
+            if (steady >= 3) resolve();
+            else window.setTimeout(check, 50);
+        };
+        check();
+    });
+}
+
 async function main() {
     const thrown = decodeThrow(window.location.hash.slice(1));
     if (!thrown) {
@@ -35,20 +55,25 @@ async function main() {
 
     const notation = notationOf(thrown.dice);
     if (notation) {
+        await settledSize(document.getElementById("dice")!);
         const box = new DiceBox("#dice", {
             assetPath: "/owlbear/dice/",
             sounds: false,
             // Sized for a tray a few inches across, not a table.
             baseScale: 74,
-            // The default warm spotlight tints grey dice olive.
+            // White light, a little brighter than the default, so the glass
+            // keeps its colour instead of going warm and muddy.
             color_spotlight: 0xffffff,
+            light_intensity: 1.1,
+            // Stained glass across the logo's purples, numbered in gold; each
+            // die takes one of the shades.
             theme_customColorset: {
-                name: "archive-speckled",
-                foreground: "#ffffff",
-                background: "#7a7a86",
-                outline: "#000000",
-                texture: "speckles",
-                material: "plastic",
+                name: "archive-stained-glass",
+                foreground: "#f0c75e",
+                background: ["#4F39F6", "#6a2ff8", "#7f25f9", "#9810FA"],
+                outline: "#140838",
+                texture: "stainedglass",
+                material: "glass",
             },
         });
         await box.initialize();

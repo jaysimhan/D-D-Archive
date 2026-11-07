@@ -19,7 +19,7 @@ export interface Throw {
 
 export function throwOf(batch: TableBatch): Throw {
     return {
-        player: batch.player,
+        player: batch.hidden ? `${batch.player} (hidden)` : batch.player,
         rolls: batch.rolls.map((roll) => ({ name: roll.name, total: roll.total })),
         dice: batch.rolls
             .flatMap((roll) => roll.dice.map((die) => ({

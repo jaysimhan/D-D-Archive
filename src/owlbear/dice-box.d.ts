@@ -3,7 +3,8 @@ declare module "@3d-dice/dice-box-threejs" {
     interface ColorSet {
         name: string;
         foreground: string;
-        background: string;
+        /** Several colours give each die one of them. */
+        background: string | string[];
         outline?: string;
         texture?: string;
         material?: "none" | "metal" | "wood" | "glass" | "plastic";
@@ -15,10 +16,10 @@ declare module "@3d-dice/dice-box-threejs" {
             sounds?: boolean;
             shadows?: boolean;
             color_spotlight?: number;
+            light_intensity?: number;
             theme_customColorset?: ColorSet | null;
             theme_material?: ColorSet["material"];
             gravity_multiplier?: number;
-            light_intensity?: number;
             baseScale?: number;
             strength?: number;
         });
