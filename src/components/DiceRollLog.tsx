@@ -43,24 +43,24 @@ export function Die({ die, perDie = 0 }: { die: DieResult; perDie?: number }) {
 }
 
 /**
- * With `fill`, the log takes whatever height its parent leaves it and scrolls
- * within that, rather than holding to a fixed height of its own.
+ * The log holds to a height of its own and scrolls within it — unless told
+ * not to, when whatever holds it does the scrolling, so there is only one.
  */
 export function DiceRollLog({
     batches,
     onClear,
-    fill = false,
+    scroll = true,
 }: {
     batches: LogBatch[];
     onClear: () => void;
-    fill?: boolean;
+    scroll?: boolean;
 }) {
     if (!batches.length) {
         return <p className="text-[12px] text-center text-gray-400 py-3">No rolls yet</p>;
     }
 
     return (
-        <div className={`space-y-2 ${fill ? "flex flex-col flex-1 min-h-0" : ""}`}>
+        <div className="space-y-2">
             <button
                 onClick={onClear}
                 className="w-full text-[12px] text-red-500 hover:text-red-700 hover:bg-red-50 py-1 rounded transition-colors flex items-center justify-center gap-1"
@@ -69,11 +69,7 @@ export function DiceRollLog({
                 Clear log
             </button>
 
-            <ol
-                className={`roller-scroll overflow-y-auto space-y-2 pr-1 ${fill
-                    ? "flex-1 min-h-0 overscroll-contain"
-                    : "max-h-56"}`}
-            >
+            <ol className={`space-y-2 ${scroll ? "max-h-56 overflow-y-auto pr-1" : ""}`}>
                 {batches.map((batch) => (
                     <li key={batch.id} className="border-t border-gray-100 pt-2 first:border-t-0 first:pt-0">
                         <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">

@@ -90,9 +90,8 @@ function useIsLargeScreen(breakpoint: number = 1410) {
  * The site's floating roller. Embedded, it is the panel alone, filling its
  * container and always open — the Owlbear Rodeo extension's popover.
  *
- * Given a `maxHeight`, an embedded panel never scrolls as a whole: the roll
- * log gives up its room first and scrolls on its own, so one scroll reaches
- * every roll instead of the panel scrolling and then the log.
+ * Embedded, the panel has no scroll of its own — its log included — so the
+ * host scrolls it in one piece, top to last roll, in a single gesture.
  *
  * `onRoll` hears every press as the table should see it: a line that carried
  * a code goes out under its dice notation rather than the roller's reply, so
@@ -101,12 +100,10 @@ function useIsLargeScreen(breakpoint: number = 1410) {
 export function DiceRoller({
     embedded = false,
     headerSlot,
-    maxHeight,
     onRoll,
 }: {
     embedded?: boolean;
     headerSlot?: HTMLElement | null;
-    maxHeight?: number;
     onRoll?: (rolls: LoggedRoll[]) => void;
 } = {}) {
     const isLargeScreen = useIsLargeScreen(1410);
@@ -519,7 +516,7 @@ export function DiceRoller({
                         className={`overflow-hidden flex flex-col transition-colors duration-500
                             ${embedded ? "relative w-full" : "fixed rounded-lg shadow-2xl z-50"}
                             ${lucky ? "bg-[#fffcf3] ring-1 ring-amber-300/70" : "bg-white"}`}
-                        style={embedded ? { maxHeight } : {
+                        style={embedded ? undefined : {
                             bottom: isLargeScreen ? '32px' : '80px',
                             ...(isLargeScreen
                                 ? { right: '32px', left: 'auto' }
@@ -534,7 +531,7 @@ export function DiceRoller({
                             ? headerSlot && createPortal(header, headerSlot)
                             : header}
 
-                        <div className={`p-3 sm:p-4 space-y-3 overflow-y-auto ${embedded ? "flex-1 min-h-0 flex flex-col" : ""}`}>
+                        <div className="p-3 sm:p-4 space-y-3 overflow-y-auto">
                             {/* Result Display */}
                             <AnimatePresence mode="wait">
                                 {headline && (
@@ -756,16 +753,8 @@ export function DiceRoller({
                                 </button>
                             </div>
 
-                            {/*
-                              * Log. Embedded, it is what gives way when the panel runs out
-                              * of room — down to enough for its clear button and a couple
-                              * of rolls, which then scroll.
-                              */}
-                            <div
-                                className={`pt-1 border-t border-gray-100 ${embedded
-                                    ? `flex flex-col ${showLog && log.length > 1 ? "min-h-[10.5rem]" : "min-h-0"}`
-                                    : ""}`}
-                            >
+                            {/* Log */}
+                            <div className="pt-1 border-t border-gray-100">
                                 <button
                                     onClick={() => setShowLog(!showLog)}
                                     className="w-full py-2 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700 text-[12px] transition-colors"
@@ -776,16 +765,14 @@ export function DiceRoller({
 
                                 <AnimatePresence initial={false}>
                                     {showLog && (
-                                        // Embedded, the log fades rather than unrolls, so its
-                                        // list scrolls rather than being clipped.
                                         <motion.div
-                                            initial={embedded ? { opacity: 0 } : { height: 0, opacity: 0 }}
-                                            animate={embedded ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-                                            exit={embedded ? { opacity: 0 } : { height: 0, opacity: 0 }}
-                                            className={embedded ? "flex flex-col flex-1 min-h-0" : "overflow-hidden"}
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden"
                                         >
                                             <DiceRollLog
-                                                fill={embedded}
+                                                scroll={!embedded}
                                                 batches={log}
                                                 onClear={() => {
                                                     setLog([]);
