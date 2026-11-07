@@ -15,6 +15,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@3d-dice/dice-box-threejs": "^0.0.12",
     "@hookform/resolvers": "^3.3.4",
     "@owlbear-rodeo/sdk": "^3.1.0",
     "@radix-ui/react-accordion": "^1.1.2",

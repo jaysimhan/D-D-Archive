@@ -34,6 +34,7 @@ import {
     type LuckSwitch,
 } from "../lib/dice";
 import { playDiceSound } from "../lib/dice-sound";
+import { readStored, writeStored } from "../lib/dice-roller-storage";
 import { announceStatRoll, onStatRollRequest } from "../lib/stat-roll-bridge";
 
 type RollMode = "normal" | "advantage" | "disadvantage";
@@ -52,7 +53,6 @@ interface Headline {
     parts: { id: string; name: string; total: number }[];
 }
 
-const STORAGE_KEY = "dnd-archive:dice-roller";
 const MAX_LINES = 20;
 const STAT_ARRAY_SIZE = 6;
 
@@ -61,36 +61,6 @@ const CODE_REPLY: Record<LuckSwitch, string> = {
     on: "The dice are listening",
     off: "The dice are just dice",
 };
-
-interface StoredRoller {
-    lines?: unknown;
-    log?: unknown;
-    sound?: unknown;
-    modifier?: unknown;
-    rollMode?: unknown;
-    showLog?: unknown;
-    lucky?: unknown;
-}
-
-function readStored(): StoredRoller {
-    try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        const parsed: unknown = raw ? JSON.parse(raw) : null;
-        return parsed && typeof parsed === "object" ? (parsed as StoredRoller) : {};
-    } catch {
-        // Storage can be blocked outright, and what is in it can be
-        // half-written. Either way the roller just starts fresh.
-        return {};
-    }
-}
-
-function writeStored(state: StoredRoller): void {
-    try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (cause) {
-        console.warn("Could not save dice roller state", cause);
-    }
-}
 
 // Custom hook for responsive positioning
 function useIsLargeScreen(breakpoint: number = 1410) {

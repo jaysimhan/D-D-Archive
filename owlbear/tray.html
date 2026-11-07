@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" style="background: transparent;">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet" />
+  <title>D&D Archive Dice</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+    #tray {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      border-radius: 18px; overflow: hidden; background: #1c1c22;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); cursor: pointer;
+    }
+    #dice { position: relative; flex: 1; min-height: 0; }
+    #dice canvas { position: absolute; inset: 0; }
+    #footer {
+      flex: none; padding: 10px 14px; background: #2a2d3e; color: #e4e4ea; text-align: center;
+      font: 500 15px/1.35 Inter, system-ui, sans-serif;
+    }
+    #who { font-weight: 600; }
+    #rolls { color: #b9bbc8; font-size: 12px; }
+  </style>
+</head>
+
+<body>
+  <div id="tray" title="Click to close">
+    <div id="dice"></div>
+    <div id="footer">
+      <div id="who"></div>
+      <div id="rolls"></div>
+    </div>
+  </div>
+  <script type="module" src="/src/owlbear/tray.ts"></script>
+</body>
+
+</html>

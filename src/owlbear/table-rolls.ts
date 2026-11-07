@@ -37,8 +37,6 @@ const MAX_BATCHES = 6;
 const BUDGET_BYTES = 2000;
 /** Dice kept per roll once a batch alone is over budget; totals stay exact. */
 const DICE_WHEN_TIGHT = 10;
-/** A player gone this long has their rolls cleared by whoever rolls next. */
-const STALE_MS = 12 * 60 * 60 * 1000;
 
 const size = (value: unknown) => JSON.stringify(value).length;
 
@@ -85,31 +83,33 @@ export function tableBatches(metadata: Metadata): TableBatch[] {
 /** Shares one press of the roller with the room. */
 export async function shareRolls(rolls: LoggedRoll[]) {
     if (!rolls.length || !OBR.isReady) return;
-    const [playerId, name, color, metadata, party] = await Promise.all([
+    const [playerId, name, color, metadata] = await Promise.all([
         OBR.player.getId(),
         OBR.player.getName(),
         OBR.player.getColor(),
         OBR.room.getMetadata(),
-        OBR.party.getPlayers(),
     ]);
 
     const key = KEY_PREFIX + playerId;
     const previous = readPlayer(metadata[key]);
     const batch: LogBatch = { id: makeId("batch"), at: Date.now(), rolls };
-    const update: Metadata = {
+    await OBR.room.setMetadata({
         [key]: fitBudget({ name, color, batches: [batch, ...(previous?.batches ?? [])] }),
-    };
+    });
+}
 
-    // Players long gone would otherwise hold their share of the room forever.
-    const here = new Set(party.map((player) => player.id));
-    for (const [other, value] of Object.entries(metadata)) {
-        if (!other.startsWith(KEY_PREFIX) || other === key || value === null) continue;
-        if (here.has(other.slice(KEY_PREFIX.length))) continue;
-        const latest = readPlayer(value)?.batches[0]?.at ?? 0;
-        if (Date.now() - latest > STALE_MS) update[other] = null;
+/**
+ * Wipes every player's rolls from the room: the GM clearing the table, or a
+ * new session starting. A key is emptied rather than removed, since a
+ * metadata update merges keys and has no way to take one away.
+ */
+export async function clearTable() {
+    const metadata = await OBR.room.getMetadata();
+    const update: Metadata = {};
+    for (const [key, value] of Object.entries(metadata)) {
+        if (key.startsWith(KEY_PREFIX) && value !== null) update[key] = null;
     }
-
-    await OBR.room.setMetadata(update);
+    if (Object.keys(update).length) await OBR.room.setMetadata(update);
 }
 
 /** Calls back with the table's rolls now and whenever anyone rolls. */
@@ -123,10 +123,4 @@ export function watchTable(callback: (batches: TableBatch[]) => void) {
         live = false;
         stop();
     };
-}
-
-/** "Ash rolled Attack: 17" — or every total, for a press that rolled several. */
-export function describeBatch(batch: TableBatch) {
-    const parts = batch.rolls.map((roll) => `${roll.name}: ${roll.total}`);
-    return `${batch.player} rolled ${parts.join(", ")}`;
 }

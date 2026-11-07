@@ -36,6 +36,7 @@ export default defineConfig(({ mode }) => {
                     main: fileURLToPath(new URL('./index.html', import.meta.url)),
                     owlbear: fileURLToPath(new URL('./owlbear/index.html', import.meta.url)),
                     owlbearBackground: fileURLToPath(new URL('./owlbear/background.html', import.meta.url)),
+                    owlbearTray: fileURLToPath(new URL('./owlbear/tray.html', import.meta.url)),
                 },
                 output: {
                     manualChunks(id) {

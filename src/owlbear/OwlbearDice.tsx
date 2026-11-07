@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import OBR from "@owlbear-rodeo/sdk";
+import { Trash2 } from "lucide-react";
 import { DiceRoller } from "../components/DiceRoller";
 import { Die } from "../components/DiceRollLog";
 import type { LoggedRoll } from "../lib/dice";
-import { shareRolls, watchTable, type TableBatch } from "./table-rolls";
+import { clearTable, shareRolls, watchTable, type TableBatch } from "./table-rolls";
 
 type Tab = "roll" | "table";
 
@@ -62,6 +63,7 @@ export function OwlbearDice() {
     const [tab, setTab] = useState<Tab>("roll");
     const [batches, setBatches] = useState<TableBatch[]>([]);
     const [me, setMe] = useState("");
+    const [isGM, setIsGM] = useState(false);
     /** Rolls by others that landed while the Roll tab was showing. */
     const [unseen, setUnseen] = useState(0);
     const seen = useRef<Set<string> | null>(null);
@@ -70,6 +72,9 @@ export function OwlbearDice() {
 
     useEffect(() => {
         OBR.player.getId().then(setMe);
+        OBR.player.getRole().then((role) => setIsGM(role === "GM"));
+        // The GM can hand the role on mid-session.
+        return OBR.player.onChange((player) => setIsGM(player.role === "GM"));
     }, []);
 
     useEffect(() => watchTable((next) => {
@@ -121,7 +126,22 @@ export function OwlbearDice() {
             <div className={`flex-1 min-h-0 ${tab === "roll" ? "" : "hidden"}`}>
                 <DiceRoller embedded onRoll={onRoll} />
             </div>
-            <div className={`flex-1 min-h-0 overflow-y-auto p-3 ${tab === "table" ? "" : "hidden"}`}>
+            <div className={`flex-1 min-h-0 overflow-y-auto p-3 space-y-2 ${tab === "table" ? "" : "hidden"}`}>
+                {isGM && batches.length > 0 && (
+                    <button
+                        onClick={() => {
+                            clearTable().catch((cause) => {
+                                console.error("Could not clear the table", cause);
+                                OBR.notification.show("The table could not be cleared", "ERROR");
+                            });
+                        }}
+                        className="w-full text-[12px] text-red-500 hover:text-red-700 hover:bg-red-50 py-1 rounded transition-colors flex items-center justify-center gap-1"
+                        title="Clears every player's rolls from the table"
+                    >
+                        <Trash2 className="w-3 h-3" />
+                        Clear table
+                    </button>
+                )}
                 <TableLog batches={batches} me={me} />
             </div>
         </div>
