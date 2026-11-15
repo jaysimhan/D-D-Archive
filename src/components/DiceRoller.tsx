@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
     X, Minus, Plus, Volume2, VolumeX, ScrollText,
-    ChevronsDownUp, ChevronsUpDown, Sparkles, Clover,
+    ChevronsDownUp, ChevronsUpDown, Sparkles, Clover, CloudRain,
 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { DiceGlyph, RollerGlyph } from "./DiceGlyphs";
@@ -23,6 +23,7 @@ import {
     rollLine,
     sanitizeLine,
     sanitizeLog,
+    sanitizeLuck,
     toLoggedRoll,
     MAX_LOG_BATCHES,
     MAX_MODIFIER,
@@ -32,7 +33,7 @@ import {
     type DieSides,
     type LogBatch,
     type LoggedRoll,
-    type LuckSwitch,
+    type Luck,
 } from "../lib/dice";
 import { playDiceSound } from "../lib/dice-sound";
 import { readStored, writeStored } from "../lib/dice-roller-storage";
@@ -66,9 +67,62 @@ const RESULT_HOLD_MS = 4000;
 const RESULT_HOLD_MANY_MS = 7000;
 
 /** What a line carrying a code is called once the roller has answered it. */
-const CODE_REPLY: Record<LuckSwitch, string> = {
-    on: "The dice are listening",
-    off: "The dice are just dice",
+const CODE_REPLY: Record<Luck, string> = {
+    plain: "The dice are just dice",
+    lucky: "The dice are listening",
+    veryLucky: "The dice are on your side",
+    unlucky: "The dice have turned on you",
+};
+
+/**
+ * Only the player who typed a code sees these: the panel is theirs alone, and
+ * a code never leaves it. Good luck warms the panel; bad luck cools it.
+ */
+const LUCK_LOOK: Record<Luck, {
+    banner: string;
+    panel: string;
+    readout: string;
+    row: string;
+    hint: string;
+    Icon: typeof Clover | null;
+    iconClass: string;
+}> = {
+    plain: {
+        banner: "from-brand-600",
+        panel: "bg-white",
+        readout: "bg-gray-100 border-gray-200",
+        row: "border-gray-200 bg-gray-50/70",
+        hint: "",
+        Icon: null,
+        iconClass: "",
+    },
+    lucky: {
+        banner: "from-amber-600",
+        panel: "bg-[#fffcf3] ring-1 ring-amber-300/70",
+        readout: "bg-amber-100/60 border-amber-200",
+        row: "border-amber-200 bg-amber-50/50",
+        hint: CODE_REPLY.lucky,
+        Icon: Clover,
+        iconClass: "text-amber-200",
+    },
+    veryLucky: {
+        banner: "from-amber-600",
+        panel: "bg-[#fffcf3] ring-1 ring-amber-300/70",
+        readout: "bg-amber-100/60 border-amber-200",
+        row: "border-amber-200 bg-amber-50/50",
+        hint: CODE_REPLY.veryLucky,
+        Icon: Sparkles,
+        iconClass: "text-amber-200",
+    },
+    unlucky: {
+        banner: "from-slate-600",
+        panel: "bg-slate-50 ring-1 ring-slate-300/70",
+        readout: "bg-slate-200/60 border-slate-300",
+        row: "border-slate-200 bg-slate-100/60",
+        hint: CODE_REPLY.unlucky,
+        Icon: CloudRain,
+        iconClass: "text-slate-200",
+    },
 };
 
 // Custom hook for responsive positioning
@@ -134,11 +188,13 @@ export function DiceRoller({
     });
 
     /**
-     * Off unless someone has talked the roller into it — see CODES in lib/dice.
-     * Being on is worth noticing without being announced, so the panel says it
-     * in warmth rather than words: paper instead of white, gold instead of grey.
+     * Plain unless someone has talked the roller into something else — see
+     * CODES in lib/dice. Being on is worth noticing without being announced,
+     * so the panel says it in colour rather than words: see LUCK_LOOK.
      */
-    const [lucky, setLucky] = useState(stored.lucky === true);
+    const [luck, setLuck] = useState<Luck>(() =>
+        stored.luck !== undefined ? sanitizeLuck(stored.luck) : stored.lucky === true ? "lucky" : "plain");
+    const look = LUCK_LOOK[luck];
 
     const [log, setLog] = useState<LogBatch[]>(() => sanitizeLog(stored.log));
     const [showLog, setShowLog] = useState(stored.showLog === true);
@@ -170,8 +226,8 @@ export function DiceRoller({
     }, []);
 
     useEffect(() => {
-        writeStored({ lines, log, sound: soundOn, modifier, rollMode, showLog, lucky });
-    }, [lines, log, soundOn, modifier, rollMode, showLog, lucky]);
+        writeStored({ lines, log, sound: soundOn, modifier, rollMode, showLog, luck });
+    }, [lines, log, soundOn, modifier, rollMode, showLog, luck]);
 
     /**
      * Tumbles a placeholder total for a few frames before the real one lands.
@@ -232,8 +288,8 @@ export function DiceRoller({
 
         // A code sitting in a name box is read before the dice are, so the very
         // roll that enters it already runs under the luck it just asked for.
-        const code = targets.reduce<LuckSwitch | null>((found, line) => cheatCode(line.label) ?? found, null);
-        const generous = code ? code === "on" : lucky;
+        const code = targets.reduce<Luck | null>((found, line) => cheatCode(line.label) ?? found, null);
+        const rollLuck = code ?? luck;
 
         // The code is answered rather than echoed: it never reaches the log, and
         // the box it was typed into comes back empty, ready to be a name again.
@@ -243,7 +299,7 @@ export function DiceRoller({
         });
 
         if (code) {
-            setLucky(code === "on");
+            setLuck(code);
             setLines((prev) => prev.map((line) => (cheatCode(line.label) ? { ...line, label: "" } : line)));
         }
 
@@ -262,7 +318,7 @@ export function DiceRoller({
         const ceiling = rolling.reduce((running, line) => running + line.count * line.sides, 0);
 
         runShuffle(ceiling, () => {
-            const rolled = rolling.map((line) => ({ line, roll: rollLine(line, generous) }));
+            const rolled = rolling.map((line) => ({ line, roll: rollLine(line, rollLuck) }));
             const logged = rolled.map(({ line, roll }) => toLoggedRoll(line, roll));
             const totals = new Map(rolled.map(({ line, roll }) => [line.id, roll.total]));
 
@@ -295,7 +351,7 @@ export function DiceRoller({
             )));
             if (soundOn) playDiceSound(rolled.reduce((running, { roll }) => running + roll.dice.length, 0));
         });
-    }, [announce, lucky, pushBatch, runShuffle, soundOn]);
+    }, [announce, luck, pushBatch, runShuffle, soundOn]);
 
     /**
      * The quick tray borrows the line engine rather than duplicating it, so
@@ -404,16 +460,16 @@ export function DiceRoller({
     /**
      * The banner across the top. Embedded with a `headerSlot`, it is drawn there
      * instead — above the host's own tabs — while staying the roller's: its
-     * sound switch and its lucky colours go with it.
+     * sound switch and its luck colours go with it.
      */
     const header = (
         <div className={`bg-gradient-to-r to-brand-700 px-4 py-3 flex items-center justify-between shrink-0
-            transition-colors duration-500 ${lucky ? "from-amber-600" : "from-brand-600"}`}>
+            transition-colors duration-500 ${look.banner}`}>
             <span className="text-white text-[15px] font-normal flex items-center gap-1.5">
                 Dice Roller
-                {lucky && (
-                    <span title="The dice are listening" className="flex">
-                        <Clover className="w-3.5 h-3.5 text-amber-200" />
+                {look.Icon && (
+                    <span title={look.hint} className="flex">
+                        <look.Icon className={`w-3.5 h-3.5 ${look.iconClass}`} />
                     </span>
                 )}
             </span>
@@ -515,7 +571,7 @@ export function DiceRoller({
                         exit={{ opacity: 0, y: 50, scale: 0.95 }}
                         className={`overflow-hidden flex flex-col transition-colors duration-500
                             ${embedded ? "relative w-full" : "fixed rounded-lg shadow-2xl z-50"}
-                            ${lucky ? "bg-[#fffcf3] ring-1 ring-amber-300/70" : "bg-white"}`}
+                            ${look.panel}`}
                         style={embedded ? undefined : {
                             bottom: isLargeScreen ? '32px' : '80px',
                             ...(isLargeScreen
@@ -547,9 +603,7 @@ export function DiceRoller({
                                                     ? "bg-green-50 border-green-200"
                                                     : headline.crit === "failure"
                                                         ? "bg-red-50 border-red-200"
-                                                        : lucky
-                                                            ? "bg-amber-100/60 border-amber-200"
-                                                            : "bg-gray-100 border-gray-200"}`}
+                                                        : look.readout}`}
                                         >
                                             <div className="text-[11px] uppercase tracking-wide text-gray-500 font-semibold mb-0.5 z-10 relative">
                                                 {headline.crit === "success"
@@ -732,7 +786,7 @@ export function DiceRoller({
                                         <DiceLineRow
                                             key={line.id}
                                             line={line}
-                                            lucky={lucky}
+                                            tint={look.row}
                                             pulse={pulses[line.id] ?? 0}
                                             busy={isRolling}
                                             canDuplicate={lines.length < MAX_LINES}

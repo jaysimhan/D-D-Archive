@@ -14,6 +14,8 @@ export interface StoredRoller {
     modifier?: unknown;
     rollMode?: unknown;
     showLog?: unknown;
+    luck?: unknown;
+    /** What older builds saved before there was more than one kind of luck. */
     lucky?: unknown;
 }
 
@@ -40,5 +42,7 @@ export function writeStored(state: StoredRoller): void {
 /** Puts the dice back to plain luck, leaving everything else as it was. */
 export function forgetLuck(): void {
     const stored = readStored();
-    if (stored.lucky === true) writeStored({ ...stored, lucky: false });
+    if ((stored.luck !== undefined && stored.luck !== "plain") || stored.lucky === true) {
+        writeStored({ ...stored, luck: "plain", lucky: undefined });
+    }
 }

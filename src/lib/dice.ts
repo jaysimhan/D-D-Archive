@@ -62,36 +62,62 @@ export interface LineRoll {
 }
 
 /**
- * Every die is a straight, even roll — unless the table has talked the roller
- * into being generous, in which case 2 out of 3 dice lean high by taking the
- * best of three draws (which lands in the top half 87.5% of the time) and the
- * remaining third stays uniform. Blended, 75% of a lucky line's dice land in
- * the upper half. Every face stays reachable either way, crits and crit-fails
- * included — luck shifts the odds, it never removes a number from the die.
+ * How kind the dice are being. Each player's roller keeps its own, in its own
+ * browser, so nobody else at the table can see which one is on.
+ *
+ * - plain     — the default: 60% of dice land in the top half.
+ * - lucky     — 80% land in the top half.
+ * - veryLucky — only the top three faces (top two on a d4).
+ * - unlucky   — only the bottom half.
+ *
+ * Under plain and lucky every face stays reachable, crits and crit-fails
+ * included; a die picks its half first, then a face evenly within it. An odd
+ * die's middle face belongs to neither half and keeps its fair 1-in-N chance.
  */
-const LUCKY_CHANCE = 2 / 3;
-const LUCKY_DRAWS = 3;
+export type Luck = "plain" | "lucky" | "veryLucky" | "unlucky";
 
-export const rollDie = (sides: number, lucky = false): number => {
-    const uniform = () => Math.floor(Math.random() * sides) + 1;
-    if (!lucky || Math.random() >= LUCKY_CHANCE) return uniform();
-    return Math.max(...Array.from({ length: LUCKY_DRAWS }, uniform));
+const LUCKS: Luck[] = ["plain", "lucky", "veryLucky", "unlucky"];
+
+export const sanitizeLuck = (raw: unknown): Luck =>
+    LUCKS.includes(raw as Luck) ? (raw as Luck) : "plain";
+
+const TOP_HALF_CHANCE = { plain: 0.6, lucky: 0.8 } as const;
+const VERY_LUCKY_FACES = 3;
+
+/** An even pick between two faces, both included. */
+const between = (low: number, high: number): number =>
+    low + Math.floor(Math.random() * (high - low + 1));
+
+export const rollDie = (sides: number, luck: Luck = "plain"): number => {
+    const half = Math.floor(sides / 2);
+
+    if (luck === "unlucky") return between(1, Math.max(1, half));
+    if (luck === "veryLucky") {
+        // Capped at half the die, so a d4 keeps two faces rather than three.
+        const faces = Math.min(VERY_LUCKY_FACES, Math.ceil(sides / 2));
+        return between(sides - faces + 1, sides);
+    }
+
+    if (sides % 2 === 1 && Math.random() < 1 / sides) return half + 1;
+    return Math.random() < TOP_HALF_CHANCE[luck]
+        ? between(sides - half + 1, sides)
+        : between(1, half);
 };
 
 /* --------------------------------------------------------------- the code */
-
-export type LuckSwitch = "on" | "off";
 
 /**
  * A line's name box doubles as a console. Codes are matched on their letters
  * alone, so shouting it or spacing it out — "I Am Feeling Lucky" — still lands.
  */
-const CODES: Record<string, LuckSwitch> = {
-    iamfeelinglucky: "on",
-    leavemealone: "off",
+const CODES: Record<string, Luck> = {
+    iamfeelinglucky: "lucky",
+    iamfeelingverylucky: "veryLucky",
+    iamfeelingbad: "unlucky",
+    leavemealone: "plain",
 };
 
-export const cheatCode = (label: string): LuckSwitch | null =>
+export const cheatCode = (label: string): Luck | null =>
     CODES[label.toLowerCase().replace(/[^a-z]/g, "")] ?? null;
 
 export const clampInt = (value: number, min: number, max: number): number =>
@@ -185,9 +211,9 @@ function applyLimit(rolled: number, line: DiceLine): DieResult {
         : { value: limited, dropped: false, clampedFrom: rolled };
 }
 
-export function rollLine(line: DiceLine, lucky = false): LineRoll {
+export function rollLine(line: DiceLine, luck: Luck = "plain"): LineRoll {
     const count = clampInt(line.count, 1, MAX_COUNT);
-    const dice: DieResult[] = Array.from({ length: count }, () => applyLimit(rollDie(line.sides, lucky), line));
+    const dice: DieResult[] = Array.from({ length: count }, () => applyLimit(rollDie(line.sides, luck), line));
 
     // Option 1 picks the same dice either way — the extremes — and only the
     // treatment differs: a drop takes them out of the total, a reroll replaces
@@ -203,7 +229,7 @@ export function rollLine(line: DiceLine, lucky = false): LineRoll {
                 dice[index].dropped = true;
             } else {
                 const before = dice[index].value;
-                dice[index] = { ...applyLimit(rollDie(line.sides, lucky), line), rerolledFrom: before };
+                dice[index] = { ...applyLimit(rollDie(line.sides, luck), line), rerolledFrom: before };
             }
         }
     }
