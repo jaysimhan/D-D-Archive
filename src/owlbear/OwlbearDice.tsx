@@ -28,6 +28,12 @@ const MIN_HEIGHT = 120;
 const FALLBACK_LIMIT = 640;
 /** Room left for Owlbear's own toolbar above the popover and a margin below. */
 const SCREEN_MARGIN = 96;
+/**
+ * Owlbear can hand the popover less height than it asked for. The frame is
+ * read twice, this far apart, and only a size that has stopped changing
+ * counts, so a popover still growing is not mistaken for one that was capped.
+ */
+const SETTLE_MS = 250;
 /** Everyone, the DM's rolls, or one player's, by id. */
 type Filter = "all" | "gm" | string;
 
@@ -365,10 +371,34 @@ export function OwlbearDice() {
     /** The tallest the popover may be, and what the pinned header takes of it. */
     const [limit, setLimit] = useState(FALLBACK_LIMIT);
     const [headerHeight, setHeaderHeight] = useState(0);
+    /** The last height asked of Owlbear, and the most it has been seen to give. */
+    const requested = useRef(0);
+    const granted = useRef(Infinity);
 
     useEffect(() => {
-        OBR.viewport.getHeight().then((height) => setLimit(Math.max(MIN_HEIGHT, height - SCREEN_MARGIN)));
+        OBR.viewport.getHeight().then((height) =>
+            setLimit(Math.min(granted.current, Math.max(MIN_HEIGHT, height - SCREEN_MARGIN))));
     }, []);
+
+    /**
+     * When the frame settles shorter than the height asked for, Owlbear has
+     * capped it. The panes are then sized to the frame actually there, or the
+     * bottom of a long list would sit below it, out of reach of the scroll.
+     */
+    const checkFrame = useCallback(() => {
+        const first = window.innerHeight;
+        window.setTimeout(() => {
+            const actual = window.innerHeight;
+            if (actual !== first || actual < MIN_HEIGHT || actual >= requested.current - 1) return;
+            granted.current = Math.min(granted.current, actual);
+            setLimit((current) => Math.min(current, actual));
+        }, SETTLE_MS);
+    }, []);
+
+    useEffect(() => {
+        window.addEventListener("resize", checkFrame);
+        return () => window.removeEventListener("resize", checkFrame);
+    }, [checkFrame]);
 
     useEffect(() => {
         const root = rootRef.current;
@@ -380,14 +410,17 @@ export function OwlbearDice() {
             const height = Math.min(limit, Math.max(MIN_HEIGHT, Math.ceil(root.getBoundingClientRect().height)));
             if (height === last) return;
             last = height;
-            OBR.action.setHeight(height);
+            requested.current = height;
+            // A frame Owlbear caps without resizing fires no resize event, so
+            // look once the request has gone through too.
+            OBR.action.setHeight(height).then(() => window.setTimeout(checkFrame, SETTLE_MS));
         };
         const observer = new ResizeObserver(fit);
         observer.observe(root);
         observer.observe(header);
         fit();
         return () => observer.disconnect();
-    }, [limit]);
+    }, [limit, checkFrame]);
 
     const paneHeight = Math.max(MIN_HEIGHT, limit - headerHeight);
 
