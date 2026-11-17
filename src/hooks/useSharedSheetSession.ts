@@ -6,7 +6,7 @@ import {
 } from "../lib/sheet-session";
 import {
     fetchSharedSheet, lockSharedSheet, saveSharedSheet, SharedSheetError, SHARED_SHEET_ID,
-    sharedSheetPath, submitSheetPin, verifySheetPin, type SharedSheet,
+    sharedSheetPath, sheetCodeFromParam, sheetName, sheetSlug, submitSheetPin, verifySheetPin, type SharedSheet,
 } from "../lib/shared-sheets";
 import { collectCharacterSpells } from "../utils/character-spells";
 
@@ -68,7 +68,9 @@ function openRemote(remote: SharedSheet, restoreDraft: boolean): OpenedSheet {
 }
 
 export function useSharedSheetSession() {
-    const { sheetId } = useParams<{ sheetId: string }>();
+    const { sheetId: param } = useParams<{ sheetId: string }>();
+    // An unreadable code still counts as a link, so it fails instead of opening the local sheet.
+    const sheetId = param && (sheetCodeFromParam(param) ?? param);
     const location = useLocation();
     const navigate = useNavigate();
     const [opened, setOpened] = useState<OpenedSheet>(() => sheetId
@@ -126,8 +128,11 @@ export function useSharedSheetSession() {
         setOpened({ session: new SheetSession(undefined), error: "", loading: true });
         void fetchSharedSheet(sheetId, abort.signal).then((remote) => {
             if (abort.signal.aborted) return;
-            loadedSource.current = source;
+            // Old /s/ links and links missing the name move to the sheet's fixed link.
+            const path = sharedSheetPath(remote.id, remote.slug);
+            loadedSource.current = path;
             setOpened(openRemote(remote, true));
+            if (path !== source) navigate(path, { replace: true });
         }).catch((error: Error) => {
             if (abort.signal.aborted) return;
             loadedSource.current = source;
@@ -144,7 +149,7 @@ export function useSharedSheetSession() {
             if (discardedSessions.current.has(session.id)) return;
             try {
                 writeLocalSheet(session.snapshot(), {
-                    sourcePath: remote ? sharedSheetPath(remote.id) : "/character-sheet",
+                    sourcePath: remote ? sharedSheetPath(remote.id, remote.slug) : "/character-sheet",
                     sourceHash: remote ? "" : location.hash,
                     remote: remote ? { id: remote.id, revision: remote.revision } : undefined,
                     dirty: session.dirty,
@@ -182,7 +187,7 @@ export function useSharedSheetSession() {
         try {
             const id = remote?.id ?? (pendingId.current ??= crypto.randomUUID().replace(/-/g, ""));
             const saved = await saveSharedSheet(snapshot, id, remote?.revision, pin);
-            const path = sharedSheetPath(saved.id);
+            const path = sharedSheetPath(saved.id, saved.slug);
             active.markSaved(snapshot.fields); // Edits made during the request remain unsaved.
             const updated = { session: active, remote: saved, error: "" };
             if (mounted.current && latest.current.session === active) {
@@ -190,7 +195,8 @@ export function useSharedSheetSession() {
                 loadedSource.current = path;
                 setOpened(updated);
                 navigate(path, { replace: true });
-                setSaveMessage("Saved. Your shared link now shows this version.");
+                setSaveMessage(remote ? "Saved. Your shared link now shows this version."
+                    : "Link created. Its name stays the same even if you rename the character.");
                 setPinMode(null);
             }
             try {
@@ -227,7 +233,7 @@ export function useSharedSheetSession() {
     const copyLink = async () => {
         if (!remote) copyAfterCreate.current = true;
         const link = remote && (!canEdit || !session.dirty)
-            ? new URL(sharedSheetPath(remote.id), window.location.origin).href : await save();
+            ? new URL(sharedSheetPath(remote.id, remote.slug), window.location.origin).href : await save();
         if (!link) return;
         await copy(link);
     };
@@ -365,6 +371,8 @@ export function useSharedSheetSession() {
     }, [remote?.id]);
 
     return {
+        /** The name part a new link would get, shown before it is created. */
+        newLinkSlug: () => sheetSlug(sheetName(session.snapshot())),
         opened, session, remote, canEdit, saving, save, copyLink, reloadSaved, exitEditing, resumeEditing,
         sessionError, saveMessage, setSaveMessage,
         pinMode, pinError, pinBusy, submitPin,

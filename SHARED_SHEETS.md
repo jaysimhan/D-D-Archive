@@ -1,8 +1,16 @@
 # Permanent sheet links
 
-Save creates `/s/<random-id>` on the current origin. Later saves update the same
-Sanity document. Copy link saves pending edits first. Full-data `#sheet=...` links
-still open and become a permanent link on their first save.
+Save creates `/sheet/<character-name>-<code>` on the current origin, for example
+`/sheet/valcript-d4f3c18be9`. The code is the first 10 characters of the sheet's
+random 32-character ID; the API resolves it, so the name part is cosmetic. The name
+is taken from the character name when the link is created and stored on the sheet
+(`slug`), so renaming the character never changes the link; the create dialog says
+so and previews the link. Characters with the same name get different codes.
+Sheets created before `slug` existed use their current name. Old `/s/<id>` links
+and links with a different name part still open and redirect to the current link.
+
+Later saves update the same Sanity document. Copy link saves pending edits first.
+Full-data `#sheet=...` links still open and become a permanent link on their first save.
 
 `api/sheets.ts` is the Vercel endpoint. `npm run dev` and `npm run preview` expose
 the same handler through the Vite server. No third-party shortener or domain
@@ -21,7 +29,7 @@ environment that should support sharing:
 
 Local development reads the existing `.env` files through Vite. Never give the
 write token a `VITE_` or `NEXT_PUBLIC_` prefix. It is used only by the server.
-The existing Vercel rewrite already excludes `/api/` and serves `/s/...` through
+The existing Vercel rewrite already excludes `/api/` and serves `/sheet/...` and `/s/...` through
 the React app. Deploy the site normally after configuring the variables.
 
 ## Access and persistence

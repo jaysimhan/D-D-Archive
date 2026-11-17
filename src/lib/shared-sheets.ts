@@ -1,6 +1,9 @@
 import { decodeSheet, type SheetSnapshot } from "./sheet-session.js";
 
 export const SHARED_SHEET_ID = /^[a-f0-9]{32}$/;
+/** Links carry only the first characters of the ID; the API resolves the rest. */
+export const SHEET_CODE_LENGTH = 10;
+export const SHEET_CODE = /^[a-f0-9]{10}$/;
 export const MAX_SHARED_SHEET_BYTES = 3_000_000;
 export interface SharedSheet {
     id: string;
@@ -8,12 +11,32 @@ export interface SharedSheet {
     canEdit: boolean;
     canManagePin: boolean;
     hasPin: boolean;
+    /** Name part of the link, fixed when the link is created. */
+    slug: string;
     snapshot: SheetSnapshot;
 }
 
-export function sharedSheetPath(id: string): string {
+export function sheetName(snapshot?: SheetSnapshot): string {
+    const typed = snapshot?.fields["/page1/characterName"];
+    return typeof typed === "string" ? typed : snapshot?.character?.name ?? "";
+}
+
+export const SHEET_SLUG = /^[a-z0-9-]{0,40}$/;
+export function sheetSlug(name: string): string {
+    return name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+}
+
+/** `/sheet/<slug>-<code>`; the slug is cosmetic and only the code is read back. */
+export function sharedSheetPath(id: string, slug = ""): string {
     if (!SHARED_SHEET_ID.test(id)) throw new Error("Invalid sheet link.");
-    return `/s/${id}`;
+    return `/sheet/${slug ? `${slug}-` : ""}${id.slice(0, SHEET_CODE_LENGTH)}`;
+}
+
+/** The sheet code (or a legacy full ID) at the end of a link segment. */
+export function sheetCodeFromParam(param: string): string | undefined {
+    const code = param.slice(param.lastIndexOf("-") + 1);
+    return SHEET_CODE.test(code) || SHARED_SHEET_ID.test(code) ? code : undefined;
 }
 
 export class SharedSheetError extends Error {
@@ -29,14 +52,15 @@ async function request(init: RequestInit, id?: string, action?: "unlock" | "veri
         throw new SharedSheetError(body?.error || "The sheet service is unavailable. Your draft is still on this browser.", response.status);
     }
     if (!SHARED_SHEET_ID.test(body.id) || typeof body.revision !== "string" || typeof body.canEdit !== "boolean" ||
-        typeof body.canManagePin !== "boolean" || typeof body.hasPin !== "boolean") {
+        typeof body.canManagePin !== "boolean" || typeof body.hasPin !== "boolean" ||
+        typeof body.slug !== "string" || !SHEET_SLUG.test(body.slug)) {
         throw new SharedSheetError("The sheet service returned an invalid response.", 502);
     }
     return { ...body, snapshot: decodeSheet(JSON.stringify(body.snapshot)) };
 }
 
 export async function fetchSharedSheet(id: string, signal?: AbortSignal): Promise<SharedSheet> {
-    sharedSheetPath(id);
+    if (!SHEET_CODE.test(id)) sharedSheetPath(id);
     return request({ method: "GET", signal }, id);
 }
 
@@ -63,7 +87,7 @@ export async function saveSharedSheet(snapshot: SheetSnapshot, id: string, revis
     return request({
         method: revision ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ snapshot, revision, ...(!revision ? { pin } : {}) }),
+        body: JSON.stringify({ snapshot, revision, ...(!revision ? { pin, slug: sheetSlug(sheetName(snapshot)) } : {}) }),
     }, id);
 }
 

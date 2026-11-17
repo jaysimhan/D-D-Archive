@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 
-export function SheetPinDialog({ mode, busy, error, onClose, onSubmit }: {
+export function SheetPinDialog({ mode, busy, error, onClose, onSubmit, linkSlug = "" }: {
     mode: "create" | "unlock" | "pin" | "verify";
+    /** Name part of the link about to be created. */
+    linkSlug?: string;
     busy: boolean;
     error: string;
     onClose: () => void;
@@ -27,6 +29,16 @@ export function SheetPinDialog({ mode, busy, error, onClose, onSubmit }: {
                                 ? "This character was saved using XP. Enter its four-digit PIN to switch to milestone leveling. The XP is kept, hidden, if you switch back."
                                 : "Enter this character’s four-digit PIN. Saved changes will be visible to everyone using its shared link."}
                 </DialogDescription>
+                {mode === "create" && <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 p-3 text-sm text-amber-100">
+                    <p className="break-all font-mono text-xs text-amber-50">
+                        {window.location.host}/sheet/{linkSlug ? `${linkSlug}-` : ""}<span className="opacity-60">xxxxxxxxxx</span>
+                    </p>
+                    <p className="mt-2">
+                        The name in this link is fixed once it is created. Renaming the character later will not change it,
+                        so {linkSlug ? "check the character name first" : "add a character name first if you want it in the link"}.
+                        Every character gets its own code, so characters with the same name never share a link.
+                    </p>
+                </div>}
                 <form className="flex flex-col gap-4" onSubmit={(event) => {
                     event.preventDefault();
                     if (!/^\d{4}$/.test(pin)) { setValidation("Enter exactly four digits."); return; }

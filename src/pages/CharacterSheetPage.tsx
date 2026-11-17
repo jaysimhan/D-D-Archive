@@ -53,7 +53,7 @@ export function CharacterSheetPage() {
     const {
         opened, session, remote, canEdit, saving, save, copyLink, reloadSaved, exitEditing, resumeEditing,
         sessionError, saveMessage, setSaveMessage, loading, loadFailed,
-        pinMode, pinError, pinBusy, submitPin, openPin, closePin, confirmWithPin,
+        pinMode, pinError, pinBusy, submitPin, openPin, closePin, confirmWithPin, newLinkSlug,
     } = useSharedSheetSession();
     const initialCharacter = session.character;
     useSyncExternalStore(session.subscribe, session.getRevision);
@@ -278,7 +278,7 @@ export function CharacterSheetPage() {
         <SheetRulesetContext.Provider value={ruleset}>
         <div className="character-sheet-page min-h-screen bg-zinc-950 px-0 py-4 sm:px-4 sm:py-8">
             {pinMode && <SheetPinDialog key={pinMode} mode={pinMode} busy={pinBusy} error={pinError}
-                onClose={closePin} onSubmit={submitPin} />}
+                linkSlug={pinMode === "create" ? newLinkSlug() : undefined} onClose={closePin} onSubmit={submitPin} />}
             <div className="character-sheet-toolbar mx-auto mb-3 flex w-full max-w-[1700px] flex-wrap justify-end gap-2 px-3 sm:mb-4 sm:gap-3 sm:px-0">
                 {canEdit && <>
                 <button type="button" onClick={() => { session.undo(); setSaveMessage(""); }} disabled={!canEdit || !session.canUndo}

@@ -61,10 +61,10 @@ try {
     } catch (error) {
         assert.equal((error as { statusCode?: number }).statusCode, 403, "Unexpected unauthenticated-read result");
     }
-    const route = await fetch(`${origin}/s/${id}`);
+    const route = await fetch(`${origin}/sheet/test-${id.slice(0, 10)}`);
     assert.equal(route.status, 200);
     assert.match(await route.text(), /id="root"/);
-    console.log("Live check passed: creator PIN, owner access, view-only links, cross-browser unlock/save, updated shared values, conflicts, PIN revocation, private PIN storage, and /s routing.");
+    console.log("Live check passed: creator PIN, owner access, view-only links, cross-browser unlock/save, updated shared values, conflicts, PIN revocation, private PIN storage, and /sheet routing.");
 } catch (error) {
     // Never print SDK requests or headers containing a token.
     console.error(error instanceof Error && error.name === "AssertionError" ? error.message : "Live check failed; backend/network access needs attention.");

@@ -3,7 +3,7 @@ import { gzipSync, gunzipSync } from "node:zlib";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createClient } from "@sanity/client";
 import { decodeSheet, type SheetSnapshot } from "../src/lib/sheet-session.js";
-import { MAX_SHARED_SHEET_BYTES, SHARED_SHEET_ID } from "../src/lib/shared-sheets.js";
+import { MAX_SHARED_SHEET_BYTES, SHARED_SHEET_ID, SHEET_CODE, SHEET_SLUG, sheetName, sheetSlug } from "../src/lib/shared-sheets.js";
 import {
     ACCESS_PREFIX, EDIT_SECONDS, editorCookieName, hasGrant, HttpError, makeAccess,
     matchesPin, requirePin, revokeGrant, unlockWithPin, verifyPin, type SheetAccess, type AccessRepository,
@@ -17,9 +17,13 @@ export interface SheetRecord {
     _type: "sharedSheet";
     ownerHash: string;
     payload: string;
+    /** Name part of the link, fixed at creation. Older sheets fall back to the current name. */
+    slug?: string;
 }
 export interface SheetRepository extends AccessRepository {
     get(id: string): Promise<SheetRecord | undefined>;
+    /** IDs of sheets whose ID starts with a link code (at most two). */
+    findByCode(code: string): Promise<string[]>;
     create(record: Omit<SheetRecord, "_rev">, access: SheetAccess): Promise<SheetRecord>;
     update(id: string, revision: string, payload: string): Promise<SheetRecord>;
 }
@@ -34,6 +38,8 @@ export function sanitySheetRepository(env: Record<string, string | undefined>): 
     });
     return {
         get: (id) => client.getDocument<SheetRecord>(id),
+        findByCode: (code) => client.fetch<string[]>(
+            `*[_type == "sharedSheet" && string::startsWith(_id, $prefix)][0...2]._id`, { prefix: `${ID_PREFIX}${code}` }),
         create: async (record, access) => {
             await client.transaction().create(record).create(access).commit({ visibility: "sync" });
             const saved = await client.getDocument<SheetRecord>(record._id);
@@ -66,10 +72,12 @@ function unpack(record: SheetRecord): SheetSnapshot {
     return decodeSheet(serialized);
 }
 function publicRecord(record: SheetRecord, token?: string, access?: SheetAccess, editorToken?: string) {
+    const snapshot = unpack(record);
     return {
         id: record._id.slice(ID_PREFIX.length), revision: record._rev,
         canEdit: owns(record, token) || hasGrant(access, editorToken),
-        canManagePin: owns(record, token), hasPin: Boolean(access), snapshot: unpack(record),
+        canManagePin: owns(record, token), hasPin: Boolean(access),
+        slug: record.slug ?? sheetSlug(sheetName(snapshot)), snapshot,
     };
 }
 function isConflict(error: unknown) {
@@ -77,7 +85,7 @@ function isConflict(error: unknown) {
 }
 
 type ApiRequest = IncomingMessage & { body?: unknown };
-async function readBody(req: ApiRequest): Promise<{ snapshot?: unknown; revision?: unknown; pin?: unknown }> {
+async function readBody(req: ApiRequest): Promise<{ snapshot?: unknown; revision?: unknown; pin?: unknown; slug?: unknown }> {
     let raw: string;
     if (req.body !== undefined) {
         raw = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
@@ -117,11 +125,12 @@ export function createSheetHandler(repository: () => SheetRepository) {
                 throw new HttpError(405, "Method not allowed.");
             }
             const params = new URL(req.url || "/", "http://localhost").searchParams;
-            const id = params.get("id");
+            let id = params.get("id");
             const action = params.get("action");
             if (action && !["unlock", "verify", "pin", "lock"].includes(action)) throw new HttpError(400, "Unknown sheet action.");
             if (action && method !== "POST") throw new HttpError(405, "Use POST for this action.");
-            if (id !== null && !SHARED_SHEET_ID.test(id)) throw new HttpError(400, "Invalid sheet link.");
+            const byCode = id !== null && method === "GET" && SHEET_CODE.test(id);
+            if (id !== null && !byCode && !SHARED_SHEET_ID.test(id)) throw new HttpError(400, "Invalid sheet link.");
             const token = cookieToken(req);
             const setCookie = (name: string, value: string, maxAge: number, path: string) => {
                 const secure = req.headers["x-forwarded-proto"] === "https" ||
@@ -150,6 +159,11 @@ export function createSheetHandler(repository: () => SheetRepository) {
                 return;
             }
             if (!id) throw new HttpError(400, "A sheet ID is required.");
+            if (byCode) {
+                const matches = await store.findByCode(id);
+                if (matches.length !== 1) throw new HttpError(404, "This shared sheet was not found.");
+                id = matches[0].slice(ID_PREFIX.length);
+            }
             const recordId = `${ID_PREFIX}${id}`;
             const editToken = cookieToken(req, editorCookieName(id));
             if (method === "GET") {
@@ -201,7 +215,8 @@ export function createSheetHandler(repository: () => SheetRepository) {
             if (method === "POST") {
                 const pin = requirePin(body.pin);
                 const access = await makeAccess(id, pin);
-                const record = { _id: recordId, _type: "sharedSheet" as const, ownerHash: digest(token!), payload };
+                const slug = typeof body.slug === "string" && SHEET_SLUG.test(body.slug) ? body.slug : sheetSlug(sheetName(snapshot));
+                const record = { _id: recordId, _type: "sharedSheet" as const, ownerHash: digest(token!), payload, slug };
                 try {
                     send(201, publicRecord(await store.create(record, access), token, access));
                 } catch (error) {

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { Readable } from "node:stream";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createSheetHandler, sanitySheetRepository, type SheetRecord, type SheetRepository } from "../server/shared-sheets";
-import { MAX_SHARED_SHEET_BYTES, sharedSheetPath } from "../src/lib/shared-sheets";
+import { MAX_SHARED_SHEET_BYTES, sharedSheetPath, sheetCodeFromParam, sheetSlug } from "../src/lib/shared-sheets";
 import { SheetSession, readSheetDraft, writeLocalSheet } from "../src/lib/sheet-session";
 
 import { ACCESS_PREFIX, PIN_WINDOW_MS, type SheetAccess } from "../server/sheet-pin";
@@ -13,6 +13,7 @@ let revision = 0;
 const conflict = () => Object.assign(new Error("conflict"), { statusCode: 409 });
 const repository: SheetRepository = {
     async get(id) { return records.get(id); },
+    async findByCode(code) { return [...records.keys()].filter((key) => key.startsWith(`sharedSheet.${code}`)).slice(0, 2); },
     async getAccess(id) { return accessRecords.get(id); },
     async writeAccess(access) {
         const current = accessRecords.get(access._id);
@@ -85,6 +86,7 @@ assert.equal(created.status, 201);
 assert.equal(created.body.canEdit, true);
 assert.deepEqual(created.body.snapshot, snapshot);
 assert.equal(created.body.id, id);
+assert.equal(created.body.slug, "eowyn", "the link name is taken from the character name at creation");
 assert.ok(!JSON.stringify(created.body).includes("ownerHash"), "owner fingerprint is never returned");
 assert.ok(!JSON.stringify(records.get(`sharedSheet.${id}`)).includes(cookie.split("=")[1]), "raw owner token is never stored");
 assert.equal((await call("POST", id, { snapshot, pin: "0042" }, cookie)).status, 200, "identical retries are idempotent");
@@ -107,6 +109,12 @@ assert.equal(saved.status, 200);
 assert.equal(saved.body.id, created.body.id, "updates keep the same link");
 assert.notEqual(saved.body.revision, created.body.revision);
 assert.deepEqual((await call("GET", id)).body.snapshot, changed, "viewers get the latest saved version");
+assert.equal((await call("GET", id)).body.slug, "eowyn", "renaming keeps the link name");
+const byCode = await call("GET", id.slice(0, 10));
+assert.equal(byCode.status, 200, "short link codes resolve");
+assert.equal(byCode.body.id, id);
+assert.equal((await call("GET", "c".repeat(10))).status, 404);
+assert.equal((await call("PUT", id.slice(0, 10), { snapshot, revision: saved.body.revision }, cookie)).status, 400, "writes need the full ID");
 assert.equal((await call("PUT", id, { snapshot, revision: created.body.revision }, cookie)).status, 409, "stale tabs cannot overwrite");
 const racingHandler = createSheetHandler(() => ({ ...repository, async update() { throw conflict(); } }));
 assert.equal((await call("PUT", id, { snapshot, revision: saved.body.revision }, cookie, {}, racingHandler)).status, 409, "atomic revision guard handles writes racing after authorization");
@@ -117,7 +125,12 @@ const unavailable = await call("GET", id, undefined, undefined, {}, broken);
 assert.equal(unavailable.status, 503);
 assert.ok(!JSON.stringify(unavailable).includes("secret token"));
 assert.throws(() => sanitySheetRepository({}), /not configured/);
-assert.equal(sharedSheetPath(id), `/s/${id}`);
+assert.equal(sharedSheetPath(id), `/sheet/${id.slice(0, 10)}`);
+assert.equal(sharedSheetPath(id, sheetSlug("Sir Ælfric  the Bold!")), `/sheet/sir-lfric-the-bold-${id.slice(0, 10)}`);
+assert.equal(sheetSlug("Éowyn & 火 🐉"), "eowyn");
+assert.equal(sheetCodeFromParam(`sir-lfric-the-bold-${id.slice(0, 10)}`), id.slice(0, 10));
+assert.equal(sheetCodeFromParam(id), id, "legacy full IDs still open");
+assert.equal(sheetCodeFromParam("no-code-here"), undefined);
 assert.throws(() => sharedSheetPath("https://other.example"));
 
 // A save completing after another edit must not falsely mark the new edit saved.
