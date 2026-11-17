@@ -18,6 +18,12 @@ export const TRAY_SIDES: DieSides[] = [4, 6, 8, 10, 12, 20, 100];
 
 export const MAX_COUNT = 99;
 /**
+ * A line's name. Long enough for the longest code typed out in full with its
+ * spaces — "I am feeling very lucky" is 23 — or the name box cuts the code
+ * short and it never lands.
+ */
+export const MAX_LABEL = 24;
+/**
  * Effectively "type what you like" — six digits is past any modifier a table
  * will ever need, while still keeping totals inside exact integer arithmetic
  * and the input box a sane width.
@@ -255,7 +261,7 @@ export function sanitizeLine(raw: unknown): DiceLine | null {
     const sides = DIE_SIDES.includes(value.sides as DieSides) ? (value.sides as DieSides) : 20;
     const count = clampInt(Number(value.count), 1, MAX_COUNT);
     const line = createLine({
-        label: typeof value.label === "string" ? value.label.slice(0, 22) : "",
+        label: typeof value.label === "string" ? value.label.slice(0, MAX_LABEL) : "",
         count,
         sides,
         sign: value.sign === -1 ? -1 : 1,

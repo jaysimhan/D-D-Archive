@@ -6,6 +6,7 @@ import {
     maxKeepCount,
     notation,
     MAX_COUNT,
+    MAX_LABEL,
     MAX_MODIFIER,
     type DiceLine,
     type DieSides,
@@ -77,7 +78,7 @@ export function DiceLineRow({
                 </button>
                 <input
                     type="text"
-                    maxLength={22}
+                    maxLength={MAX_LABEL}
                     value={line.label}
                     placeholder={notation(line)}
                     onChange={(event) => onChange({ label: event.target.value })}

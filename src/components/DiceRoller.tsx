@@ -105,14 +105,15 @@ const LUCK_LOOK: Record<Luck, {
         Icon: Clover,
         iconClass: "text-amber-200",
     },
+    // Its own colour, so it can't be mistaken for plain lucky at a glance.
     veryLucky: {
-        banner: "from-amber-600",
-        panel: "bg-[#fffcf3] ring-1 ring-amber-300/70",
-        readout: "bg-amber-100/60 border-amber-200",
-        row: "border-amber-200 bg-amber-50/50",
+        banner: "from-violet-600",
+        panel: "bg-[#fbf9ff] ring-1 ring-violet-300/70",
+        readout: "bg-violet-100/60 border-violet-200",
+        row: "border-violet-200 bg-violet-50/50",
         hint: CODE_REPLY.veryLucky,
         Icon: Sparkles,
-        iconClass: "text-amber-200",
+        iconClass: "text-violet-200",
     },
     unlucky: {
         banner: "from-slate-600",
